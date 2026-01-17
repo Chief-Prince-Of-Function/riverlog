@@ -30,12 +30,16 @@ export function initTrips({ refreshCatches, setStatus }){
 
     newTripForm.hidden = !show;
 
-    // ✅ mobile sheet mode (pairs with CSS body.tripSheetOpen)
-    document.body.classList.toggle("tripSheetOpen", !!show);
+    // Mobile sheet overlay class (used by CSS)
+    if(show){
+      document.body.classList.add("tripSheetOpen");
+    }else{
+      document.body.classList.remove("tripSheetOpen");
+    }
 
     if(show){
       try{ newTripDate.value = new Date().toISOString().slice(0,10); }catch(_){}
-      // focus after layout settles (helps iOS)
+      // slight delay helps iOS render the fixed sheet before focusing
       setTimeout(()=> newTripLocation?.focus(), 50);
     }else{
       if(newTripLocation) newTripLocation.value = "";
@@ -120,6 +124,7 @@ export function initTrips({ refreshCatches, setStatus }){
 
     await saveTrip(t);
     await refreshTrips(t.id);
+
     toggleNewTrip(false);
     setStatus("New trip saved.");
   });
