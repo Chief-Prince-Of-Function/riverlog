@@ -202,6 +202,8 @@ body{
   padding: 16px;
 }
 
+.tripSheetOverlay[hidden]{ display:none !important; }
+
 #newTripForm.newTrip{
   position: relative; /* IMPORTANT: not fixed */
   z-index: 9999;
