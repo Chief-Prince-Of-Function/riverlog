@@ -5,8 +5,10 @@
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
   <meta name="theme-color" content="#0b1020" />
   <title>RiverLog</title>
-  <link rel="manifest" href="manifest.json" />
-  <link rel="icon" href="assets/icon-192.png" />
+
+  <!-- GitHub Pages-safe absolute paths -->
+  <link rel="manifest" href="/riverlog/manifest.json" />
+  <link rel="icon" href="/riverlog/assets/icon-192.png" />
   <link rel="stylesheet" href="app.css" />
 </head>
 <body>
@@ -125,7 +127,6 @@
           <div class="subtitle2" id="tripMeta">—</div>
         </div>
 
-        <!-- NEW: Always-visible collage button -->
         <div class="row gap" style="justify-content:flex-end;">
           <button id="collageBtnTop" class="btn">Build Collage</button>
           <button id="editTripBtn" class="btn ghost">Trip Recap</button>
@@ -149,7 +150,6 @@
 
       <div class="divider"></div>
 
-      <!-- Collage action lives in the drawer (still here too) -->
       <div class="row gap topGap">
         <button id="collageBtn" class="btn">Build Collage</button>
       </div>
@@ -198,7 +198,6 @@
     <div class="muted" id="syncStatus">—</div>
   </footer>
 
-  <!-- Collage Modal -->
   <div id="collageOverlay" class="overlay hidden"></div>
   <div id="collageModal" class="modal hidden" role="dialog" aria-modal="true">
     <div class="modalHead">
@@ -220,7 +219,6 @@
     </div>
   </div>
 
-  <!-- Hidden render canvas -->
   <canvas id="collageCanvas" width="1400" height="1400" style="display:none;"></canvas>
 
   <script src="vendor/jszip.min.js"></script>
