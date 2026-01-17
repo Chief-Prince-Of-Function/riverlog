@@ -410,3 +410,69 @@ select.input option:checked{
     min-width: 84px;
   }
 }
+
+/* =========================
+   iOS / Mobile: stop input zoom + keyboard reflow weirdness
+========================= */
+
+/* iOS will zoom if font-size < 16px */
+@media (max-width:720px){
+  input, select, textarea, button{
+    font-size:16px !important;
+  }
+}
+
+/* Make the New Trip form a "sheet" on mobile so it doesn't scramble layout */
+@media (max-width:720px){
+
+  /* keep your normal layout intact */
+  #newTripForm.newTrip{
+    position: fixed !important;
+    left: 12px !important;
+    right: 12px !important;
+    top: 92px !important;                 /* under the topbar */
+    max-height: calc(100vh - 120px) !important;
+    overflow: auto !important;
+    z-index: 999 !important;
+
+    background: rgba(10,14,24,.92) !important;
+    border: 1px solid rgba(255,255,255,.14) !important;
+    border-radius: 18px !important;
+    box-shadow: 0 18px 45px rgba(0,0,0,.55) !important;
+
+    backdrop-filter: blur(16px) saturate(140%) !important;
+    -webkit-backdrop-filter: blur(16px) saturate(140%) !important;
+  }
+
+  /* Give the sheet a little breathing room when keyboard shows */
+  #newTripForm .topGap{ margin-top: 10px !important; }
+
+  /* Make buttons full-width and clear */
+  #newTripForm .row.gap{
+    flex-direction: column !important;
+    align-items: stretch !important;
+    gap: 10px !important;
+  }
+
+  #newTripForm #createTripBtn,
+  #newTripForm #cancelTripBtn{
+    width: 100% !important;
+  }
+
+  /* Reduce grid confusion inside the sheet */
+  #newTripForm .grid2{
+    grid-template-columns: 1fr !important;
+  }
+
+  /* Add a dim overlay behind it (uses your existing .overlay class if present) */
+  body.tripSheetOpen::before{
+    content:"";
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,.45);
+    backdrop-filter: blur(6px);
+    -webkit-backdrop-filter: blur(6px);
+    z-index: 998;
+  }
+}
+
