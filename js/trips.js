@@ -25,27 +25,54 @@ import {
 } from "./dom.js";
 
 export function initTrips({ refreshCatches, setStatus }){
+  function isMobileSheetMode(){
+    return window.matchMedia && window.matchMedia("(max-width:720px)").matches;
+  }
+
   function toggleNewTrip(show){
     if(!newTripForm) return;
 
     newTripForm.hidden = !show;
-
-    // Mobile sheet overlay class (used by CSS)
-    if(show){
-      document.body.classList.add("tripSheetOpen");
-    }else{
-      document.body.classList.remove("tripSheetOpen");
-    }
+    document.body.classList.toggle("tripSheetOpen", !!show);
 
     if(show){
       try{ newTripDate.value = new Date().toISOString().slice(0,10); }catch(_){}
-      // slight delay helps iOS render the fixed sheet before focusing
-      setTimeout(()=> newTripLocation?.focus(), 50);
+      // Let layout settle before focusing (helps iOS keyboard)
+      setTimeout(()=> newTripLocation?.focus(), 0);
     }else{
       if(newTripLocation) newTripLocation.value = "";
       if(newTripDesc) newTripDesc.value = "";
+      // optional: clear date too, but usually you want it to keep today's default
+      // if(newTripDate) newTripDate.value = "";
     }
   }
+
+  function closeNewTripIfOpen(){
+    if(!newTripForm) return;
+    if(newTripForm.hidden) return;
+    toggleNewTrip(false);
+  }
+
+  // Close sheet when tapping the dimmed overlay area (mobile)
+  document.addEventListener("click", (e)=>{
+    // Only when the sheet is open and only on mobile mode
+    if(!document.body.classList.contains("tripSheetOpen")) return;
+    if(!isMobileSheetMode()) return;
+
+    // If click is inside the sheet, ignore
+    if(newTripForm && newTripForm.contains(e.target)) return;
+
+    // If click is the New button itself, ignore (prevents immediate close)
+    if(newTripBtn && (e.target === newTripBtn || newTripBtn.contains(e.target))) return;
+
+    // Otherwise, user tapped the dim area
+    closeNewTripIfOpen();
+  }, { passive: true });
+
+  // ESC closes (desktop)
+  document.addEventListener("keydown", (e)=>{
+    if(e.key === "Escape") closeNewTripIfOpen();
+  });
 
   async function refreshTripMeta(){
     const t = state.tripId ? await getTrip(state.tripId) : null;

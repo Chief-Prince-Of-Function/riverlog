@@ -12,8 +12,91 @@ import {
   collageBtnTop
 } from "./dom.js";
 
-import { canBuildCollage } from "./collage.js";
-import { buildTripCollage } from "./collage.js";
+import { canBuildCollage, buildTripCollage } from "./collage.js";
+
+/* =========================
+   Badge engine (local, device-based)
+   - stores earned badges in localStorage
+   - emits `riverlog:badge_unlock` events for UI to react
+========================= */
+
+const BADGE_KEY = "riverlog_badges_v1";
+
+function getEarnedSet(){
+  try{
+    const raw = localStorage.getItem(BADGE_KEY);
+    const arr = raw ? JSON.parse(raw) : [];
+    return new Set(Array.isArray(arr) ? arr : []);
+  }catch(_){
+    return new Set();
+  }
+}
+
+function saveEarnedSet(set){
+  try{
+    localStorage.setItem(BADGE_KEY, JSON.stringify(Array.from(set)));
+  }catch(_){}
+}
+
+function unlockBadge(id, payload={}){
+  const earned = getEarnedSet();
+  if(earned.has(id)) return false;
+  earned.add(id);
+  saveEarnedSet(earned);
+
+  // notify UI layer (badges grid + toast)
+  try{
+    window.dispatchEvent(new CustomEvent("riverlog:badge_unlock", {
+      detail: { id, ...payload }
+    }));
+  }catch(_){}
+
+  return true;
+}
+
+/* Optional helpers */
+function parseLenNumber(val){
+  const n = parseFloat(String(val || "").replace(/[^\d.]+/g, ""));
+  return Number.isFinite(n) ? n : 0;
+}
+
+/** Checks milestone badges based on current trip catches */
+function evalBadgesFromRows(rows){
+  const total = rows.length;
+  const photoCount = rows.filter(r => r.photoBlob instanceof Blob).length;
+  const gpsCount = rows.filter(r => r.gps && typeof r.gps.lat === "number").length;
+
+  // First catch (device-wide-ish; based on "ever earned" not per-trip)
+  if(total >= 1) unlockBadge("first_catch", { title: "First Catch", sub: "Log started." });
+
+  if(photoCount >= 1) unlockBadge("first_photo", { title: "First Photo", sub: "A memory worth keeping." });
+  if(gpsCount >= 1) unlockBadge("first_gps", { title: "First GPS", sub: "Location pinned." });
+
+  if(total >= 5) unlockBadge("five_catches", { title: "5 Catches", sub: "You’re on fish." });
+  if(total >= 10) unlockBadge("ten_catches", { title: "10 Catches", sub: "That’s a day." });
+  if(total >= 20) unlockBadge("twenty_catches", { title: "20 Catches", sub: "Legend session." });
+
+  if(photoCount >= 10) unlockBadge("collage_unlocked", { title: "Collage Unlocked", sub: "10 photo catches." });
+
+  // Personal best (by length) — looks at numeric inches if provided
+  const lengths = rows.map(r => parseLenNumber(r.length)).filter(n => n > 0);
+  if(lengths.length){
+    const best = Math.max(...lengths);
+    // store best in localStorage so it persists
+    const PB_KEY = "riverlog_pb_in";
+    const prev = parseFloat(localStorage.getItem(PB_KEY) || "0") || 0;
+    if(best > prev){
+      localStorage.setItem(PB_KEY, String(best));
+      unlockBadge("new_pb", { title: "New PB", sub: `New personal best: ${best}"` });
+    }
+  }
+
+  return { total, photoCount, gpsCount };
+}
+
+/* =========================
+   Photo processing
+========================= */
 
 async function compressImageFileToBlob(file, maxEdge=1600, quality=0.82){
   const img = await loadImageFromFile(file);
@@ -46,6 +129,10 @@ function loadImageFromFile(file){
   });
 }
 
+/* =========================
+   Collage button enable/disable
+========================= */
+
 function setCollageButtonsEnabled(ok, count){
   const title = ok ? `Build collage (${count} photos)` : "Add a catch photo first";
 
@@ -60,6 +147,10 @@ function setCollageButtonsEnabled(ok, count){
     collageBtnTop.style.opacity = ok ? "1" : ".55";
   }
 }
+
+/* =========================
+   Module
+========================= */
 
 export function initCatches({ setStatus }){
   gpsBtn?.addEventListener("click", ()=>{
@@ -177,6 +268,11 @@ export function initCatches({ setStatus }){
       el.appendChild(right);
       catchList?.appendChild(el);
     }
+
+    // badges (based on current trip)
+    try{
+      evalBadgesFromRows(rows);
+    }catch(_){}
 
     // Update collage button enable/disable state based on photo count
     try{

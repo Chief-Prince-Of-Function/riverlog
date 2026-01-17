@@ -5,6 +5,7 @@ import { initTrips } from "./trips.js";
 import { initCatches } from "./catches.js";
 import { initCollage } from "./collage.js";
 import { initIO } from "./io.js";
+import { initBadges } from "./badges.js";
 
 function setStatus(msg){
   if(syncStatus) syncStatus.textContent = msg;
@@ -14,9 +15,15 @@ function setStatus(msg){
   try{
     initPWA();
 
+    const { evaluateBadges, unlockCollageBadge } = initBadges();
+
     // init catches first so trips can call refreshCatches
     const { refreshCatches } = initCatches({ setStatus });
     const { refreshTrips } = initTrips({ refreshCatches, setStatus });
+
+    await refreshTrips(t.id);
+    await evaluateBadges();
+
 
     // collage buttons + modal wiring
     initCollage({ setStatus });

@@ -11,7 +11,6 @@
   <meta name="mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-capable" content="yes">
 
-
   <!-- Favicons -->
   <link rel="icon" href="assets/favicon.ico" sizes="any" />
   <link rel="icon" type="image/png" href="assets/favicon.png" />
@@ -133,6 +132,19 @@
 
       <div class="hint" id="gpsHint">GPS: not added</div>
       <div class="hint" id="photoHint">Photo: none</div>
+
+      <!-- BADGES (NEW) -->
+      <div class="divider"></div>
+
+      <div class="row">
+        <div class="grow">
+          <div class="title2">Badges</div>
+          <div class="subtitle2">Milestones earned on this device</div>
+        </div>
+      </div>
+
+      <div id="badgeGrid" class="badgeGrid"></div>
+      <!-- /BADGES -->
     </section>
 
     <section class="card">
@@ -212,6 +224,18 @@
     <div class="muted">Offline-first. Data stays on device until you export.</div>
     <div class="muted" id="syncStatus">—</div>
   </footer>
+
+  <!-- Badge Toast -->
+  <div id="badgeToast" class="toast hidden" role="status" aria-live="polite" aria-atomic="true">
+    <div class="toastInner">
+      <div class="toastText">
+        <div class="toastTitle" id="badgeToastTitle"></div>
+        <div class="toastSub" id="badgeToastSub"></div>
+      </div>
+      <button id="badgeToastClose" class="toastClose" aria-label="Close badge notification">✕</button>
+    </div>
+  </div>
+  <!-- /Badge Toast -->
 
   <!-- Collage Modal -->
   <div id="collageOverlay" class="overlay hidden"></div>
