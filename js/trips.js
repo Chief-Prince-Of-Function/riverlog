@@ -29,19 +29,30 @@ export function initTrips({ refreshCatches, setStatus }){
     return window.matchMedia && window.matchMedia("(max-width:720px)").matches;
   }
 
+  const overlay = document.getElementById("tripSheetOverlay");
+
+  // Close ONLY when tapping the dim area (not the form)
+  if(overlay){
+    overlay.addEventListener("click", (e)=>{
+      if(e.target === overlay){
+        toggleNewTrip(false);
+      }
+    });
+  }
+
   function toggleNewTrip(show){
     if(!newTripForm) return;
 
-    const overlay = document.getElementById("tripSheetOverlay");
-
+    // Keep overlay + form in lockstep
     newTripForm.hidden = !show;
-
-    if(overlay){
-      overlay.hidden = !show;
-      overlay.onclick = ()=> toggleNewTrip(false); // tap outside closes
-    }
+    if(overlay) overlay.hidden = !show;
 
     document.body.classList.toggle("tripSheetOpen", show);
+
+    // Optional: focus first field when opening (mobile-friendly)
+    if(show){
+      setTimeout(()=> newTripLocation?.focus?.(), 50);
+    }
   }
 
   function closeNewTripIfOpen(){
@@ -49,22 +60,6 @@ export function initTrips({ refreshCatches, setStatus }){
     if(newTripForm.hidden) return;
     toggleNewTrip(false);
   }
-
-  // Close sheet when tapping the dimmed overlay area (mobile)
-  document.addEventListener("click", (e)=>{
-    // Only when the sheet is open and only on mobile mode
-    if(!document.body.classList.contains("tripSheetOpen")) return;
-    if(!isMobileSheetMode()) return;
-
-    // If click is inside the sheet, ignore
-    if(newTripForm && newTripForm.contains(e.target)) return;
-
-    // If click is the New button itself, ignore (prevents immediate close)
-    if(newTripBtn && (e.target === newTripBtn || newTripBtn.contains(e.target))) return;
-
-    // Otherwise, user tapped the dim area
-    closeNewTripIfOpen();
-  }, { passive: true });
 
   // ESC closes (desktop)
   document.addEventListener("keydown", (e)=>{
