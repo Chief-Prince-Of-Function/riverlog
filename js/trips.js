@@ -25,33 +25,49 @@ import {
 } from "./dom.js";
 
 export function initTrips({ refreshCatches, setStatus }){
-  function isMobileSheetMode(){
-    return window.matchMedia && window.matchMedia("(max-width:720px)").matches;
-  }
-
   const overlay = document.getElementById("tripSheetOverlay");
 
-  // Close ONLY when tapping the dim area (not the form)
+  // --- iOS safety: never let taps inside the form bubble out ---
+  function armorForm(){
+    if(!newTripForm) return;
+
+    // Stop *any* outside click/close logic elsewhere in the app
+    const stop = (e)=>{ e.stopPropagation(); };
+
+    // Use capture so we block upstream listeners too
+    newTripForm.addEventListener("click", stop, true);
+    newTripForm.addEventListener("pointerdown", stop, true);
+
+    // iOS Safari sometimes only fires touch events reliably
+    newTripForm.addEventListener("touchstart", stop, { capture:true, passive:true });
+    newTripForm.addEventListener("touchend", stop, { capture:true, passive:true });
+  }
+
+  // Close ONLY when pressing the dim area itself (use pointerdown/touchstart, not click)
   if(overlay){
-    overlay.addEventListener("click", (e)=>{
+    const maybeClose = (e)=>{
+      // ONLY if the actual overlay background was hit (not the form/children)
       if(e.target === overlay){
         toggleNewTrip(false);
       }
-    });
+    };
+
+    overlay.addEventListener("pointerdown", maybeClose, { passive:true });
+    overlay.addEventListener("touchstart", maybeClose, { passive:true });
+    // keep click too as fallback
+    overlay.addEventListener("click", maybeClose);
   }
 
   function toggleNewTrip(show){
     if(!newTripForm) return;
 
-    // Keep overlay + form in lockstep
     newTripForm.hidden = !show;
     if(overlay) overlay.hidden = !show;
 
-    document.body.classList.toggle("tripSheetOpen", show);
-
-    // Optional: focus first field when opening (mobile-friendly)
     if(show){
-      setTimeout(()=> newTripLocation?.focus?.(), 50);
+      armorForm();
+      // focus after paint so iOS doesn’t “ghost tap” the overlay
+      setTimeout(()=> newTripLocation?.focus?.(), 80);
     }
   }
 
@@ -61,7 +77,6 @@ export function initTrips({ refreshCatches, setStatus }){
     toggleNewTrip(false);
   }
 
-  // ESC closes (desktop)
   document.addEventListener("keydown", (e)=>{
     if(e.key === "Escape") closeNewTripIfOpen();
   });
@@ -83,7 +98,6 @@ export function initTrips({ refreshCatches, setStatus }){
     if(t.flyWin) bits.push(`Fly: ${t.flyWin}`);
     if(tripMeta) tripMeta.textContent = bits.join(" • ");
 
-    // Fill recap drawer fields
     if(tripName) tripName.value = t.name || "";
     if(tripDate) tripDate.value = t.date || "";
     if(tripLocation) tripLocation.value = t.location || "";
@@ -109,7 +123,6 @@ export function initTrips({ refreshCatches, setStatus }){
     await refreshCatches();
   }
 
-  // expose for main.js
   initTrips.refreshTrips = refreshTrips;
   initTrips.refreshTripMeta = refreshTripMeta;
 
