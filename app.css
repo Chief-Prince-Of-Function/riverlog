@@ -500,3 +500,23 @@ select.input option:checked{
     background: rgba(12,16,28,.92) !important;
   }
 }
+
+/* =========================
+   MOBILE SAFARI: background must be full-page and never "tile"
+========================= */
+html{
+  background: #0b1020; /* solid fallback */
+}
+
+body{
+  min-height: 100vh;   /* important for iOS */
+  background-repeat: no-repeat;
+  background-size: cover;
+}
+
+/* iOS Safari specifically hates background-attachment: fixed */
+@media (max-width: 720px){
+  body{
+    background-attachment: scroll !important;
+  }
+}
