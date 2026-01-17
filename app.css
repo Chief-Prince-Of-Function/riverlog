@@ -332,3 +332,47 @@ select.input option:checked{
 }
 
 .btnGhost:hover{ background: rgba(0,0,0,.22); }
+
+@media (max-width:720px){
+  .topbar{
+    padding: 10px 12px;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 10px;
+  }
+
+  .brand{
+    justify-content: flex-start;
+  }
+
+  .actions{
+    width: 100%;
+    justify-content: flex-start;
+    gap: 8px;
+  }
+
+  .actions .btn,
+  .actions .fileBtn{
+    flex: 1;
+    min-width: 120px;
+  }
+
+  .wrap{
+    margin: 12px auto 28px;
+    padding: 0 12px;
+  }
+
+  .card{
+    padding: 12px;
+  }
+
+  /* make the Trip row behave nicely */
+  .row{
+    flex-wrap: wrap;
+  }
+
+  .stat{
+    width: 84px;
+    min-width: 84px;
+  }
+}
