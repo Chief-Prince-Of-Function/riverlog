@@ -609,6 +609,24 @@ select.input option:checked{
   touch-action: manipulation;
 }
 
+/* =========================
+   iOS fix: date input overflow inside modal
+========================= */
+#newTripForm .grid2 > div,
+#newTripForm .span2{
+  min-width: 0; /* allow children to shrink inside grid */
+}
+
+#newTripForm .input{
+  max-width: 100%;
+}
+
+#newTripForm input[type="date"].input{
+  width: 100%;
+  max-width: 100%;
+  display: block;
+}
+
 /* Mobile: make the form single-column + buttons full width */
 @media (max-width:720px){
   #newTripForm .grid2{ grid-template-columns: 1fr; }

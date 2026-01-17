@@ -25,20 +25,18 @@ function openCollageModal(){
   collageOverlay?.classList.remove("hidden");
   collageModal?.classList.remove("hidden");
 }
-
 function closeCollageModal(){
   collageOverlay?.classList.add("hidden");
   collageModal?.classList.add("hidden");
 }
 
+collageOverlay?.addEventListener("click", closeCollageModal);
+collageClose?.addEventListener("click", closeCollageModal);
+
 function loadImgFromBlob(blob){
   return new Promise((resolve, reject)=>{
     const url = URL.createObjectURL(blob);
     const img = new Image();
-
-    // Helps iOS/Safari in some cases
-    img.crossOrigin = "anonymous";
-
     img.onload = ()=>{
       URL.revokeObjectURL(url);
       resolve(img);
@@ -49,6 +47,24 @@ function loadImgFromBlob(blob){
     };
     img.src = url;
   });
+}
+
+/* --- brand mark loader (logo from assets/) --- */
+let _brandImgPromise = null;
+function loadImgFromUrl(url){
+  return new Promise((resolve, reject)=>{
+    const img = new Image();
+    // same-origin on GitHub Pages; this is safe
+    img.onload = ()=> resolve(img);
+    img.onerror = (e)=> reject(e);
+    img.src = url;
+  });
+}
+function getBrandImg(){
+  if(!_brandImgPromise){
+    _brandImgPromise = loadImgFromUrl("assets/icon-192.png");
+  }
+  return _brandImgPromise;
 }
 
 function roundRectPath(ctx, x, y, w, h, r){
@@ -202,6 +218,7 @@ function drawTile(ctx, img, x, y, w, h, caption){
 }
 
 function layoutHeroRows(n){
+  // bottom-up rows of 3; partial rows centered
   const rows = [];
   let remaining = n;
   while(remaining > 0){
@@ -277,11 +294,77 @@ function drawPolaroid(ctx, img, cx, cy, w, h, rotRad, caption=""){
   ctx.restore();
 }
 
+/* --- watermark / brand mark (bottom-right) --- */
+async function drawBrandMark(ctx, W, H){
+  const pad = 44;                 // keep it off the corner
+  const boxW = 130;
+  const boxH = 150;
+  const x = W - pad - boxW;
+  const y = H - pad - boxH;
+
+  // subtle backing plate so it reads on dark backgrounds
+  ctx.save();
+  ctx.globalAlpha = 0.92;
+  ctx.fillStyle = "rgba(10,14,24,.55)";
+  roundRectPath(ctx, x, y, boxW, boxH, 18);
+  ctx.fill();
+
+  // border
+  ctx.strokeStyle = "rgba(255,255,255,.14)";
+  ctx.lineWidth = 1;
+  roundRectPath(ctx, x, y, boxW, boxH, 18);
+  ctx.stroke();
+  ctx.restore();
+
+  // icon
+  let icon = null;
+  try{
+    icon = await getBrandImg();
+  }catch(_){
+    icon = null;
+  }
+
+  const iconSize = 56;
+  const iconX = x + Math.round((boxW - iconSize)/2);
+  const iconY = y + 18;
+
+  if(icon){
+    ctx.save();
+    // soft shadow
+    ctx.globalAlpha = 0.9;
+    ctx.fillStyle = "rgba(0,0,0,.35)";
+    ctx.filter = "blur(10px)";
+    ctx.fillRect(iconX + 4, iconY + 6, iconSize, iconSize);
+    ctx.filter = "none";
+
+    // icon plate (slight glass)
+    ctx.fillStyle = "rgba(255,255,255,.08)";
+    roundRectPath(ctx, iconX-8, iconY-8, iconSize+16, iconSize+16, 18);
+    ctx.fill();
+
+    // draw icon
+    ctx.globalAlpha = 0.95;
+    ctx.drawImage(icon, iconX, iconY, iconSize, iconSize);
+    ctx.restore();
+  }
+
+  // text
+  ctx.save();
+  ctx.fillStyle = "rgba(238,244,255,.92)";
+  ctx.textAlign = "center";
+  ctx.textBaseline = "middle";
+  ctx.font = "800 18px system-ui, -apple-system, Segoe UI, Roboto, Arial";
+  ctx.fillText("RiverLog", x + boxW/2, y + boxH - 34);
+
+  ctx.fillStyle = "rgba(238,244,255,.60)";
+  ctx.font = "12px system-ui, -apple-system, Segoe UI, Roboto, Arial";
+  ctx.fillText("Offline-first", x + boxW/2, y + boxH - 16);
+  ctx.restore();
+}
+
 async function buildTripCollage(tripId, tripLabel){
   const canvas = collageCanvas || $("collageCanvas");
-  if(!canvas) throw new Error("Missing collageCanvas element.");
   const ctx = canvas.getContext("2d");
-  if(!ctx) throw new Error("Unable to get canvas context.");
 
   const W = canvas.width;
   const H = canvas.height;
@@ -410,6 +493,9 @@ async function buildTripCollage(tripId, tripLabel){
     }
   }
 
+  // --- add brand mark AFTER collage draw so it stays on top ---
+  try{ await drawBrandMark(ctx, W, H); }catch(_){}
+
   const dataUrl = canvas.toDataURL("image/png");
 
   if(collageMeta){
@@ -440,22 +526,8 @@ async function buildTripCollage(tripId, tripLabel){
 }
 
 export function initCollage({ setStatus }){
-  // IMPORTANT: bind modal close handlers here (after DOM is ready)
-  const overlayEl = collageOverlay || $("collageOverlay");
-  const closeEl = collageClose || $("collageClose");
-
-  // Close when tapping outside or pressing close
-  overlayEl?.addEventListener("click", closeCollageModal);
-  closeEl?.addEventListener("click", closeCollageModal);
-
-  // Mobile Safari reliability: use pointerdown + click
-  async function onBuildCollage(e){
-    e?.preventDefault?.();
-
-    if(!state.tripId){
-      setStatus("Select a trip first.");
-      return;
-    }
+  async function onBuildCollage(){
+    if(!state.tripId) return;
 
     const { ok, count } = await canBuildCollage(state.tripId);
     if(!ok){
@@ -463,8 +535,7 @@ export function initCollage({ setStatus }){
       return;
     }
 
-    const label =
-      tripSelect?.selectedOptions?.[0]?.textContent?.trim()
+    const label = tripSelect?.selectedOptions?.[0]?.textContent?.trim()
       || safeText(tripSelect?.value)
       || "Trip";
 
@@ -472,15 +543,10 @@ export function initCollage({ setStatus }){
     try{
       await buildTripCollage(state.tripId, label);
       setStatus("Collage ready.");
-    }catch(err){
-      console.error(err);
-      setStatus(`Collage failed: ${err.message || err}`);
+    }catch(e){
+      setStatus(`Collage failed: ${e.message || e}`);
     }
   }
-
-  // Bind both buttons
-  collageBtn?.addEventListener("pointerdown", onBuildCollage);
-  collageBtnTop?.addEventListener("pointerdown", onBuildCollage);
 
   collageBtn?.addEventListener("click", onBuildCollage);
   collageBtnTop?.addEventListener("click", onBuildCollage);
