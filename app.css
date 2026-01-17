@@ -427,15 +427,30 @@ select.input option:checked{
   }
 
   /* Dim overlay behind it */
+@media (max-width:720px){
   body.tripSheetOpen::before{
     content:"";
     position: fixed;
     inset: 0;
-    background: rgba(0,0,0,.45);
-    backdrop-filter: blur(6px);
-    -webkit-backdrop-filter: blur(6px);
+    background: rgba(0,0,0,.35);  /* keep it LIGHT */
     z-index: 998;
+
+    /* IMPORTANT: remove blur (this is what breaks iOS) */
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
   }
+
+  /* ensure the sheet sits ABOVE the overlay */
+  #newTripForm.newTrip{
+    position: fixed !important;
+    left: 12px !important;
+    right: 12px !important;
+    top: calc(72px + env(safe-area-inset-top)) !important;
+    max-height: calc(100vh - 120px) !important;
+    overflow: auto !important;
+    z-index: 999 !important;
+  }
+}
 
   /* Turn the inline newTrip form into a bottom sheet */
   #newTripForm.newTrip{
