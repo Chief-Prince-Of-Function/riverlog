@@ -22,6 +22,10 @@
 
 *{box-sizing:border-box;}
 html,body{height:100%;}
+html, body{
+  overflow-x: hidden;
+  width: 100%;
+}
 html{ background:#0b1020; } /* solid fallback */
 
 /* =========================
@@ -85,7 +89,7 @@ body{
    Layout
 ========================= */
 .wrap{
-  max-width:920px;
+  max-width:920px; width:100%;
   margin: 16px auto 36px;
   padding: 0 14px;
   display:grid;
@@ -509,52 +513,81 @@ select.input option:checked{
     background: rgba(12,16,28,.92) !important;
   }
 
-  /* =========================
-     New Trip as a bottom sheet
-  ========================= */
+/* =========================
+   Mobile: New Trip as a stable bottom sheet
+========================= */
+@media (max-width:720px){
+
+  /* When sheet is open, keep page from shifting side-to-side */
   body.tripSheetOpen{
-    overflow:hidden;
+    overflow: hidden;
   }
 
+  /* Visual dim layer ONLY (do NOT steal taps) */
   body.tripSheetOpen::before{
     content:"";
     position: fixed;
     inset: 0;
-    background: rgba(0,0,0,.22); /* light dim, not black */
+    background: rgba(0,0,0,.28);
     z-index: 998;
+
+    /* critical: don't interfere with taps/focus */
+    pointer-events: none;
+
+    /* critical: iOS blur here causes “gloss over” artifacts */
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
   }
 
+  /* The sheet itself */
   #newTripForm.newTrip{
     position: fixed !important;
     left: 12px !important;
     right: 12px !important;
-    bottom: 12px !important;
+    bottom: calc(12px + env(safe-area-inset-bottom)) !important;
     top: auto !important;
 
-    max-height: calc(100dvh - 140px) !important;
-    max-height: calc(100vh - 140px) !important;
+    /* use dvh when supported to behave with address bar/keyboard */
+    max-height: calc(100dvh - 150px) !important;
+    max-height: calc(100vh - 150px) !important;
 
     overflow: auto !important;
+    -webkit-overflow-scrolling: touch;
+
     z-index: 999 !important;
 
-    background: rgba(10,14,24,.96) !important;
-    border: 1px solid rgba(255,255,255,.14) !important;
+    background: rgba(12,16,28,.94) !important;
+    border: 1px solid rgba(255,255,255,.16) !important;
     border-radius: 18px !important;
-    box-shadow: 0 18px 45px rgba(0,0,0,.55) !important;
+    box-shadow: 0 18px 45px rgba(0,0,0,.60) !important;
+
+    /* iOS: blur on the SHEET is fine, blur on overlay is not */
+    backdrop-filter: blur(14px) saturate(140%) !important;
+    -webkit-backdrop-filter: blur(14px) saturate(140%) !important;
+
+    /* prevent width math causing tiny horizontal scroll */
+    max-width: calc(100% - 24px);
   }
 
-  #newTripForm .grid2{ grid-template-columns: 1fr !important; }
+  /* Make the sheet content single-column */
+  #newTripForm .grid2{
+    grid-template-columns: 1fr !important;
+  }
 
+  /* Buttons full width */
   #newTripForm .row.gap{
     flex-direction: column !important;
     align-items: stretch !important;
     gap: 10px !important;
   }
-
   #newTripForm #createTripBtn,
-  #newTripForm #cancelTripBtn{ width: 100% !important; }
+  #newTripForm #cancelTripBtn{
+    width: 100% !important;
+  }
 
+  /* iOS input focus glow: reduce the “explosion” */
   #newTripForm .input:focus{
     box-shadow: 0 0 0 2px rgba(19,163,139,.14) !important;
   }
+}
 }
