@@ -32,19 +32,16 @@ export function initTrips({ refreshCatches, setStatus }){
   function toggleNewTrip(show){
     if(!newTripForm) return;
 
-    newTripForm.hidden = !show;
-    document.body.classList.toggle("tripSheetOpen", !!show);
+    const overlay = document.getElementById("tripSheetOverlay");
 
-    if(show){
-      try{ newTripDate.value = new Date().toISOString().slice(0,10); }catch(_){}
-      // Let layout settle before focusing (helps iOS keyboard)
-      setTimeout(()=> newTripLocation?.focus(), 0);
-    }else{
-      if(newTripLocation) newTripLocation.value = "";
-      if(newTripDesc) newTripDesc.value = "";
-      // optional: clear date too, but usually you want it to keep today's default
-      // if(newTripDate) newTripDate.value = "";
+    newTripForm.hidden = !show;
+
+    if(overlay){
+      overlay.hidden = !show;
+      overlay.onclick = ()=> toggleNewTrip(false); // tap outside closes
     }
+
+    document.body.classList.toggle("tripSheetOpen", show);
   }
 
   function closeNewTripIfOpen(){

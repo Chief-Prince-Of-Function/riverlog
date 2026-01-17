@@ -591,3 +591,62 @@ select.input option:checked{
   }
 }
 }
+
+/* =========================
+   New Trip modal — centered + readable (mobile)
+========================= */
+
+/* The dark overlay behind the form */
+.tripSheetOverlay{
+  position: fixed;
+  inset: 0;
+  z-index: 9998;
+  background: rgba(0,0,0,.55);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+}
+
+/* The actual form sheet */
+#newTripForm{
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+
+  z-index: 9999;
+
+  width: min(92vw, 520px);
+  max-height: 86vh;
+  overflow: auto;
+
+  padding: 16px 16px 14px;
+  border-radius: 18px;
+
+  /* Less transparent, more readable */
+  background: rgba(14, 18, 28, 0.94);
+
+  /* Accent border so it "pops" */
+  border: 2px solid rgba(19, 163, 139, 0.75);
+
+  box-shadow: 0 18px 60px rgba(0,0,0,.60);
+}
+
+/* optional: tighten inputs inside the modal */
+#newTripForm input,
+#newTripForm textarea,
+#newTripForm select{
+  background: rgba(255,255,255,.06);
+  border: 1px solid rgba(255,255,255,.14);
+  color: rgba(238,244,255,.92);
+}
+
+#newTripForm input::placeholder,
+#newTripForm textarea::placeholder{
+  color: rgba(238,244,255,.55);
+}
+
+/* keep buttons from smashing too tight */
+#newTripForm .row,
+#newTripForm .actions{
+  gap: 10px;
+}
