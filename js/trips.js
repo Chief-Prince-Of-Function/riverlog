@@ -25,14 +25,30 @@ import {
 } from "./dom.js";
 
 export function initTrips({ refreshCatches, setStatus }){
+  function setTripSheetOpen(isOpen){
+    // Used by the mobile CSS overlay (body.tripSheetOpen::before)
+    try{
+      document.body.classList.toggle("tripSheetOpen", !!isOpen);
+    }catch(_){}
+  }
+
   function toggleNewTrip(show){
     if(!newTripForm) return;
-    newTripForm.hidden = !show;
-    if(show){
+
+    // If already open and they hit New again, treat it like toggle off
+    const currentlyOpen = !newTripForm.hidden;
+    const next = (show === true) ? true : (show === false ? false : !currentlyOpen);
+
+    newTripForm.hidden = !next;
+    setTripSheetOpen(next);
+
+    if(next){
       try{ newTripDate.value = new Date().toISOString().slice(0,10); }catch(_){}
-      newTripLocation?.focus();
+      // slight delay helps iOS focus after layout change
+      setTimeout(()=>{ newTripLocation?.focus(); }, 50);
     }else{
       if(newTripLocation) newTripLocation.value = "";
+      if(newTripDate) newTripDate.value = "";
       if(newTripDesc) newTripDesc.value = "";
     }
   }
@@ -84,8 +100,14 @@ export function initTrips({ refreshCatches, setStatus }){
   initTrips.refreshTrips = refreshTrips;
   initTrips.refreshTripMeta = refreshTripMeta;
 
-  newTripBtn?.addEventListener("click", ()=> toggleNewTrip(true));
-  cancelTripBtn?.addEventListener("click", ()=> toggleNewTrip(false));
+  newTripBtn?.addEventListener("click", ()=>{
+    // toggle behavior feels best on mobile
+    toggleNewTrip();
+  });
+
+  cancelTripBtn?.addEventListener("click", ()=>{
+    toggleNewTrip(false);
+  });
 
   createTripBtn?.addEventListener("click", async ()=>{
     const now = Date.now();
