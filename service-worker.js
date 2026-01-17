@@ -1,5 +1,5 @@
 // Simple offline cache for app shell (GitHub Pages safe)
-const CACHE = "riverlog-v4"; // bump this when you deploy changes
+const CACHE = "riverlog-v5"; // bump this when you deploy changes
 
 // IMPORTANT: GitHub Pages path prefix (repo name)
 // If your repo name is NOT "riverlog", change this.
