@@ -1,0 +1,229 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="theme-color" content="#0b1020" />
+  <title>RiverLog</title>
+  <link rel="manifest" href="manifest.json" />
+  <link rel="icon" href="assets/icon-192.png" />
+  <link rel="stylesheet" href="app.css" />
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand">
+      <div class="logo">🎣</div>
+      <div>
+        <div class="title">RiverLog</div>
+        <div class="subtitle">Quick catch log (offline-first)</div>
+      </div>
+    </div>
+
+    <div class="actions">
+      <button id="installBtn" class="btn ghost" hidden>Install</button>
+      <button id="exportBtn" class="btn">Export Trip</button>
+      <label class="btn ghost fileBtn">
+        Import
+        <input id="importInput" type="file" accept="application/zip,application/json,.zip,.json" hidden />
+      </label>
+    </div>
+  </header>
+
+  <main class="wrap">
+    <section class="card">
+      <div class="row">
+        <div class="grow">
+          <label class="label">Trip</label>
+          <div class="row gap">
+            <select id="tripSelect" class="input"></select>
+            <button id="newTripBtn" class="btn ghost">New</button>
+          </div>
+
+          <div id="newTripForm" class="newTrip" hidden>
+            <div class="grid2">
+              <div>
+                <label class="label">Where</label>
+                <input id="newTripLocation" class="input" placeholder="e.g., West Branch Delaware" />
+              </div>
+              <div>
+                <label class="label">Date</label>
+                <input id="newTripDate" class="input" type="date" />
+              </div>
+              <div class="span2">
+                <label class="label">Trip note (optional)</label>
+                <input id="newTripDesc" class="input" placeholder="e.g., with Ryan • cold morning • high water" />
+              </div>
+            </div>
+            <div class="row gap topGap">
+              <button id="createTripBtn" class="btn accent">Save new trip</button>
+              <button id="cancelTripBtn" class="btn ghost">Cancel</button>
+            </div>
+            <div class="hint">Create it fast now; add recap + lessons later.</div>
+          </div>
+
+          <div class="hint">Tip: make a new trip at the river. Later you’ll add recap + “Fly that won the day” on your Mac.</div>
+        </div>
+
+        <div class="stat">
+          <div class="statNum" id="catchCount">0</div>
+          <div class="statLbl">Catches</div>
+        </div>
+      </div>
+
+      <div class="divider"></div>
+
+      <div class="grid2">
+        <div>
+          <label class="label">Species</label>
+          <select id="species" class="input">
+            <option value="">—</option>
+            <option>Trout</option>
+            <option>Brown Trout</option>
+            <option>Rainbow Trout</option>
+            <option>Brook Trout</option>
+            <option>Smallmouth Bass</option>
+            <option>Largemouth Bass</option>
+            <option>Salmon</option>
+            <option>Steelhead</option>
+            <option>Other</option>
+          </select>
+        </div>
+
+        <div>
+          <label class="label">Fly</label>
+          <input id="fly" class="input" placeholder="e.g., Elk Hair Caddis" />
+        </div>
+
+        <div>
+          <label class="label">Length (optional)</label>
+          <input id="length" class="input" inputmode="decimal" placeholder="inches" />
+        </div>
+
+        <div>
+          <label class="label">Notes (optional)</label>
+          <input id="notes" class="input" placeholder="quick detail" />
+        </div>
+      </div>
+
+      <div class="row gap topGap">
+        <label class="btn fileBtn">
+          Capture Photo
+          <input id="photoInput" type="file" accept="image/*" capture="environment" hidden />
+        </label>
+        <button id="gpsBtn" class="btn ghost">Add GPS (optional)</button>
+        <button id="saveCatchBtn" class="btn accent">Save Catch</button>
+      </div>
+
+      <div class="hint" id="gpsHint">GPS: not added</div>
+      <div class="hint" id="photoHint">Photo: none</div>
+    </section>
+
+    <section class="card">
+      <div class="row">
+        <div class="grow">
+          <div class="title2">Catches</div>
+          <div class="subtitle2" id="tripMeta">—</div>
+        </div>
+
+        <!-- NEW: Always-visible collage button -->
+        <div class="row gap" style="justify-content:flex-end;">
+          <button id="collageBtnTop" class="btn">Build Collage</button>
+          <button id="editTripBtn" class="btn ghost">Trip Recap</button>
+        </div>
+      </div>
+
+      <div class="divider"></div>
+
+      <div id="catchList" class="list"></div>
+      <div id="emptyState" class="empty">No catches yet. Log your first one above.</div>
+    </section>
+
+    <section class="card" id="tripDrawer" aria-hidden="true">
+      <div class="row">
+        <div class="grow">
+          <div class="title2">Trip Recap</div>
+          <div class="subtitle2">Fill this out later (or now if you want). This lives on the trip.</div>
+        </div>
+        <button id="closeTripDrawer" class="btn ghost">Close</button>
+      </div>
+
+      <div class="divider"></div>
+
+      <!-- Collage action lives in the drawer (still here too) -->
+      <div class="row gap topGap">
+        <button id="collageBtn" class="btn">Build Collage</button>
+      </div>
+      <div class="hint">Build a post-trip collage from your catch photos (sorted by length).</div>
+
+      <div class="divider"></div>
+
+      <div class="grid2">
+        <div>
+          <label class="label">Trip Name</label>
+          <input id="tripName" class="input" placeholder="e.g., Upper Delaware – Jan 15" />
+        </div>
+        <div>
+          <label class="label">Trip Date</label>
+          <input id="tripDate" class="input" type="date" />
+        </div>
+        <div>
+          <label class="label">Location (optional)</label>
+          <input id="tripLocation" class="input" placeholder="river / section" />
+        </div>
+        <div>
+          <label class="label">Trip note (optional)</label>
+          <input id="tripDesc" class="input" placeholder="who/what/conditions" />
+        </div>
+        <div>
+          <label class="label">Fly that won the day</label>
+          <input id="tripFlyWin" class="input" placeholder="one fly to rule them all" />
+        </div>
+        <div>
+          <label class="label">Lessons learned</label>
+          <input id="tripLessons" class="input" placeholder="short" />
+        </div>
+      </div>
+
+      <label class="label topGap">Recap</label>
+      <textarea id="tripRecap" class="input area" placeholder="what happened, what you loved, what you’d do again"></textarea>
+
+      <div class="row gap topGap">
+        <button id="saveTripBtn" class="btn accent">Save Recap</button>
+      </div>
+    </section>
+  </main>
+
+  <footer class="foot">
+    <div class="muted">Offline-first. Data stays on device until you export.</div>
+    <div class="muted" id="syncStatus">—</div>
+  </footer>
+
+  <!-- Collage Modal -->
+  <div id="collageOverlay" class="overlay hidden"></div>
+  <div id="collageModal" class="modal hidden" role="dialog" aria-modal="true">
+    <div class="modalHead">
+      <div>
+        <div class="modalTitle">Trip Collage</div>
+        <div class="modalSub" id="collageMeta">Top catches by length</div>
+      </div>
+      <button id="collageClose" class="btnGhost">Close</button>
+    </div>
+
+    <div class="modalBody">
+      <div class="collageWrap">
+        <img id="collagePreview" alt="Trip collage preview" />
+      </div>
+    </div>
+
+    <div class="modalFoot">
+      <button id="collageDownload" class="btn">Download PNG</button>
+    </div>
+  </div>
+
+  <!-- Hidden render canvas -->
+  <canvas id="collageCanvas" width="1400" height="1400" style="display:none;"></canvas>
+
+  <script src="vendor/jszip.min.js"></script>
+  <script type="module" src="js/main.js"></script>
+</body>
+</html>
