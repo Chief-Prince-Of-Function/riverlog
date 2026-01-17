@@ -1,8 +1,11 @@
 :root{
   --bg1:#0b1020;
   --bg2:#0f1b2d;
+
+  /* Surfaces */
   --card: rgba(255,255,255,.07);
   --border: rgba(255,255,255,.14);
+
   --text: rgba(238,244,255,.92);
   --muted: rgba(238,244,255,.70);
   --accent:#13a38b;
@@ -24,15 +27,19 @@ body{
   margin:0;
   font-family:var(--font);
   color:var(--text);
+
+  /* Background stays “behind” the app, less banding/bleed on mobile */
   background:
-    radial-gradient(1200px 700px at 20% -10%, rgba(19,163,139,.35), transparent 55%),
-    radial-gradient(900px 600px at 110% 30%, rgba(120,90,255,.25), transparent 60%),
-    linear-gradient(180deg, var(--bg1), var(--bg2));
+    radial-gradient(1200px 900px at 18% 5%, rgba(19,163,139,.22), transparent 60%),
+    radial-gradient(900px 700px at 110% 25%, rgba(120,90,255,.18), transparent 58%),
+    linear-gradient(180deg, var(--bg1), #07101e 100%);
+  background-attachment: fixed;
 }
 
 .topbar{
   position:sticky; top:0; z-index:10;
-  backdrop-filter: blur(12px);
+  backdrop-filter: blur(12px) saturate(135%);
+  -webkit-backdrop-filter: blur(12px) saturate(135%);
   background: rgba(10,14,24,.65);
   border-bottom:1px solid rgba(255,255,255,.08);
   padding: 12px 14px;
@@ -72,12 +79,22 @@ body{
   gap:14px;
 }
 
+/* =========================
+   Main surfaces (fix “gradient bleed”)
+========================= */
 .card{
-  background: var(--card);
+  background: rgba(255,255,255,.08);
   border:1px solid var(--border);
   border-radius: var(--radius);
   box-shadow: var(--shadow);
   padding: 14px;
+
+  /* Key: stabilizes the card surface so body gradient doesn’t “wash” through */
+  backdrop-filter: blur(14px) saturate(140%);
+  -webkit-backdrop-filter: blur(14px) saturate(140%);
+
+  /* Helps some mobile GPUs avoid weird paint blending */
+  isolation: isolate;
 }
 
 .row{display:flex; align-items:center; justify-content:space-between; gap:12px;}
@@ -126,7 +143,11 @@ body{
 
 .fileBtn{display:inline-flex; align-items:center; justify-content:center; gap:8px;}
 
-.divider{height:1px; background: rgba(255,255,255,.10); margin: 14px 0;}
+.divider{
+  height:1px;
+  background: rgba(255,255,255,.10);
+  margin: 14px 0;
+}
 
 .grid2{display:grid; grid-template-columns: 1fr 1fr; gap:12px;}
 .span2{ grid-column: 1 / -1; }
@@ -136,16 +157,21 @@ body{
   padding: 12px;
   border-radius: 16px;
   border:1px solid rgba(255,255,255,.12);
-  background: rgba(0,0,0,.16);
+  background: rgba(8,12,20,.35);
+  backdrop-filter: blur(14px) saturate(140%);
+  -webkit-backdrop-filter: blur(14px) saturate(140%);
 }
 
 .stat{
   width:92px; min-width:92px;
   border-radius: 16px;
-  background: rgba(0,0,0,.18);
+  background: rgba(8,12,20,.35);
   border:1px solid rgba(255,255,255,.12);
   padding: 10px;
   text-align:center;
+
+  backdrop-filter: blur(14px) saturate(140%);
+  -webkit-backdrop-filter: blur(14px) saturate(140%);
 }
 
 .statNum{font-size:22px; font-weight:900;}
@@ -163,8 +189,11 @@ body{
   align-items:center;
   padding: 10px;
   border-radius: 16px;
-  background: rgba(0,0,0,.16);
+  background: rgba(8,12,20,.35);
   border:1px solid rgba(255,255,255,.10);
+
+  backdrop-filter: blur(14px) saturate(140%);
+  -webkit-backdrop-filter: blur(14px) saturate(140%);
 }
 
 .thumb{
@@ -258,6 +287,7 @@ select.input option:checked{
   position: fixed; inset: 0;
   background: rgba(0,0,0,.55);
   backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
   z-index: 9998;
 }
 
@@ -275,6 +305,9 @@ select.input option:checked{
   z-index: 9999;
   display: flex;
   flex-direction: column;
+
+  backdrop-filter: blur(16px) saturate(140%);
+  -webkit-backdrop-filter: blur(16px) saturate(140%);
 }
 
 .modalHead, .modalFoot{
@@ -364,6 +397,7 @@ select.input option:checked{
 
   .card{
     padding: 12px;
+    background: rgba(255,255,255,.09);
   }
 
   /* make the Trip row behave nicely */
