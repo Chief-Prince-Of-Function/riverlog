@@ -5,19 +5,29 @@
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
   <meta name="theme-color" content="#0b1020" />
   <title>RiverLog</title>
-  <link rel="manifest" href="manifest.json" />
-  <link rel="icon" href="assets/icon-192.png" />
-  <link rel="stylesheet" href="app.css" />
-  <link rel="icon" href="assets/favicon.ico" sizes="any">
 
+  <!-- PWA -->
+  <link rel="manifest" href="manifest.json" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+
+  <!-- Favicons -->
+  <link rel="icon" href="assets/favicon.ico" sizes="any" />
+  <link rel="icon" type="image/png" href="assets/favicon.png" />
+
+  <!-- iOS Home Screen Icon -->
+  <link rel="apple-touch-icon" href="assets/icon-192.png" />
+
+  <!-- Styles -->
+  <link rel="stylesheet" href="app.css" />
 </head>
+
 <body>
   <header class="topbar">
     <div class="brand">
       <div class="logo">
         <img src="assets/logo-mark.png" alt="RiverLog" />
       </div>
-      
+
       <div>
         <div class="title">RiverLog</div>
         <div class="subtitle">Quick catch log (offline-first)</div>
@@ -130,7 +140,6 @@
           <div class="subtitle2" id="tripMeta">—</div>
         </div>
 
-        <!-- NEW: Always-visible collage button -->
         <div class="row gap" style="justify-content:flex-end;">
           <button id="collageBtnTop" class="btn">Build Collage</button>
           <button id="editTripBtn" class="btn ghost">Trip Recap</button>
@@ -154,7 +163,6 @@
 
       <div class="divider"></div>
 
-      <!-- Collage action lives in the drawer (still here too) -->
       <div class="row gap topGap">
         <button id="collageBtn" class="btn">Build Collage</button>
       </div>
@@ -225,7 +233,6 @@
     </div>
   </div>
 
-  <!-- Hidden render canvas -->
   <canvas id="collageCanvas" width="1400" height="1400" style="display:none;"></canvas>
 
   <script src="vendor/jszip.min.js"></script>
