@@ -121,5 +121,4 @@ with field-tested priorities: **speed, simplicity, and reliability.**
 
 Choose one:
 
-* MIT (recommended)
-* Private / All Rights Reserved
+* MIT
