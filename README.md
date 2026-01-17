@@ -119,6 +119,4 @@ with field-tested priorities: **speed, simplicity, and reliability.**
 
 ## 🧾 License
 
-Choose one:
-
 * MIT
