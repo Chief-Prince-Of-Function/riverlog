@@ -28,20 +28,20 @@ export function initTrips({ refreshCatches, setStatus }){
   const overlay = document.getElementById("tripSheetOverlay");
 
   // --- iOS safety: never let taps inside the form bubble out ---
-  function armorForm(){
-    if(!newTripForm) return;
+function armorForm(){
+  if(!newTripForm) return;
 
-    // Stop *any* outside click/close logic elsewhere in the app
-    const stop = (e)=>{ e.stopPropagation(); };
+  // Stop bubbling so outside handlers don't see it,
+  // but DO NOT use capture (it can block button clicks on iOS)
+  const stop = (e)=> e.stopPropagation();
 
-    // Use capture so we block upstream listeners too
-    newTripForm.addEventListener("click", stop, true);
-    newTripForm.addEventListener("pointerdown", stop, true);
+  newTripForm.addEventListener("click", stop);
+  newTripForm.addEventListener("pointerdown", stop);
 
-    // iOS Safari sometimes only fires touch events reliably
-    newTripForm.addEventListener("touchstart", stop, { capture:true, passive:true });
-    newTripForm.addEventListener("touchend", stop, { capture:true, passive:true });
-  }
+  // iOS
+  newTripForm.addEventListener("touchstart", stop, { passive:true });
+  newTripForm.addEventListener("touchend", stop, { passive:true });
+}
 
   // Close ONLY when pressing the dim area itself (use pointerdown/touchstart, not click)
   if(overlay){
