@@ -7,6 +7,10 @@ import { $ } from "./utils.js";
 // Trips (top section)
 export const tripSelect = $("tripSelect");
 export const newTripBtn = $("newTripBtn");
+
+// NEW: overlay wrapper for the mobile “New Trip” modal
+export const tripSheetOverlay = $("tripSheetOverlay");
+
 export const newTripForm = $("newTripForm");
 export const newTripLocation = $("newTripLocation");
 export const newTripDate = $("newTripDate");
@@ -65,7 +69,6 @@ export const collageCanvas = $("collageCanvas");
 
 /* =========================
    Badges UI (optional)
-   These are safe even if elements aren't present yet.
 ========================= */
 export const badgeGrid = $("badgeGrid");
 

@@ -27,52 +27,55 @@ import {
 export function initTrips({ refreshCatches, setStatus }){
   const overlay = document.getElementById("tripSheetOverlay");
 
-  // --- iOS safety: never let taps inside the form bubble out ---
-function armorForm(){
-  if(!newTripForm) return;
+  // Stop overlay-close logic from seeing taps inside the sheet
+  let formArmored = false;
+  function armorFormOnce(){
+    if(!newTripForm || formArmored) return;
+    formArmored = true;
 
-  // Only stop bubbling so "outside close" logic can't see taps inside the sheet.
-  // Do NOT attach touchstart/touchend here (iOS can stop generating click events).
-  const stop = (e)=> e.stopPropagation();
+    const stop = (e)=> e.stopPropagation();
 
-  newTripForm.addEventListener("pointerdown", stop);
-  newTripForm.addEventListener("click", stop);
-}
-
-  // Close ONLY when pressing the dim area itself (use pointerdown/touchstart, not click)
-  if(overlay){
-    const maybeClose = (e)=>{
-      // ONLY if the actual overlay background was hit (not the form/children)
-      if(e.target === overlay){
-        toggleNewTrip(false);
-      }
-    };
-
-    overlay.addEventListener("pointerdown", maybeClose, { passive:true });
-    overlay.addEventListener("touchstart", maybeClose, { passive:true });
-    // keep click too as fallback
-    overlay.addEventListener("click", maybeClose);
+    // pointer events cover iOS Safari 13+ and modern browsers
+    newTripForm.addEventListener("pointerdown", stop);
+    newTripForm.addEventListener("pointerup", stop);
+    newTripForm.addEventListener("click", stop);
   }
 
   function toggleNewTrip(show){
     if(!newTripForm) return;
 
+    armorFormOnce();
+
     newTripForm.hidden = !show;
     if(overlay) overlay.hidden = !show;
 
+    document.body.classList.toggle("tripSheetOpen", show);
+
     if(show){
-      armorForm();
-      // focus after paint so iOS doesn’t “ghost tap” the overlay
-      setTimeout(()=> newTripLocation?.focus?.(), 80);
+      // focus after paint so iOS doesn't “ghost tap”
+      setTimeout(()=> newTripLocation?.focus?.(), 60);
     }
   }
 
   function closeNewTripIfOpen(){
-    if(!newTripForm) return;
-    if(newTripForm.hidden) return;
+    if(!newTripForm || newTripForm.hidden) return;
     toggleNewTrip(false);
   }
 
+  // Close ONLY when the overlay background itself is tapped
+  if(overlay){
+    const closeIfBackdrop = (e)=>{
+      if(e.target === overlay) toggleNewTrip(false);
+    };
+
+    // Prefer pointerup so it doesn't fight with focus on inputs
+    overlay.addEventListener("pointerup", closeIfBackdrop);
+
+    // Fallback for older browsers
+    overlay.addEventListener("click", closeIfBackdrop);
+  }
+
+  // ESC closes (desktop)
   document.addEventListener("keydown", (e)=>{
     if(e.key === "Escape") closeNewTripIfOpen();
   });
@@ -83,17 +86,22 @@ function armorForm(){
       if(tripMeta) tripMeta.textContent = "—";
       return;
     }
+
     const bits = [];
     if(t.location) bits.push(t.location);
+
     if(t.date){
       bits.push(new Date(t.date + "T00:00:00").toLocaleDateString());
     }else{
       bits.push(`Started ${fmtTime(t.createdAt)}`);
     }
+
     if(t.desc) bits.push(t.desc);
     if(t.flyWin) bits.push(`Fly: ${t.flyWin}`);
+
     if(tripMeta) tripMeta.textContent = bits.join(" • ");
 
+    // Fill recap drawer fields
     if(tripName) tripName.value = t.name || "";
     if(tripDate) tripDate.value = t.date || "";
     if(tripLocation) tripLocation.value = t.location || "";
@@ -105,6 +113,7 @@ function armorForm(){
 
   async function refreshTrips(selectedId=null){
     const trips = await listTrips();
+
     if(tripSelect) tripSelect.innerHTML = "";
     for(const t of trips){
       const opt = document.createElement("option");
@@ -112,75 +121,39 @@ function armorForm(){
       opt.textContent = t.name || "(Unnamed trip)";
       tripSelect?.appendChild(opt);
     }
+
     if(selectedId) tripSelect.value = selectedId;
     if(!tripSelect.value && trips[0]) tripSelect.value = trips[0].id;
+
     state.tripId = tripSelect.value || null;
+
     await refreshTripMeta();
     await refreshCatches();
   }
 
+  // expose for main.js
   initTrips.refreshTrips = refreshTrips;
   initTrips.refreshTripMeta = refreshTripMeta;
 
-  newTripBtn?.addEventListener("click", ()=> toggleNewTrip(true));
-
-  function bindTap(el, fn){
+  // Use pointerup for buttons (single reliable tap), fallback click
+  function onTap(el, fn){
     if(!el) return;
 
-    // Desktop + Android
-    el.addEventListener("click", (e)=>{
+    const handler = async (e)=>{
       e.stopPropagation();
-      fn(e);
-    });
-
-    // iOS / pointer-capable browsers
-    el.addEventListener("pointerup", (e)=>{
-      e.stopPropagation();
-      fn(e);
-    });
-
-    // iOS Safari fallback
-    el.addEventListener("touchend", (e)=>{
-      e.stopPropagation();
-      fn(e);
-    }, { passive: true });
-  }
-
-  bindTap(cancelTripBtn, ()=> toggleNewTrip(false));
-
-  bindTap(createTripBtn, async ()=>{
-    const now = Date.now();
-    const location = (newTripLocation?.value || "").trim();
-    const date = (newTripDate?.value || "").trim();
-    const desc = (newTripDesc?.value || "").trim();
-
-    const labelDate = date
-      ? new Date(date + "T00:00:00").toLocaleDateString()
-      : new Date(now).toLocaleDateString();
-
-    const name = location ? `${location} • ${labelDate}` : labelDate;
-
-    const t = {
-      id: uid("trip"),
-      name,
-      date: date || "",
-      location: location || "",
-      desc: desc || "",
-      createdAt: now,
-      updatedAt: now,
-      flyWin: "",
-      lessons: "",
-      recap: ""
+      // Important: prevent “ghost click” follow-up on iOS
+      if(e.type === "pointerup") e.preventDefault?.();
+      await fn(e);
     };
 
-    await saveTrip(t);
-    await refreshTrips(t.id);
+    el.addEventListener("pointerup", handler);
+    el.addEventListener("click", handler);
+  }
 
-    toggleNewTrip(false);
-    setStatus("New trip saved.");
-  });
+  onTap(newTripBtn, ()=> toggleNewTrip(true));
+  onTap(cancelTripBtn, ()=> toggleNewTrip(false));
 
-  createTripBtn?.addEventListener("click", async ()=>{
+  onTap(createTripBtn, async ()=>{
     const now = Date.now();
     const location = (newTripLocation?.value || "").trim();
     const date = (newTripDate?.value || "").trim();

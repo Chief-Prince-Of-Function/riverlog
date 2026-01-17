@@ -97,7 +97,7 @@ body{
 }
 
 /* =========================
-   Surfaces (desktop: frosted; mobile: degrade later)
+   Surfaces
 ========================= */
 .card{
   background: rgba(255,255,255,.08);
@@ -132,6 +132,22 @@ body{
   outline:none;
 }
 
+/* Make iOS date inputs match normal input height */
+input[type="date"].input{
+  height: 48px;
+  min-height: 48px;
+  padding: 10px 12px;
+  line-height: 1.2;
+}
+
+/* iOS Safari: reduce the “big internal padding” look */
+@supports (-webkit-touch-callout: none){
+  input[type="date"].input{
+    padding-top: 0;
+    padding-bottom: 0;
+  }
+}
+
 .input:focus{
   border-color: rgba(19,163,139,.55);
   box-shadow: 0 0 0 3px rgba(19,163,139,.14);
@@ -147,6 +163,10 @@ body{
   border-radius: 14px;
   cursor:pointer;
   font-weight:650;
+
+  /* iOS tap reliability */
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
 }
 
 .btn:hover{filter: brightness(1.07);}
@@ -170,7 +190,7 @@ body{
 .span2{ grid-column: 1 / -1; }
 
 /* =========================
-   New Trip (base styling)
+   New Trip base styling (inline on desktop)
 ========================= */
 .newTrip{
   margin-top: 10px;
@@ -180,66 +200,6 @@ body{
   background: rgba(8,12,20,.35);
   backdrop-filter: blur(14px) saturate(140%);
   -webkit-backdrop-filter: blur(14px) saturate(140%);
-}
-
-/* =========================
-   New Trip modal (overlay wraps form) — iOS-safe
-   (Works because HTML nests #newTripForm inside #tripSheetOverlay)
-========================= */
-.tripSheetOverlay{
-  position: fixed;
-  inset: 0;
-  z-index: 9998;
-
-  background: rgba(0,0,0,.55);
-  backdrop-filter: blur(6px);
-  -webkit-backdrop-filter: blur(6px);
-
-  display: flex;
-  align-items: center;
-  justify-content: center;
-
-  padding: 16px;
-}
-
-.tripSheetOverlay[hidden]{ display:none !important; }
-
-#newTripForm.newTrip{
-  position: relative; /* IMPORTANT: not fixed */
-  z-index: 9999;
-
-  width: min(92vw, 520px);
-  max-height: 86vh;
-  overflow: auto;
-  -webkit-overflow-scrolling: touch;
-
-  padding: 16px 16px 14px;
-  border-radius: 18px;
-
-  background: rgba(14, 18, 28, 0.94);
-  border: 2px solid rgba(19, 163, 139, 0.75);
-  box-shadow: 0 18px 60px rgba(0,0,0,.60);
-
-  margin-top: 0; /* override inline panel spacing */
-}
-
-/* optional: tighten inputs inside the modal */
-#newTripForm input,
-#newTripForm textarea,
-#newTripForm select{
-  background: rgba(255,255,255,.06);
-  border: 1px solid rgba(255,255,255,.14);
-  color: rgba(238,244,255,.92);
-}
-
-#newTripForm input::placeholder,
-#newTripForm textarea::placeholder{
-  color: rgba(238,244,255,.55);
-}
-
-#newTripForm .row,
-#newTripForm .actions{
-  gap: 10px;
 }
 
 /* =========================
@@ -358,9 +318,14 @@ select.input option:checked{
 .hidden{ display:none !important; }
 
 .overlay{
-  position: fixed; inset: 0;
+  position: fixed;
+  inset: 0;
   background: rgba(0,0,0,.55);
   z-index: 9998;
+
+  /* IMPORTANT: make it tappable */
+  pointer-events: auto;
+  touch-action: manipulation;
 }
 
 .modal{
@@ -380,6 +345,10 @@ select.input option:checked{
 
   backdrop-filter: blur(16px) saturate(140%);
   -webkit-backdrop-filter: blur(16px) saturate(140%);
+
+  /* iOS tap + scroll sanity */
+  pointer-events: auto;
+  touch-action: manipulation;
 }
 
 .modalHead, .modalFoot{
@@ -408,6 +377,7 @@ select.input option:checked{
 .modalBody{
   padding: 14px 16px 18px;
   overflow: auto;
+  -webkit-overflow-scrolling: touch;
 }
 
 .collageWrap{
@@ -431,6 +401,9 @@ select.input option:checked{
   background: rgba(0,0,0,.15);
   color: rgba(238,244,255,.86);
   cursor: pointer;
+
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
 }
 
 .btnGhost:hover{ background: rgba(0,0,0,.22); }
@@ -479,7 +452,7 @@ select.input option:checked{
 .badgeLocked{ opacity: .40; filter: grayscale(1); }
 
 /* =========================
-   Badge toast (matches updated HTML)
+   Badge toast
 ========================= */
 .toast{
   position: fixed;
@@ -519,13 +492,16 @@ select.input option:checked{
   padding: 8px 10px;
   cursor: pointer;
   flex: 0 0 auto;
+
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
 }
 .toastClose:active{ transform: translateY(1px); }
 
 .toast.hidden{ display:none !important; }
 
 /* =========================
-   Mobile layout + iOS safety (CLEAN)
+   Mobile layout + iOS safety
 ========================= */
 @media (max-width:720px){
   /* mobile card layout */
@@ -573,21 +549,20 @@ select.input option:checked{
     -webkit-backdrop-filter: none !important;
     background: rgba(12,16,28,.92) !important;
   }
+
+  /* iOS: also avoid frosted overlay blur */
+  .overlay{
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+  }
 }
 
 /* =========================
-   New Trip modal (overlay wraps form) — FIXED + iOS-safe
-   IMPORTANT: display is controlled ONLY by [hidden]
+   New Trip modal (ONE canonical block)
+   Display is controlled ONLY by [hidden]
 ========================= */
-
-/* Always respect the HTML hidden attribute */
 .tripSheetOverlay[hidden]{ display:none !important; }
 #newTripForm[hidden]{ display:none !important; }
-
-/* Default: overlay is off */
-.tripSheetOverlay{
-  display: none;
-}
 
 /* When overlay is shown (hidden removed), it becomes the centering layer */
 .tripSheetOverlay:not([hidden]){
@@ -605,6 +580,10 @@ select.input option:checked{
   /* iOS: blur on full-screen overlays can cause “haze stuck” artifacts */
   backdrop-filter: none;
   -webkit-backdrop-filter: none;
+
+  /* tap reliability */
+  pointer-events: auto;
+  touch-action: manipulation;
 }
 
 /* Modal card */
@@ -625,6 +604,9 @@ select.input option:checked{
   box-shadow: 0 18px 60px rgba(0,0,0,.60);
 
   margin: 0;
+
+  pointer-events: auto;
+  touch-action: manipulation;
 }
 
 /* Mobile: make the form single-column + buttons full width */

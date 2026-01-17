@@ -15,15 +15,17 @@ function setStatus(msg){
   try{
     initPWA();
 
-    const { evaluateBadges, unlockCollageBadge } = initBadges();
+    const { evaluateBadges } = initBadges();
 
     // init catches first so trips can call refreshCatches
     const { refreshCatches } = initCatches({ setStatus });
     const { refreshTrips } = initTrips({ refreshCatches, setStatus });
 
+    // ensure there is a default trip BEFORE refreshing UI
+    const t = await ensureDefaultTrip();
     await refreshTrips(t.id);
-    await evaluateBadges();
 
+    await evaluateBadges();
 
     // collage buttons + modal wiring
     initCollage({ setStatus });
@@ -31,14 +33,12 @@ function setStatus(msg){
     // export/import wiring
     initIO({ refreshTrips, setStatus });
 
-    const t = await ensureDefaultTrip();
-    await refreshTrips(t.id);
-
     if(tripDrawer) tripDrawer.style.display = "none";
 
     setStatus("Ready (offline-first)." + (navigator.onLine ? " Online." : " Offline."));
   }catch(e){
     setStatus(`Boot error: ${e.message || e}`);
+    console.error(e);
   }
 })();
 

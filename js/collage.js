@@ -25,18 +25,20 @@ function openCollageModal(){
   collageOverlay?.classList.remove("hidden");
   collageModal?.classList.remove("hidden");
 }
+
 function closeCollageModal(){
   collageOverlay?.classList.add("hidden");
   collageModal?.classList.add("hidden");
 }
 
-collageOverlay?.addEventListener("click", closeCollageModal);
-collageClose?.addEventListener("click", closeCollageModal);
-
 function loadImgFromBlob(blob){
   return new Promise((resolve, reject)=>{
     const url = URL.createObjectURL(blob);
     const img = new Image();
+
+    // Helps iOS/Safari in some cases
+    img.crossOrigin = "anonymous";
+
     img.onload = ()=>{
       URL.revokeObjectURL(url);
       resolve(img);
@@ -200,7 +202,6 @@ function drawTile(ctx, img, x, y, w, h, caption){
 }
 
 function layoutHeroRows(n){
-  // bottom-up rows of 3; partial rows centered
   const rows = [];
   let remaining = n;
   while(remaining > 0){
@@ -278,7 +279,9 @@ function drawPolaroid(ctx, img, cx, cy, w, h, rotRad, caption=""){
 
 async function buildTripCollage(tripId, tripLabel){
   const canvas = collageCanvas || $("collageCanvas");
+  if(!canvas) throw new Error("Missing collageCanvas element.");
   const ctx = canvas.getContext("2d");
+  if(!ctx) throw new Error("Unable to get canvas context.");
 
   const W = canvas.width;
   const H = canvas.height;
@@ -437,8 +440,22 @@ async function buildTripCollage(tripId, tripLabel){
 }
 
 export function initCollage({ setStatus }){
-  async function onBuildCollage(){
-    if(!state.tripId) return;
+  // IMPORTANT: bind modal close handlers here (after DOM is ready)
+  const overlayEl = collageOverlay || $("collageOverlay");
+  const closeEl = collageClose || $("collageClose");
+
+  // Close when tapping outside or pressing close
+  overlayEl?.addEventListener("click", closeCollageModal);
+  closeEl?.addEventListener("click", closeCollageModal);
+
+  // Mobile Safari reliability: use pointerdown + click
+  async function onBuildCollage(e){
+    e?.preventDefault?.();
+
+    if(!state.tripId){
+      setStatus("Select a trip first.");
+      return;
+    }
 
     const { ok, count } = await canBuildCollage(state.tripId);
     if(!ok){
@@ -446,7 +463,8 @@ export function initCollage({ setStatus }){
       return;
     }
 
-    const label = tripSelect?.selectedOptions?.[0]?.textContent?.trim()
+    const label =
+      tripSelect?.selectedOptions?.[0]?.textContent?.trim()
       || safeText(tripSelect?.value)
       || "Trip";
 
@@ -454,10 +472,15 @@ export function initCollage({ setStatus }){
     try{
       await buildTripCollage(state.tripId, label);
       setStatus("Collage ready.");
-    }catch(e){
-      setStatus(`Collage failed: ${e.message || e}`);
+    }catch(err){
+      console.error(err);
+      setStatus(`Collage failed: ${err.message || err}`);
     }
   }
+
+  // Bind both buttons
+  collageBtn?.addEventListener("pointerdown", onBuildCollage);
+  collageBtnTop?.addEventListener("pointerdown", onBuildCollage);
 
   collageBtn?.addEventListener("click", onBuildCollage);
   collageBtnTop?.addEventListener("click", onBuildCollage);
