@@ -31,16 +31,12 @@ export function initTrips({ refreshCatches, setStatus }){
 function armorForm(){
   if(!newTripForm) return;
 
-  // Stop bubbling so outside handlers don't see it,
-  // but DO NOT use capture (it can block button clicks on iOS)
+  // Only stop bubbling so "outside close" logic can't see taps inside the sheet.
+  // Do NOT attach touchstart/touchend here (iOS can stop generating click events).
   const stop = (e)=> e.stopPropagation();
 
-  newTripForm.addEventListener("click", stop);
   newTripForm.addEventListener("pointerdown", stop);
-
-  // iOS
-  newTripForm.addEventListener("touchstart", stop, { passive:true });
-  newTripForm.addEventListener("touchend", stop, { passive:true });
+  newTripForm.addEventListener("click", stop);
 }
 
   // Close ONLY when pressing the dim area itself (use pointerdown/touchstart, not click)
@@ -127,7 +123,62 @@ function armorForm(){
   initTrips.refreshTripMeta = refreshTripMeta;
 
   newTripBtn?.addEventListener("click", ()=> toggleNewTrip(true));
-  cancelTripBtn?.addEventListener("click", ()=> toggleNewTrip(false));
+
+  function bindTap(el, fn){
+    if(!el) return;
+
+    // Desktop + Android
+    el.addEventListener("click", (e)=>{
+      e.stopPropagation();
+      fn(e);
+    });
+
+    // iOS / pointer-capable browsers
+    el.addEventListener("pointerup", (e)=>{
+      e.stopPropagation();
+      fn(e);
+    });
+
+    // iOS Safari fallback
+    el.addEventListener("touchend", (e)=>{
+      e.stopPropagation();
+      fn(e);
+    }, { passive: true });
+  }
+
+  bindTap(cancelTripBtn, ()=> toggleNewTrip(false));
+
+  bindTap(createTripBtn, async ()=>{
+    const now = Date.now();
+    const location = (newTripLocation?.value || "").trim();
+    const date = (newTripDate?.value || "").trim();
+    const desc = (newTripDesc?.value || "").trim();
+
+    const labelDate = date
+      ? new Date(date + "T00:00:00").toLocaleDateString()
+      : new Date(now).toLocaleDateString();
+
+    const name = location ? `${location} • ${labelDate}` : labelDate;
+
+    const t = {
+      id: uid("trip"),
+      name,
+      date: date || "",
+      location: location || "",
+      desc: desc || "",
+      createdAt: now,
+      updatedAt: now,
+      flyWin: "",
+      lessons: "",
+      recap: ""
+    };
+
+    await saveTrip(t);
+    await refreshTrips(t.id);
+
+    toggleNewTrip(false);
+    setStatus("New trip saved.");
+  });
 
   createTripBtn?.addEventListener("click", async ()=>{
     const now = Date.now();
