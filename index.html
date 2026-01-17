@@ -19,7 +19,7 @@
   <link rel="apple-touch-icon" href="assets/icon-192.png" />
 
   <!-- Styles -->
-  <link rel="stylesheet" href="app.css?v=13" />
+  <link rel="stylesheet" href="app.css?v=14" />
 </head>
 
 <body>
@@ -55,29 +55,33 @@
             <button id="newTripBtn" class="btn ghost">New</button>
           </div>
 
-          <div id="tripSheetOverlay" class="tripSheetOverlay" hidden></div>
+          <!-- Overlay wraps the modal so iOS centers reliably -->
+          <div id="tripSheetOverlay" class="tripSheetOverlay" hidden>
+            <div id="newTripForm" class="newTrip" hidden>
+              <div class="grid2">
+                <div>
+                  <label class="label">Where</label>
+                  <input id="newTripLocation" class="input" placeholder="e.g., West Branch Delaware" />
+                </div>
+                <div>
+                  <label class="label">Date</label>
+                  <input id="newTripDate" class="input" type="date" />
+                </div>
+                <div class="span2">
+                  <label class="label">Trip note (optional)</label>
+                  <input id="newTripDesc" class="input" placeholder="e.g., with Ryan • cold morning • high water" />
+                </div>
+              </div>
 
-          <div id="newTripForm" class="newTrip" hidden>
-            <div class="grid2">
-              <div>
-                <label class="label">Where</label>
-                <input id="newTripLocation" class="input" placeholder="e.g., West Branch Delaware" />
+              <div class="row gap topGap">
+                <button id="createTripBtn" class="btn accent">Save new trip</button>
+                <button id="cancelTripBtn" class="btn ghost">Cancel</button>
               </div>
-              <div>
-                <label class="label">Date</label>
-                <input id="newTripDate" class="input" type="date" />
-              </div>
-              <div class="span2">
-                <label class="label">Trip note (optional)</label>
-                <input id="newTripDesc" class="input" placeholder="e.g., with Ryan • cold morning • high water" />
-              </div>
+
+              <div class="hint">Create it fast now; add recap + lessons later.</div>
             </div>
-            <div class="row gap topGap">
-              <button id="createTripBtn" class="btn accent">Save new trip</button>
-              <button id="cancelTripBtn" class="btn ghost">Cancel</button>
-            </div>
-            <div class="hint">Create it fast now; add recap + lessons later.</div>
           </div>
+          <!-- /Overlay -->
 
           <div class="hint">Tip: make a new trip at the river. Later you’ll add recap + “Fly that won the day” on your Mac.</div>
         </div>
@@ -264,6 +268,6 @@
   <canvas id="collageCanvas" width="1400" height="1400" style="display:none;"></canvas>
 
   <script src="vendor/jszip.min.js"></script>
-  <script type="module" src="js/main.js?v=13"></script>
+  <script type="module" src="js/main.js?v=14"></script>
 </body>
 </html>

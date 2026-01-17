@@ -170,7 +170,7 @@ body{
 .span2{ grid-column: 1 / -1; }
 
 /* =========================
-   New Trip (desktop inline)
+   New Trip (base styling)
 ========================= */
 .newTrip{
   margin-top: 10px;
@@ -182,6 +182,67 @@ body{
   -webkit-backdrop-filter: blur(14px) saturate(140%);
 }
 
+/* =========================
+   New Trip modal (overlay wraps form) — iOS-safe
+   (Works because HTML nests #newTripForm inside #tripSheetOverlay)
+========================= */
+.tripSheetOverlay{
+  position: fixed;
+  inset: 0;
+  z-index: 9998;
+
+  background: rgba(0,0,0,.55);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  padding: 16px;
+}
+
+#newTripForm.newTrip{
+  position: relative; /* IMPORTANT: not fixed */
+  z-index: 9999;
+
+  width: min(92vw, 520px);
+  max-height: 86vh;
+  overflow: auto;
+  -webkit-overflow-scrolling: touch;
+
+  padding: 16px 16px 14px;
+  border-radius: 18px;
+
+  background: rgba(14, 18, 28, 0.94);
+  border: 2px solid rgba(19, 163, 139, 0.75);
+  box-shadow: 0 18px 60px rgba(0,0,0,.60);
+
+  margin-top: 0; /* override inline panel spacing */
+}
+
+/* optional: tighten inputs inside the modal */
+#newTripForm input,
+#newTripForm textarea,
+#newTripForm select{
+  background: rgba(255,255,255,.06);
+  border: 1px solid rgba(255,255,255,.14);
+  color: rgba(238,244,255,.92);
+}
+
+#newTripForm input::placeholder,
+#newTripForm textarea::placeholder{
+  color: rgba(238,244,255,.55);
+}
+
+#newTripForm .row,
+#newTripForm .actions{
+  gap: 10px;
+}
+
+/* =========================
+   Stat
+========================= */
 .stat{
   width:92px; min-width:92px;
   border-radius: 16px;
@@ -513,140 +574,15 @@ select.input option:checked{
     background: rgba(12,16,28,.92) !important;
   }
 
-/* =========================
-   Mobile: New Trip as a stable bottom sheet
-========================= */
-@media (max-width:720px){
-
-  /* When sheet is open, keep page from shifting side-to-side */
-  body.tripSheetOpen{
-    overflow: hidden;
-  }
-
-  /* Visual dim layer ONLY (do NOT steal taps) */
-  body.tripSheetOpen::before{
-    content:"";
-    position: fixed;
-    inset: 0;
-    background: rgba(0,0,0,.28);
-    z-index: 998;
-
-    /* critical: don't interfere with taps/focus */
-    pointer-events: none;
-
-    /* critical: iOS blur here causes “gloss over” artifacts */
-    backdrop-filter: none !important;
-    -webkit-backdrop-filter: none !important;
-  }
-
-  /* The sheet itself */
-  #newTripForm.newTrip{
-    position: fixed !important;
-    left: 12px !important;
-    right: 12px !important;
-    bottom: calc(12px + env(safe-area-inset-bottom)) !important;
-    top: auto !important;
-
-    /* use dvh when supported to behave with address bar/keyboard */
-    max-height: calc(100dvh - 150px) !important;
-    max-height: calc(100vh - 150px) !important;
-
-    overflow: auto !important;
-    -webkit-overflow-scrolling: touch;
-
-    z-index: 999 !important;
-
-    background: rgba(12,16,28,.94) !important;
-    border: 1px solid rgba(255,255,255,.16) !important;
-    border-radius: 18px !important;
-    box-shadow: 0 18px 45px rgba(0,0,0,.60) !important;
-
-    /* iOS: blur on the SHEET is fine, blur on overlay is not */
-    backdrop-filter: blur(14px) saturate(140%) !important;
-    -webkit-backdrop-filter: blur(14px) saturate(140%) !important;
-
-    /* prevent width math causing tiny horizontal scroll */
-    max-width: calc(100% - 24px);
-  }
-
-  /* Make the sheet content single-column */
-  #newTripForm .grid2{
-    grid-template-columns: 1fr !important;
-  }
-
-  /* Buttons full width */
+  /* New Trip modal: make it single-column + full-width buttons */
+  #newTripForm .grid2{ grid-template-columns: 1fr; }
   #newTripForm .row.gap{
-    flex-direction: column !important;
-    align-items: stretch !important;
-    gap: 10px !important;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 10px;
   }
   #newTripForm #createTripBtn,
   #newTripForm #cancelTripBtn{
-    width: 100% !important;
+    width: 100%;
   }
-
-  /* iOS input focus glow: reduce the “explosion” */
-  #newTripForm .input:focus{
-    box-shadow: 0 0 0 2px rgba(19,163,139,.14) !important;
-  }
-}
-}
-
-/* =========================
-   New Trip modal — centered + readable (mobile)
-========================= */
-
-/* The dark overlay behind the form */
-.tripSheetOverlay{
-  position: fixed;
-  inset: 0;
-  z-index: 9998;
-  background: rgba(0,0,0,.55);
-  backdrop-filter: blur(6px);
-  -webkit-backdrop-filter: blur(6px);
-}
-
-/* The actual form sheet */
-#newTripForm{
-  position: fixed;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-
-  z-index: 9999;
-
-  width: min(92vw, 520px);
-  max-height: 86vh;
-  overflow: auto;
-
-  padding: 16px 16px 14px;
-  border-radius: 18px;
-
-  /* Less transparent, more readable */
-  background: rgba(14, 18, 28, 0.94);
-
-  /* Accent border so it "pops" */
-  border: 2px solid rgba(19, 163, 139, 0.75);
-
-  box-shadow: 0 18px 60px rgba(0,0,0,.60);
-}
-
-/* optional: tighten inputs inside the modal */
-#newTripForm input,
-#newTripForm textarea,
-#newTripForm select{
-  background: rgba(255,255,255,.06);
-  border: 1px solid rgba(255,255,255,.14);
-  color: rgba(238,244,255,.92);
-}
-
-#newTripForm input::placeholder,
-#newTripForm textarea::placeholder{
-  color: rgba(238,244,255,.55);
-}
-
-/* keep buttons from smashing too tight */
-#newTripForm .row,
-#newTripForm .actions{
-  gap: 10px;
 }

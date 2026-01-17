@@ -187,14 +187,16 @@ async function refreshTripMeta(){
 
 function toggleNewTrip(show){
   if(!newTripForm) return;
+
+  const overlay = document.getElementById("tripSheetOverlay");
+
   newTripForm.hidden = !show;
-  if(show){
-    try{ newTripDate.value = new Date().toISOString().slice(0,10); }catch(_){}
-    newTripLocation.focus();
-  }else{
-    newTripLocation.value = "";
-    newTripDesc.value = "";
+  if(overlay) overlay.hidden = !show;
+
+  if(overlay){
+    overlay.onclick = ()=> toggleNewTrip(false);
   }
+  newTripForm.onclick = (e)=> e.stopPropagation();
 }
 
 newTripBtn.addEventListener("click", async ()=>{
