@@ -5,8 +5,9 @@ import {
   getFlyBox,
   saveFlyBox,
   deleteFlyBox,
+  clearAllFlyBoxes,
   listFliesByBox,
-  getFly,               // ✅ preserve createdAt on edit
+  getFly,
   saveFly,
   deleteFly,
   adjustFlyQty
@@ -348,7 +349,6 @@ async function handleDeleteBox(setStatus){
 
 /* ===== Clear ALL boxes (strong confirm) ===== */
 async function handleClearAllBoxes(setStatus){
-  const boxes = await listFlyBoxes();
 
   const typed = prompt(
     `DANGER ZONE\n\nThis will delete ALL fly boxes and ALL flies inside them.\n\nType DELETE to confirm:`,
@@ -361,9 +361,7 @@ async function handleClearAllBoxes(setStatus){
   }
 
   try{
-    for(const b of boxes){
-      await deleteFlyBox(b.id);
-    }
+    await clearAllFlyBoxes();
 
     const ensured = await ensureDefaultFlyBox();
     await refreshBoxSelect(ensured.id);
@@ -430,13 +428,21 @@ export function initFlyBox({ setStatus }){
 
   if(deleteFlyBoxBtn){
     deleteFlyBoxBtn.onclick = async ()=> {
-      await handleDeleteBox(setStatus);
+      try{
+        await handleDeleteBox(setStatus);
+      }catch(e){
+        setStatus?.(`FlyBox error (delete box): ${e?.message || e}`);
+      }
     };
   }
 
   if(clearFlyBoxesBtn){
     clearFlyBoxesBtn.onclick = async ()=> {
-      await handleClearAllBoxes(setStatus);
+      try{
+        await handleClearAllBoxes(setStatus);
+      }catch(e){
+        setStatus?.(`FlyBox error (clear all): ${e?.message || e}`);
+      }
     };
   }
 
@@ -448,64 +454,62 @@ export function initFlyBox({ setStatus }){
 
   if(addFlyBtn){
     addFlyBtn.onclick = async ()=> {
-      const boxId = state.flyBoxId;
-      if(!boxId){
-        setStatus?.("Pick a fly box first.");
-        return;
-      }
-
-      const type = (flyType?.value || "").trim();
-      const pattern = (flyPattern?.value || "").trim();
-      const size = parseSize(flySize?.value || "");
-      const qty = parseQty(flyQty?.value || "");
-      const colors = (flyColors?.value || "").trim();
-
-      if(!pattern || !size){
-        setStatus?.("Pattern + Size are required.");
-        return;
-      }
-
-      const now = Date.now();
-      const wasEditing = !!state.flyEditingId;
-
-      // preserve createdAt + existing photo on edit (unless user selected a new one)
-      let createdAt = now;
-      let existingPhoto = "";
-
-      if(wasEditing){
-        try{
-          const existing = await getFly(state.flyEditingId);
-          if(existing && existing.createdAt) createdAt = existing.createdAt;
-          if(existing && existing.photo) existingPhoto = existing.photo;
-        }catch(_){}
-      }
-
-      // If user picked a new photo, use it; else keep existing photo.
-      let photo = existingPhoto;
-      const picked = flyPhoto?.files?.[0];
-      if(picked){
-        try{
-          photo = await fileToDataURL(picked);
-        }catch(_){
-          photo = existingPhoto;
-        }
-      }
-
-      const id = state.flyEditingId || uid("fly");
-      const row = {
-        id,
-        boxId,
-        type,
-        pattern,
-        size,
-        qty,
-        colors,
-        photo,
-        createdAt,
-        updatedAt: now
-      };
-
       try{
+        const boxId = state.flyBoxId;
+        if(!boxId){
+          setStatus?.("Pick a fly box first.");
+          return;
+        }
+
+        const type = (flyType?.value || "").trim();
+        const pattern = (flyPattern?.value || "").trim();
+        const size = parseSize(flySize?.value || "");
+        const qty = parseQty(flyQty?.value || "");
+        const colors = (flyColors?.value || "").trim();
+
+        if(!pattern || !size){
+          setStatus?.("Pattern + Size are required.");
+          return;
+        }
+
+        const now = Date.now();
+        const wasEditing = !!state.flyEditingId;
+
+        let createdAt = now;
+        let existingPhoto = "";
+
+        if(wasEditing){
+          try{
+            const existing = await getFly(state.flyEditingId);
+            if(existing && existing.createdAt) createdAt = existing.createdAt;
+            if(existing && existing.photo) existingPhoto = existing.photo;
+          }catch(_){}
+        }
+
+        let photo = existingPhoto;
+        const picked = flyPhoto?.files?.[0];
+        if(picked){
+          try{
+            photo = await fileToDataURL(picked);
+          }catch(_){
+            photo = existingPhoto;
+          }
+        }
+
+        const id = state.flyEditingId || uid("fly");
+        const row = {
+          id,
+          boxId,
+          type,
+          pattern,
+          size,
+          qty,
+          colors,
+          photo,
+          createdAt,
+          updatedAt: now
+        };
+
         await saveFly(row);
         const msg = wasEditing ? "Fly updated." : "Fly added.";
 
@@ -514,7 +518,7 @@ export function initFlyBox({ setStatus }){
         await renderFlyList(boxId, setStatus);
         setStatus?.(msg);
       }catch(e){
-        setStatus?.(`Save failed: ${e?.message || e}`);
+        setStatus?.(`FlyBox error (save fly): ${e?.message || e}`);
       }
     };
   }

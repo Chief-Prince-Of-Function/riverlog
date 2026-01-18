@@ -264,23 +264,58 @@ export async function saveFlyBox(box){
   });
 }
 
-export function deleteFlyBox(boxId){
-  const data = load();
-  data.flyBoxes = Array.isArray(data.flyBoxes) ? data.flyBoxes : [];
-  data.flies = Array.isArray(data.flies) ? data.flies : [];
+export async function deleteFlyBox(boxId){
+  const db = await openDB();
 
-  // remove the box
-  data.flyBoxes = data.flyBoxes.filter(b => b.id !== boxId);
+  // 1) delete flies + events in this box (best-effort, but we do it properly)
+  const flies = await listFliesByBox(boxId);
 
-  // cascade: remove flies in that box
-  data.flies = data.flies.filter(f => f.boxId !== boxId);
+  // delete flyevents by box
+  try{
+    const evs = await listFlyEventsByBox(boxId);
+    await Promise.all(evs.map(e => deleteFlyEvent(e.id)));
+  }catch(_){}
 
-  // ensure currentFlyBoxId points at something valid (or null)
-  if(data.currentFlyBoxId === boxId || !data.flyBoxes.some(b => b.id === data.currentFlyBoxId)){
-    data.currentFlyBoxId = data.flyBoxes[0]?.id || null;
-  }
+  // delete flies (each fly delete also attempts to clear its events by flyId)
+  await Promise.allSettled(flies.map(f => deleteFly(f.id)));
 
-  save(data);
+  // 2) delete the box itself
+  await new Promise((resolve, reject)=>{
+    const req = tx(db, "flyboxes", "readwrite").delete(boxId);
+    req.onsuccess = ()=> resolve(true);
+    req.onerror = ()=> reject(req.error);
+  });
+
+  return true;
+}
+
+export async function clearAllFlyBoxes(){
+  const db = await openDB();
+
+  // Gather boxes first, then delete them (keeps behavior consistent + simple)
+  const boxes = await listFlyBoxes();
+  await Promise.allSettled(boxes.map(b => deleteFlyBox(b.id)));
+
+  // Safety: if anything survived for some reason, clear stores directly
+  await new Promise((resolve, reject)=>{
+    const req = tx(db, "flyboxes", "readwrite").clear();
+    req.onsuccess = ()=> resolve(true);
+    req.onerror = ()=> reject(req.error);
+  });
+
+  await new Promise((resolve, reject)=>{
+    const req = tx(db, "flies", "readwrite").clear();
+    req.onsuccess = ()=> resolve(true);
+    req.onerror = ()=> reject(req.error);
+  });
+
+  await new Promise((resolve, reject)=>{
+    const req = tx(db, "flyevents", "readwrite").clear();
+    req.onsuccess = ()=> resolve(true);
+    req.onerror = ()=> reject(req.error);
+  });
+
+  return true;
 }
 
 export async function listFliesByBox(boxId){
