@@ -7,6 +7,7 @@ import { $ } from "./utils.js";
 // Trips (top section)
 export const tripSelect = $("tripSelect");
 export const newTripBtn = $("newTripBtn");
+export const deleteTripBtn = $("deleteTripBtn");
 
 // NEW: overlay wrapper for the mobile “New Trip” modal
 export const tripSheetOverlay = $("tripSheetOverlay");

@@ -189,6 +189,14 @@ input[type="date"].input{
 .grid2{display:grid; grid-template-columns: 1fr 1fr; gap:12px;}
 .span2{ grid-column: 1 / -1; }
 
+.btn.danger{
+  border-color: rgba(231,76,60,.65);
+  background: rgba(231,76,60,.14);
+}
+.btn.danger:hover{
+  filter: brightness(1.05);
+}
+
 /* =========================
    New Trip base styling (inline on desktop)
 ========================= */
