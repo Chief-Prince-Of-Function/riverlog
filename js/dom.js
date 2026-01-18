@@ -115,3 +115,4 @@ export const collagePreview = $("collagePreview");
 export const collageDownload = $("collageDownload");
 export const collageShare = $("collageShare");
 export const collageCanvas = $("collageCanvas");
+export const collageBtnTop = $("collageBtnTop"); // optional top button (may not exist)
