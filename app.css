@@ -366,6 +366,33 @@ select.input option:checked{
   justify-content: flex-end;
 }
 
+/* =========================
+   Collage modal footer buttons (Share + Download)
+========================= */
+.modalFoot{
+  display:flex;
+  gap:10px;
+  justify-content:flex-end;
+  flex-wrap:wrap;
+}
+
+.modalFoot .btn,
+.modalFoot .btnGhost{
+  min-width: 140px;
+}
+
+/* Mobile: stack nicely */
+@media (max-width:720px){
+  .modalFoot{
+    justify-content: stretch;
+  }
+  .modalFoot .btn,
+  .modalFoot .btnGhost{
+    flex: 1;
+    min-width: 0;
+  }
+}
+
 .modalTitle{ font-weight: 700; color: rgba(238,244,255,.92); }
 
 .modalSub{

@@ -11,6 +11,7 @@ import {
   collageMeta,
   collagePreview,
   collageDownload,
+  collageShare,
   collageCanvas
 } from "./dom.js";
 
@@ -39,9 +40,7 @@ function loadImgFromBlob(blob){
     const img = new Image();
 
     // iOS Safari can behave better with these
-    try{
-      img.decoding = "async";
-    }catch(_){}
+    try{ img.decoding = "async"; }catch(_){}
 
     img.onload = ()=>{
       URL.revokeObjectURL(url);
@@ -337,6 +336,60 @@ async function drawBrandMark(ctx, W, H){
   ctx.restore();
 }
 
+/* =========================
+   Share helpers
+========================= */
+
+function dataUrlToBlob(dataUrl){
+  const parts = String(dataUrl).split(",");
+  const meta = parts[0] || "";
+  const b64 = parts[1] || "";
+  const mime = (meta.match(/data:([^;]+);base64/i)?.[1]) || "image/png";
+
+  const bin = atob(b64);
+  const arr = new Uint8Array(bin.length);
+  for(let i=0;i<bin.length;i++) arr[i] = bin.charCodeAt(i);
+
+  return new Blob([arr], { type: mime });
+}
+
+function safeNameFromLabel(label){
+  return String(label || "trip")
+    .trim()
+    .replace(/[^\w\-]+/g, "_")
+    .slice(0, 60) || "trip";
+}
+
+async function shareCollagePNG({ dataUrl, tripLabel, setStatus }){
+  // must be called from a user gesture (button click)
+  try{
+    if(!navigator.share){
+      throw new Error("Sharing not supported on this device.");
+    }
+
+    const blob = dataUrlToBlob(dataUrl);
+    const filename = `RiverLog_${safeNameFromLabel(tripLabel)}_collage.png`;
+    const file = new File([blob], filename, { type: "image/png" });
+
+    // If canShare exists and rejects files, fallback to download
+    if(navigator.canShare && !navigator.canShare({ files: [file] })){
+      throw new Error("Share files not supported here.");
+    }
+
+    setStatus?.("Opening share…");
+    await navigator.share({
+      title: "RiverLog Collage",
+      text: tripLabel ? `Trip collage: ${tripLabel}` : "Trip collage",
+      files: [file]
+    });
+    setStatus?.("Shared.");
+    return true;
+  }catch(err){
+    setStatus?.(`Share unavailable: ${err.message || err}`);
+    return false;
+  }
+}
+
 async function buildTripCollage(tripId, tripLabel){
   const canvas = collageCanvas || $("collageCanvas");
   const ctx = canvas.getContext("2d");
@@ -441,7 +494,6 @@ async function buildTripCollage(tripId, tripLabel){
       const wiggle = ((i * 37) % 9) - 4; // -4..+4 deterministic
       const base = ((i % 2 === 0) ? 10 : -10);
       const rotDeg = (base + wiggle) * (1 - t*0.55);
-
       const rot = rotDeg * Math.PI/180;
 
       const scale = 0.92 - (t * 0.22);
@@ -474,9 +526,25 @@ async function buildTripCollage(tripId, tripLabel){
     collageDownload.onclick = ()=>{
       const a = document.createElement("a");
       a.href = dataUrl;
-      const safe = (tripLabel || "trip").replace(/[^\w\-]+/g, "_");
+      const safe = safeNameFromLabel(tripLabel || "trip");
       a.download = `RiverLog_${safe}_collage.png`;
       a.click();
+    };
+  }
+
+  // Share button wiring (best effort)
+  if(collageShare){
+    // show if supported, otherwise hide
+    const shareSupported = !!navigator.share;
+    collageShare.style.display = shareSupported ? "" : "none";
+
+    collageShare.onclick = async ()=>{
+      // try share; if it fails, fallback to download
+      const ok = await shareCollagePNG({ dataUrl, tripLabel, setStatus: null });
+      if(!ok){
+        // fallback to download
+        try{ collageDownload?.click(); }catch(_){}
+      }
     };
   }
 
@@ -501,16 +569,28 @@ export function initCollage({ setStatus }){
 
     try{
       await buildTripCollage(state.tripId, label);
+
+      // Make Share label feel “native”
+      if(collageShare){
+        const shareSupported = !!navigator.share;
+        collageShare.style.display = shareSupported ? "" : "none";
+      }
+
       setStatus("Collage ready.");
     }catch(e){
       console.error("Collage error:", e);
       setStatus(`Collage failed: ${e?.message || e}`);
-      alert(`Collage failed: ${e?.message || e}`); // temporary: confirms it's not "doing nothing"
+      alert(`Collage failed: ${e?.message || e}`);
     }
   }
 
   collageBtn?.addEventListener("click", onBuildCollage);
   collageBtnTop?.addEventListener("click", onBuildCollage);
+
+  // If share exists but browser doesn’t support it, hide it.
+  if(collageShare && !navigator.share){
+    collageShare.style.display = "none";
+  }
 
   return { buildTripCollage };
 }

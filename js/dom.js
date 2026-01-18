@@ -65,6 +65,7 @@ export const collageClose = $("collageClose");
 export const collageMeta = $("collageMeta");
 export const collagePreview = $("collagePreview");
 export const collageDownload = $("collageDownload");
+export const collageShare = $("collageShare");   // <-- ADD
 export const collageCanvas = $("collageCanvas");
 
 /* =========================
