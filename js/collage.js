@@ -428,7 +428,7 @@ async function buildTripCollage(tripId, tripLabel){
     drawPolaroid(ctx, imgs[0], centerX, centerY, baseW, baseH, (-6 * Math.PI/180), makeCaption(use[0]));
 
     const golden = 2.399963229728653;
-    const maxR = Math.min(area.w, area.h) * 0.42;
+    const maxR = Math.min(area.w, area.h) * 0.48;
 
     for(let i=1; i<n; i++){
       const t = i / (n - 1);
@@ -438,7 +438,10 @@ async function buildTripCollage(tripId, tripLabel){
       const cx = centerX + Math.cos(ang) * r;
       const cy = centerY + Math.sin(ang) * r;
 
-      const rotDeg = ((i % 2 === 0) ? 8 : -8) * (1 - t*0.55);
+      const wiggle = ((i * 37) % 9) - 4; // -4..+4 deterministic
+      const base = ((i % 2 === 0) ? 10 : -10);
+      const rotDeg = (base + wiggle) * (1 - t*0.55);
+
       const rot = rotDeg * Math.PI/180;
 
       const scale = 0.92 - (t * 0.22);
