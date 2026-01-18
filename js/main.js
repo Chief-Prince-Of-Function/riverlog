@@ -34,6 +34,8 @@ function setStatus(msg){
     // collage buttons + modal wiring
     initCollage({ setStatus });
 
+    initFlyBox({ setStatus });
+
     // export/import wiring
     initIO({ refreshTrips, setStatus });
 

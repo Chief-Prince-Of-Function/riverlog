@@ -1,7 +1,7 @@
 // service-worker.js — RiverLog
 // Offline-first app shell for GitHub Pages, with reliable iOS updates.
 
-const VERSION = "26";                 // bump on every deploy
+const VERSION = "27";                 // bump on every deploy
 const CACHE = `riverlog-v${VERSION}`;
 
 // IMPORTANT: GitHub Pages path prefix (repo name)

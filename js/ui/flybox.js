@@ -6,13 +6,15 @@ import {
   saveFlyBox,
   deleteFlyBox,
   listFliesByBox,
+  getFly,               // ✅ NEW (to preserve createdAt on edit)
   saveFly,
   deleteFly,
   adjustFlyQty
-} from "../storage.js";
+} from "../../storage.js";
 
-import { safeText } from "./utils.js";
-import { state } from "./state.js";
+import { safeText } from "../utils.js";
+import { state } from "../state.js";
+
 import {
   flyBoxBtn,
   flyBoxCard,
@@ -28,7 +30,7 @@ import {
   addFlyBtn,
   flyList,
   flyEmpty
-} from "./dom.js";
+} from "../dom.js";
 
 /* =========================
    FlyBox module (MVP)
@@ -56,8 +58,9 @@ function parseQty(v){
 function flyLabel(row){
   const t = safeText(row.type);
   const p = safeText(row.pattern);
-  const sz = safeText(row.size);
-  return `${t} • ${p} • #${sz}`;
+  const szRaw = String(row.size || "").trim();
+  const sz = szRaw ? `#${szRaw}` : "#-";
+  return `${t} • ${p} • ${sz}`;
 }
 
 function flySub(row){
@@ -158,7 +161,7 @@ async function renderFlyList(boxId, setStatus){
     const useBtn = document.createElement("button");
     useBtn.className = "btn ghost";
     useBtn.textContent = "Use";
-    useBtn.onclick = async ()=>{
+    useBtn.onclick = async ()=> {
       try{
         await adjustFlyQty({ flyId: f.id, delta: -1, kind: "use" });
         await refreshFlyMeta(boxId);
@@ -172,7 +175,7 @@ async function renderFlyList(boxId, setStatus){
     const addBtn = document.createElement("button");
     addBtn.className = "btn ghost";
     addBtn.textContent = "+";
-    addBtn.onclick = async ()=>{
+    addBtn.onclick = async ()=> {
       try{
         await adjustFlyQty({ flyId: f.id, delta: +1, kind: "add" });
         await refreshFlyMeta(boxId);
@@ -186,7 +189,7 @@ async function renderFlyList(boxId, setStatus){
     const editBtn = document.createElement("button");
     editBtn.className = "btn";
     editBtn.textContent = "Edit";
-    editBtn.onclick = ()=>{
+    editBtn.onclick = ()=> {
       setEditingFly(f.id);
       if(flyType) flyType.value = f.type || "";
       if(flyPattern) flyPattern.value = f.pattern || "";
@@ -199,13 +202,13 @@ async function renderFlyList(boxId, setStatus){
     const delBtn = document.createElement("button");
     delBtn.className = "btn danger";
     delBtn.textContent = "Delete";
-    delBtn.onclick = async ()=>{
+    delBtn.onclick = async ()=> {
       const ok = confirm(`Delete "${f.pattern || "this fly"}" (#${f.size || "-"})?\n\nThis cannot be undone.`);
       if(!ok) return;
 
       try{
         await deleteFly(f.id);
-        setEditingFly(null);
+        if(state.flyEditingId === f.id) setEditingFly(null);
         await refreshFlyMeta(boxId);
         await renderFlyList(boxId, setStatus);
         setStatus?.("Fly deleted.");
@@ -236,7 +239,7 @@ async function setActiveBox(boxId, setStatus){
 
 export function initFlyBox({ setStatus }){
   // open/close
-  flyBoxBtn?.addEventListener("click", async ()=>{
+  flyBoxBtn?.addEventListener("click", async ()=> {
     showFlyBox(true);
 
     // ensure at least 1 box exists
@@ -247,13 +250,13 @@ export function initFlyBox({ setStatus }){
     setStatus?.("FlyBox ready.");
   });
 
-  flyBoxClose?.addEventListener("click", ()=>{
+  flyBoxClose?.addEventListener("click", ()=> {
     showFlyBox(false);
     clearFlyForm();
   });
 
   // switch boxes
-  flyBoxSelect?.addEventListener("change", async ()=>{
+  flyBoxSelect?.addEventListener("change", async ()=> {
     const id = flyBoxSelect.value;
     if(!id) return;
     clearFlyForm();
@@ -262,7 +265,7 @@ export function initFlyBox({ setStatus }){
   });
 
   // new box
-  newFlyBoxBtn?.addEventListener("click", async ()=>{
+  newFlyBoxBtn?.addEventListener("click", async ()=> {
     const name = prompt("New fly box name?", "My Fly Box");
     if(!name) return;
 
@@ -282,7 +285,7 @@ export function initFlyBox({ setStatus }){
   });
 
   // add/update fly
-  addFlyBtn?.addEventListener("click", async ()=>{
+  addFlyBtn?.addEventListener("click", async ()=> {
     const boxId = state.flyBoxId;
     if(!boxId){
       setStatus?.("Pick a fly box first.");
@@ -301,6 +304,16 @@ export function initFlyBox({ setStatus }){
     }
 
     const now = Date.now();
+    const wasEditing = !!state.flyEditingId;
+
+    // ✅ preserve createdAt on edit
+    let createdAt = now;
+    if(wasEditing){
+      try{
+        const existing = await getFly(state.flyEditingId);
+        if(existing && existing.createdAt) createdAt = existing.createdAt;
+      }catch(_){}
+    }
 
     const id = state.flyEditingId || uid("fly");
     const row = {
@@ -311,16 +324,20 @@ export function initFlyBox({ setStatus }){
       size,
       qty,
       colors,
-      createdAt: state.flyEditingId ? (now) : now,
+      createdAt,
       updatedAt: now
     };
 
     try{
       await saveFly(row);
+
+      // ✅ show correct message BEFORE we clear form/state
+      const msg = wasEditing ? "Fly updated." : "Fly added.";
+
       clearFlyForm();
       await refreshFlyMeta(boxId);
       await renderFlyList(boxId, setStatus);
-      setStatus?.(state.flyEditingId ? "Fly updated." : "Fly added.");
+      setStatus?.(msg);
     }catch(e){
       setStatus?.(`Save failed: ${e?.message || e}`);
     }
