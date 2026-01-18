@@ -37,6 +37,11 @@ export const tripSelect = $("tripSelect");
 export const newTripBtn = $("newTripBtn");
 export const deleteTripBtn = $("deleteTripBtn");
 
+/* Trip Recap open button (legacy compat)
+   trips.js in older builds may import this. Your HTML might not include it.
+   Exporting it keeps boot from crashing. */
+export const editTripBtn = $("editTripBtn");
+
 /* New Trip Overlay (modal) */
 export const tripSheetOverlay = $("tripSheetOverlay");
 export const newTripForm = $("newTripForm");
@@ -58,10 +63,10 @@ export const notes = $("notes");
 export const gpsHint = $("gpsHint");
 export const photoHint = $("photoHint");
 
-/* ===== Import / Export ===== */
+/* ===== Import / Export / Install ===== */
 export const exportBtn = $("exportBtn");
 export const importInput = $("importInput");
-export const installBtn = $("installBtn"); // optional (exists in HTML)
+export const installBtn = $("installBtn");
 
 /* ===== Catches list + meta ===== */
 export const catchList = $("catchList");
