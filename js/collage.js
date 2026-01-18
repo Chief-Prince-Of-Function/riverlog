@@ -17,8 +17,8 @@ import {
 /* =========================
    Trip Collage Builder (ALWAYS PNG)
    1–9: hero grid (rows of 3, centered)
-   10–19: pane “scatter” collage (less patterned, more viewable)
-   20+: top 20 largest by length (scatter)
+   10–19: ordered “polaroid” spiral (all photos)
+   20+: top 20 largest by length (ordered spiral)
 ========================= */
 
 function openCollageModal(){
@@ -37,6 +37,12 @@ function loadImgFromBlob(blob){
   return new Promise((resolve, reject)=>{
     const url = URL.createObjectURL(blob);
     const img = new Image();
+
+    // iOS Safari can behave better with these
+    try{
+      img.decoding = "async";
+    }catch(_){}
+
     img.onload = ()=>{
       URL.revokeObjectURL(url);
       resolve(img);
@@ -170,13 +176,11 @@ function makeBg(ctx, W, H){
 }
 
 function drawTile(ctx, img, x, y, w, h, caption){
-  // shadow
+  // shadow (NO ctx.filter — iOS-safe)
   ctx.save();
-  ctx.globalAlpha = 0.28;
+  ctx.globalAlpha = 0.22;
   ctx.fillStyle = "black";
-  ctx.filter = "blur(10px)";
   ctx.fillRect(x + 8, y + 10, w, h);
-  ctx.filter = "none";
   ctx.restore();
 
   // card
@@ -186,7 +190,6 @@ function drawTile(ctx, img, x, y, w, h, caption){
   ctx.fill();
   ctx.restore();
 
-  // inner photo area + caption band
   const pad = Math.max(16, Math.round(w * 0.06));
   const capH = Math.max(44, Math.round(h * 0.16));
   const photoX = x + pad;
@@ -227,48 +230,58 @@ function layoutHeroRows(n){
   return rows;
 }
 
-/* ---------- Deterministic random ---------- */
-function mulberry32(seed){
-  return function(){
-    let t = seed += 0x6D2B79F5;
-    t = Math.imul(t ^ (t >>> 15), t | 1);
-    t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
-    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
-  };
-}
+/* ---------- Polaroid helpers (iOS-safe: NO ctx.filter) ---------- */
 
-/* ---------- Pane scatter layout (less overlap, no ring) ---------- */
-function clamp(n, a, b){ return Math.max(a, Math.min(b, n)); }
+function drawPolaroid(ctx, img, cx, cy, w, h, rotRad, caption=""){
+  ctx.save();
+  ctx.translate(cx, cy);
+  ctx.rotate(rotRad);
 
-function rectsOverlap(a, b){
-  return !(a.x + a.w <= b.x || b.x + b.w <= a.x || a.y + a.h <= b.y || b.y + b.h <= a.y);
-}
+  const pad = Math.max(18, Math.round(w * 0.07));
+  const bottomPad = Math.round(pad * 1.8);
+  const cardW = w + pad*2;
+  const cardH = h + pad + bottomPad;
 
-function tryPlaceRect(rnd, area, w, h, placed, tries=180){
-  // we’ll allow a little overlap (soft), but try to avoid heavy overlap
-  for(let i=0;i<tries;i++){
-    const x = area.x + rnd() * (area.w - w);
-    const y = area.y + rnd() * (area.h - h);
-    const rect = { x, y, w, h };
+  // shadow (NO filter)
+  ctx.save();
+  ctx.globalAlpha = 0.22;
+  ctx.fillStyle = "black";
+  ctx.fillRect(-cardW/2 + 10, -cardH/2 + 12, cardW, cardH);
+  ctx.restore();
 
-    let overlaps = 0;
-    for(const p of placed){
-      if(rectsOverlap(rect, p)) overlaps++;
-      if(overlaps >= 2) break; // allow at most 1 overlap
-    }
+  // card
+  ctx.fillStyle = "rgba(255,255,255,.92)";
+  ctx.fillRect(-cardW/2, -cardH/2, cardW, cardH);
 
-    if(overlaps < 2){
-      placed.push(rect);
-      return rect;
-    }
+  // photo clip
+  const px = -w/2;
+  const py = -cardH/2 + pad;
+
+  ctx.save();
+  roundRectPath(ctx, px, py, w, h, 14);
+  ctx.clip();
+  drawImageCover(ctx, img, px, py, w, h);
+  ctx.restore();
+
+  // caption
+  const cap = String(caption || "").trim();
+  if(cap){
+    const bandTop = py + h;
+    const bandH = cardH - (pad + h);
+
+    ctx.save();
+    ctx.fillStyle = "rgba(20,24,32,.95)";
+    ctx.font = "600 14px system-ui, -apple-system, Segoe UI, Roboto, Arial";
+    ctx.textAlign = "center";
+    ctx.textBaseline = "middle";
+
+    const maxW = cardW - 20;
+    const t = fitText(ctx, cap, maxW);
+    ctx.fillText(t, 0, bandTop + (bandH * 0.62));
+    ctx.restore();
   }
 
-  // fallback: just place it somewhere valid
-  const x = area.x + rnd() * (area.w - w);
-  const y = area.y + rnd() * (area.h - h);
-  const rect = { x, y, w, h };
-  placed.push(rect);
-  return rect;
+  ctx.restore();
 }
 
 /* --- watermark / brand mark (bottom-right) --- */
@@ -300,16 +313,12 @@ async function drawBrandMark(ctx, W, H){
 
   if(icon){
     ctx.save();
-    ctx.globalAlpha = 0.9;
-    ctx.fillStyle = "rgba(0,0,0,.35)";
-    ctx.filter = "blur(10px)";
+    ctx.globalAlpha = 0.22;
+    ctx.fillStyle = "black";
     ctx.fillRect(iconX + 4, iconY + 6, iconSize, iconSize);
-    ctx.filter = "none";
+    ctx.restore();
 
-    ctx.fillStyle = "rgba(255,255,255,.08)";
-    roundRectPath(ctx, iconX-8, iconY-8, iconSize+16, iconSize+16, 18);
-    ctx.fill();
-
+    ctx.save();
     ctx.globalAlpha = 0.95;
     ctx.drawImage(icon, iconX, iconY, iconSize, iconSize);
     ctx.restore();
@@ -337,7 +346,6 @@ async function buildTripCollage(tripId, tripLabel){
 
   makeBg(ctx, W, H);
 
-  // collect + sort by length desc (ties: newest first)
   let items = await getTripPhotoCatchesFromDB(tripId);
   items.sort((a,b)=>{
     const dl = (b.lengthNum||0) - (a.lengthNum||0);
@@ -354,13 +362,9 @@ async function buildTripCollage(tripId, tripLabel){
     return;
   }
 
-  // selection rule:
-  //  - 1–19 => use all
-  //  - 20+  => use top 20 by length
   const use = (nTotal >= 20) ? items.slice(0,20) : items.slice(0, nTotal);
   const n = use.length;
 
-  // load images
   const imgs = await Promise.all(use.map(x=> loadImgFromBlob(x.blob)));
 
   // header
@@ -384,12 +388,11 @@ async function buildTripCollage(tripId, tripLabel){
   ctx.fillText(subtitle, 56, 96);
   ctx.restore();
 
-  // layout area (below header)
   const area = { x: 54, y: 126, w: W - 108, h: H - 176 };
   const gap = 18;
 
   if(n <= 9){
-    // HERO GRID: rows of 3, centered
+    // HERO GRID
     const rows = layoutHeroRows(n);
     const cols = 3;
     const totalRows = rows.length;
@@ -414,46 +417,30 @@ async function buildTripCollage(tripId, tripLabel){
       }
     }
   }else{
-    // ORDERED “POLAROID” COLLAGE (10–20)
-    // - biggest centered
-    // - others placed in a deterministic spiral outward (no chaos)
+    // ORDERED POLAROID SPIRAL (iOS-safe)
     const centerX = area.x + area.w/2;
     const centerY = area.y + area.h/2;
 
     const baseW = Math.round(area.w * 0.32);
     const baseH = Math.round(area.h * 0.30);
 
-    // hero in the middle (biggest fish)
-    drawPolaroid(
-      ctx,
-      imgs[0],
-      centerX,
-      centerY,
-      baseW,
-      baseH,
-      (-6 * Math.PI/180),
-      makeCaption(use[0])
-    );
+    // biggest centered
+    drawPolaroid(ctx, imgs[0], centerX, centerY, baseW, baseH, (-6 * Math.PI/180), makeCaption(use[0]));
 
-    // golden-angle spiral: even, predictable distribution
-    const golden = 2.399963229728653; // radians (~137.5deg)
+    const golden = 2.399963229728653;
     const maxR = Math.min(area.w, area.h) * 0.42;
 
     for(let i=1; i<n; i++){
-      // spiral radius grows smoothly
-      const t = i / (n - 1);               // 0..1
+      const t = i / (n - 1);
       const r = Math.min(maxR, (0.16 + 0.88*t) * maxR);
-
       const ang = i * golden;
 
       const cx = centerX + Math.cos(ang) * r;
       const cy = centerY + Math.sin(ang) * r;
 
-      // gentle, consistent rotation pattern (no random)
       const rotDeg = ((i % 2 === 0) ? 8 : -8) * (1 - t*0.55);
       const rot = rotDeg * Math.PI/180;
 
-      // scale down gradually outward
       const scale = 0.92 - (t * 0.22);
       const w = Math.round(baseW * scale);
       const h = Math.round(baseH * scale);
@@ -462,7 +449,6 @@ async function buildTripCollage(tripId, tripLabel){
     }
   }
 
-  // add brand mark on top
   try{ await drawBrandMark(ctx, W, H); }catch(_){}
 
   const dataUrl = canvas.toDataURL("image/png");
@@ -509,11 +495,14 @@ export function initCollage({ setStatus }){
       || "Trip";
 
     setStatus(`Building collage… (${count} photos)`);
+
     try{
       await buildTripCollage(state.tripId, label);
       setStatus("Collage ready.");
     }catch(e){
-      setStatus(`Collage failed: ${e.message || e}`);
+      console.error("Collage error:", e);
+      setStatus(`Collage failed: ${e?.message || e}`);
+      alert(`Collage failed: ${e?.message || e}`); // temporary: confirms it's not "doing nothing"
     }
   }
 
