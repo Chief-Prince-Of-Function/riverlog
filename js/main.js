@@ -18,7 +18,7 @@ function setStatus(msg){
 
     const { evaluateBadges } = initBadges();
 
-    // ✅ FlyBox wiring (safe even if user never opens it)
+    // ✅ FlyBox wiring (init ONCE)
     initFlyBox({ setStatus });
 
     // init catches first so trips can call refreshCatches
@@ -33,8 +33,6 @@ function setStatus(msg){
 
     // collage buttons + modal wiring
     initCollage({ setStatus });
-
-    initFlyBox({ setStatus });
 
     // export/import wiring
     initIO({ refreshTrips, setStatus });

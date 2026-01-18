@@ -7,7 +7,7 @@ import {
   deleteFlyBox,
   clearAllFlyBoxes,
   listFliesByBox,
-  getFly,
+  getFly,               // preserve createdAt on edit
   saveFly,
   deleteFly,
   adjustFlyQty
@@ -17,12 +17,12 @@ import { safeText } from "../utils.js";
 import { state } from "../state.js";
 
 import {
-  flyBoxBtn,
-  flyBoxCard,
-  flyBoxClose,
   flyBoxMeta,
   flyBoxSelect,
   newFlyBoxBtn,
+  deleteFlyBoxBtn,
+  clearFlyBoxesBtn,
+
   flyType,
   flyPattern,
   flySize,
@@ -30,46 +30,26 @@ import {
   flyColors,
   addFlyBtn,
   flyList,
-  deleteFlyBoxBtn,
   flyEmpty,
 
-  // Photo + danger zone
   flyPhoto,
-  flyPhotoPreview,
-  clearFlyBoxesBtn
+  flyPhotoPreview
 } from "../dom.js";
 
 /* =========================
-   FlyBox module (MVP)
+   Quiver (FlyBox) module
    - Boxes (“quiver”)
    - Flies inventory inside a box
    - Quick +/- qty + delete
-   - Delete box (can delete last; default recreated)
+   - Delete box (default recreated)
    - Clear all boxes (type DELETE)
    - Fly photo stored on pattern row (dataURL)
    - Size badge overlay when photo exists
+   - NO “card open/close” UI; this is inline inside <details>
 ========================= */
-
-function showFlyBox(open){
-  if(!flyBoxCard) return;
-
-  // Support BOTH patterns:
-  // 1) class="hidden"
-  // 2) hidden attribute
-  flyBoxCard.classList.toggle("hidden", !open);
-
-  if(open){
-    flyBoxCard.removeAttribute("hidden");
-    flyBoxCard.setAttribute("aria-hidden", "false");
-  }else{
-    flyBoxCard.setAttribute("hidden", "");
-    flyBoxCard.setAttribute("aria-hidden", "true");
-  }
-}
 
 function parseSize(v){
   const s = String(v ?? "").trim();
-  // allow "18", "18 ", "#18"
   return s.replace(/[^\d]+/g, "");
 }
 
@@ -191,7 +171,6 @@ async function renderFlyList(boxId, setStatus){
     const el = document.createElement("div");
     el.className = "item";
 
-    // left thumb: show photo if available, else size placeholder
     const thumb = document.createElement("div");
     thumb.className = "thumb";
 
@@ -202,7 +181,7 @@ async function renderFlyList(boxId, setStatus){
         <div class="sizeBadge">#${safeText(f.size || "-")}</div>
       `;
     }else{
-      thumb.innerHTML = `<div class="muted" style="font-size:12px; font-weight:800;">#${safeText(f.size)}</div>`;
+      thumb.innerHTML = `<div class="muted" style="font-size:12px; font-weight:800;">#${safeText(f.size || "-")}</div>`;
     }
 
     const meta = document.createElement("div");
@@ -223,7 +202,7 @@ async function renderFlyList(boxId, setStatus){
     right.className = "right";
 
     const qty = document.createElement("span");
-    qty.className = "qtyPill";
+    qty.className = "pill";
     qty.textContent = `Qty: ${Number(f.qty)||0}`;
 
     const useBtn = document.createElement("button");
@@ -314,7 +293,7 @@ async function setActiveBox(boxId, setStatus){
   await renderFlyList(boxId, setStatus);
 }
 
-/* ===== Delete one box (allowed even if last) ===== */
+/* ===== Delete one box ===== */
 async function handleDeleteBox(setStatus){
   const boxId = flyBoxSelect?.value || state.flyBoxId;
   if(!boxId){
@@ -331,25 +310,19 @@ async function handleDeleteBox(setStatus){
 
   if(!confirm(msg)) return;
 
-  try{
-    await deleteFlyBox(boxId);
+  await deleteFlyBox(boxId);
 
-    // Ensure UI always has a box to show
-    const ensured = await ensureDefaultFlyBox();
+  // Always ensure there is a box to show
+  const ensured = await ensureDefaultFlyBox();
+  await refreshBoxSelect(ensured.id);
+  clearFlyForm();
+  await setActiveBox(ensured.id, setStatus);
 
-    await refreshBoxSelect(ensured.id);
-    clearFlyForm();
-    await setActiveBox(ensured.id, setStatus);
-
-    setStatus?.("Fly box deleted.");
-  }catch(e){
-    setStatus?.(`Delete box failed: ${e?.message || e}`);
-  }
+  setStatus?.("Fly box deleted.");
 }
 
 /* ===== Clear ALL boxes (strong confirm) ===== */
 async function handleClearAllBoxes(setStatus){
-
   const typed = prompt(
     `DANGER ZONE\n\nThis will delete ALL fly boxes and ALL flies inside them.\n\nType DELETE to confirm:`,
     ""
@@ -360,40 +333,61 @@ async function handleClearAllBoxes(setStatus){
     return;
   }
 
-  try{
-    await clearAllFlyBoxes();
+  await clearAllFlyBoxes();
 
-    const ensured = await ensureDefaultFlyBox();
-    await refreshBoxSelect(ensured.id);
-    clearFlyForm();
-    await setActiveBox(ensured.id, setStatus);
+  const ensured = await ensureDefaultFlyBox();
+  await refreshBoxSelect(ensured.id);
+  clearFlyForm();
+  await setActiveBox(ensured.id, setStatus);
 
-    setStatus?.("All fly boxes cleared.");
-  }catch(e){
-    setStatus?.(`Clear all failed: ${e?.message || e}`);
-  }
+  setStatus?.("All fly boxes cleared.");
+}
+
+/* =========================
+   iOS click reliability (no double-fire)
+   - Use pointerup when available
+   - Fall back to click
+========================= */
+function bindTap(el, handler){
+  if(!el) return;
+
+  let last = 0;
+
+  const wrapped = async (e)=>{
+    const now = Date.now();
+    if(now - last < 450) return; // debounce double events
+    last = now;
+    await handler(e);
+  };
+
+  el.onclick = wrapped;
+
+  // Pointer events (covers iOS 13+ / modern browsers)
+  el.onpointerup = (e)=>{
+    // if pointer events fire, avoid the delayed click doing it again
+    e.preventDefault();
+    wrapped(e);
+  };
+}
+
+/* ===== Prevent concurrent writes ===== */
+let _saveLock = false;
+async function withLock(fn){
+  if(_saveLock) return;
+  _saveLock = true;
+  try{ await fn(); }
+  finally{ _saveLock = false; }
 }
 
 export function initFlyBox({ setStatus }){
-  // Use assignment-style handlers to prevent double-binding
-  if(flyBoxBtn){
-    flyBoxBtn.onclick = async ()=> {
-      showFlyBox(true);
-
-      const box = await ensureDefaultFlyBox();
-      await refreshBoxSelect(box.id);
-      await setActiveBox(box.id, setStatus);
-
-      setStatus?.("FlyBox ready.");
-    };
+  // Ensure a box exists and load it (call once at app init)
+  async function boot(){
+    const box = await ensureDefaultFlyBox();
+    await refreshBoxSelect(box.id);
+    await setActiveBox(box.id, setStatus);
   }
 
-  if(flyBoxClose){
-    flyBoxClose.onclick = ()=> {
-      showFlyBox(false);
-      clearFlyForm();
-    };
-  }
+  boot().catch((e)=> setStatus?.(`FlyBox init failed: ${e?.message || e}`));
 
   if(flyBoxSelect){
     flyBoxSelect.onchange = async ()=> {
@@ -405,8 +399,8 @@ export function initFlyBox({ setStatus }){
     };
   }
 
-  if(newFlyBoxBtn){
-    newFlyBoxBtn.onclick = async ()=> {
+  bindTap(newFlyBoxBtn, async ()=> {
+    await withLock(async ()=>{
       const name = prompt("New fly box name?", "My Fly Box");
       if(!name) return;
 
@@ -421,30 +415,31 @@ export function initFlyBox({ setStatus }){
 
       await saveFlyBox(box);
       await refreshBoxSelect(box.id);
+      clearFlyForm();
       await setActiveBox(box.id, setStatus);
       setStatus?.("Fly box created.");
-    };
-  }
+    });
+  });
 
-  if(deleteFlyBoxBtn){
-    deleteFlyBoxBtn.onclick = async ()=> {
+  bindTap(deleteFlyBoxBtn, async ()=> {
+    await withLock(async ()=>{
       try{
         await handleDeleteBox(setStatus);
       }catch(e){
-        setStatus?.(`FlyBox error (delete box): ${e?.message || e}`);
+        setStatus?.(`Delete box failed: ${e?.message || e}`);
       }
-    };
-  }
+    });
+  });
 
-  if(clearFlyBoxesBtn){
-    clearFlyBoxesBtn.onclick = async ()=> {
+  bindTap(clearFlyBoxesBtn, async ()=> {
+    await withLock(async ()=>{
       try{
         await handleClearAllBoxes(setStatus);
       }catch(e){
-        setStatus?.(`FlyBox error (clear all): ${e?.message || e}`);
+        setStatus?.(`Clear all failed: ${e?.message || e}`);
       }
-    };
-  }
+    });
+  });
 
   if(flyPhoto){
     flyPhoto.onchange = async ()=> {
@@ -452,78 +447,80 @@ export function initFlyBox({ setStatus }){
     };
   }
 
-  if(addFlyBtn){
-    addFlyBtn.onclick = async ()=> {
-      try{
-        const boxId = state.flyBoxId;
-        if(!boxId){
-          setStatus?.("Pick a fly box first.");
-          return;
-        }
-
-        const type = (flyType?.value || "").trim();
-        const pattern = (flyPattern?.value || "").trim();
-        const size = parseSize(flySize?.value || "");
-        const qty = parseQty(flyQty?.value || "");
-        const colors = (flyColors?.value || "").trim();
-
-        if(!pattern || !size){
-          setStatus?.("Pattern + Size are required.");
-          return;
-        }
-
-        const now = Date.now();
-        const wasEditing = !!state.flyEditingId;
-
-        let createdAt = now;
-        let existingPhoto = "";
-
-        if(wasEditing){
-          try{
-            const existing = await getFly(state.flyEditingId);
-            if(existing && existing.createdAt) createdAt = existing.createdAt;
-            if(existing && existing.photo) existingPhoto = existing.photo;
-          }catch(_){}
-        }
-
-        let photo = existingPhoto;
-        const picked = flyPhoto?.files?.[0];
-        if(picked){
-          try{
-            photo = await fileToDataURL(picked);
-          }catch(_){
-            photo = existingPhoto;
-          }
-        }
-
-        const id = state.flyEditingId || uid("fly");
-        const row = {
-          id,
-          boxId,
-          type,
-          pattern,
-          size,
-          qty,
-          colors,
-          photo,
-          createdAt,
-          updatedAt: now
-        };
-
-        await saveFly(row);
-        const msg = wasEditing ? "Fly updated." : "Fly added.";
-
-        clearFlyForm();
-        await refreshFlyMeta(boxId);
-        await renderFlyList(boxId, setStatus);
-        setStatus?.(msg);
-      }catch(e){
-        setStatus?.(`FlyBox error (save fly): ${e?.message || e}`);
+  bindTap(addFlyBtn, async ()=> {
+    await withLock(async ()=>{
+      const boxId = state.flyBoxId;
+      if(!boxId){
+        setStatus?.("Pick a fly box first.");
+        return;
       }
-    };
-  }
+
+      const type = (flyType?.value || "").trim();
+      const pattern = (flyPattern?.value || "").trim();
+      const size = parseSize(flySize?.value || "");
+      const qty = parseQty(flyQty?.value || "");
+      const colors = (flyColors?.value || "").trim();
+
+      if(!pattern || !size){
+        setStatus?.("Pattern + Size are required.");
+        return;
+      }
+
+      const now = Date.now();
+      const wasEditing = !!state.flyEditingId;
+
+      // preserve createdAt + existing photo on edit (unless user picks new)
+      let createdAt = now;
+      let existingPhoto = "";
+
+      if(wasEditing){
+        try{
+          const existing = await getFly(state.flyEditingId);
+          if(existing?.createdAt) createdAt = existing.createdAt;
+          if(existing?.photo) existingPhoto = existing.photo;
+        }catch(_){}
+      }
+
+      let photo = existingPhoto;
+      const picked = flyPhoto?.files?.[0];
+      if(picked){
+        try{
+          photo = await fileToDataURL(picked);
+        }catch(_){
+          photo = existingPhoto;
+        }
+      }
+
+      const id = state.flyEditingId || uid("fly");
+      const row = {
+        id,
+        boxId,
+        type,
+        pattern,
+        size,
+        qty,
+        colors,
+        photo,
+        createdAt,
+        updatedAt: now
+      };
+
+      await saveFly(row);
+
+      const msg = wasEditing ? "Fly updated." : "Fly added.";
+      clearFlyForm();
+      await refreshFlyMeta(boxId);
+      await renderFlyList(boxId, setStatus);
+      setStatus?.(msg);
+    });
+  });
 
   return {
-    openFlyBox: ()=> showFlyBox(true)
+    refreshQuiver: async ()=>{
+      const id = flyBoxSelect?.value || state.flyBoxId;
+      if(!id) return;
+      await refreshFlyMeta(id);
+      await renderFlyList(id, setStatus);
+    }
   };
 }

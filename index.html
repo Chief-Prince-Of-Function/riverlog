@@ -19,7 +19,7 @@
   <link rel="apple-touch-icon" href="assets/icon-192.png" />
 
   <!-- Styles -->
-  <link rel="stylesheet" href="app.css?v=29" />
+  <link rel="stylesheet" href="app.css?v=30" />
 </head>
 
 <body>
@@ -36,8 +36,12 @@
     </div>
 
     <div class="actions">
+      <!-- Keep these IDs present so existing JS/dom.js doesn’t break -->
+      <button id="flyBoxBtn" class="btn ghost" type="button" hidden>Quiver</button>
+      <button id="flyBoxClose" class="btn ghost" type="button" hidden>Close</button>
+
       <button id="installBtn" class="btn ghost" hidden>Install</button>
-      <button id="exportBtn" class="btn">Export</button>
+      <button id="exportBtn" class="btn" type="button">Export</button>
       <label class="btn ghost fileBtn">
         Import
         <input id="importInput" type="file" accept="application/zip,application/json,.zip,.json" hidden />
@@ -46,14 +50,15 @@
   </header>
 
   <main class="wrap">
+    <!-- TRIP (open) -->
     <section class="card">
       <div class="row">
         <div class="grow">
           <label class="label">Trip</label>
           <div class="row gap">
             <select id="tripSelect" class="input"></select>
-            <button id="newTripBtn" class="btn ghost">New</button>
-            <button id="deleteTripBtn" class="btn ghost danger">Delete</button>
+            <button id="newTripBtn" class="btn ghost" type="button">New</button>
+            <button id="deleteTripBtn" class="btn ghost danger" type="button">Delete</button>
           </div>
           <div class="hint">Tip: make a new trip at the river. Later you’ll add recap + “Fly that won the day” on your Mac.</div>
         </div>
@@ -105,134 +110,162 @@
           <!-- ONE button: OS chooser includes Camera + Library -->
           <input id="photoInput" type="file" accept="image/*" multiple hidden />
         </label>
-        <button id="gpsBtn" class="btn ghost">Add GPS (optional)</button>
-        <button id="saveCatchBtn" class="btn accent">Save Catch</button>
+        <button id="gpsBtn" class="btn ghost" type="button">Add GPS (optional)</button>
+        <button id="saveCatchBtn" class="btn accent" type="button">Save Catch</button>
       </div>
 
       <div class="hint" id="gpsHint">GPS: not added</div>
       <div class="hint" id="photoHint">Photo: none</div>
+    </section>
 
-      <!-- BADGES -->
-      <div class="divider"></div>
-
-      <details class="collapse" id="badgesCollapse" open>
+    <!-- CATCHES (collapsed by default) -->
+    <section class="card">
+      <details class="collapse" id="catchesCollapse">
         <summary class="collapseSummary">
-          Badges <span class="muted">(milestones earned on this device)</span>
+          Catches
+          <span class="muted" id="catchesSummaryMeta" style="margin-left:8px;">—</span>
         </summary>
+
+        <div class="divider"></div>
+
+        <div class="row">
+          <div class="grow">
+            <div class="title2">Catches</div>
+            <div class="subtitle2" id="tripMeta">—</div>
+          </div>
+        </div>
+
+        <div class="divider"></div>
+
+        <div id="catchList" class="list"></div>
+        <div id="emptyState" class="empty">No catches yet. Log your first one above.</div>
+      </details>
+    </section>
+
+    <!-- QUIVER (FlyBox, collapsed by default) -->
+    <section class="card" id="flyBoxCard">
+      <details class="collapse" id="flyBoxCollapse">
+        <summary class="collapseSummary">
+          Quiver <span class="muted" style="margin-left:8px;">(patterns + quantities)</span>
+        </summary>
+
+        <div class="divider"></div>
+
+        <div class="row gap topGap">
+          <select id="flyBoxSelect" class="input"></select>
+          <button id="newFlyBoxBtn" class="btn ghost" type="button">New Box</button>
+          <button id="deleteFlyBoxBtn" class="btn ghost danger" type="button">Delete Box</button>
+          <button id="clearFlyBoxesBtn" class="btn danger" type="button">Clear All</button>
+        </div>
+
+        <div class="hint">Tip: “Clear All” requires typing DELETE.</div>
+
+        <div class="divider"></div>
+
+        <div class="grid2">
+          <div>
+            <label class="label">Type</label>
+            <select id="flyType" class="input">
+              <option value="">—</option>
+              <option value="nymph">Nymph</option>
+              <option value="dry">Dry</option>
+              <option value="wet">Wet</option>
+              <option value="streamer">Streamer</option>
+              <option value="other">Other</option>
+            </select>
+          </div>
+
+          <div>
+            <label class="label">Pattern</label>
+            <input id="flyPattern" class="input" placeholder="e.g., Zebra Midge" />
+          </div>
+
+          <div>
+            <label class="label">Size</label>
+            <input id="flySize" class="input" inputmode="numeric" placeholder="e.g., 16" />
+          </div>
+
+          <div>
+            <label class="label">Qty</label>
+            <input id="flyQty" class="input" inputmode="numeric" placeholder="e.g., 12" />
+          </div>
+
+          <div class="span2">
+            <label class="label">Colors (optional)</label>
+            <input id="flyColors" class="input" placeholder="black/silver, olive, tan..." />
+          </div>
+
+          <div class="span2">
+            <label class="label">Photo (one per pattern)</label>
+            <input id="flyPhoto" class="input" type="file" accept="image/*" />
+            <div id="flyPhotoPreview" class="photoPreview hidden"></div>
+          </div>
+        </div>
+
+        <div class="row gap topGap">
+          <button id="addFlyBtn" class="btn accent" type="button">Add Fly</button>
+        </div>
+
+        <div class="divider"></div>
+
+        <div class="subtitle2" id="flyBoxMeta">—</div>
+        <div class="divider"></div>
+
+        <div id="flyList" class="list"></div>
+        <div id="flyEmpty" class="empty">No flies yet. Add your first pattern above.</div>
+      </details>
+    </section>
+
+    <!-- BADGES + INSIGHTS (collapsed by default) -->
+    <section class="card">
+      <details class="collapse" id="badgesCollapse">
+        <summary class="collapseSummary">
+          Badges + Insights <span class="muted" style="margin-left:8px;">(milestones + quick stats)</span>
+        </summary>
+
+        <div class="divider"></div>
+
+        <!-- 3-up tiles (placeholders for now) -->
+        <div class="grid3" id="insightTiles">
+          <div class="insightTile">
+            <div class="label">Personal Record</div>
+            <div class="insightBig" id="prTile">—</div>
+            <div class="muted" id="prSub">—</div>
+          </div>
+
+          <div class="insightTile">
+            <div class="label">Most Used Fly</div>
+            <div class="insightBig" id="topFlyTile">—</div>
+            <div class="muted" id="topFlySub">—</div>
+          </div>
+
+          <div class="insightTile">
+            <div class="label">Top Species</div>
+            <div class="insightBig" id="topSpeciesTile">—</div>
+            <div class="muted" id="topSpeciesSub">—</div>
+          </div>
+        </div>
+
+        <div class="divider"></div>
 
         <div id="badgeGrid" class="badgeGrid"></div>
       </details>
     </section>
 
-    <section class="card">
-      <div class="row">
-        <div class="grow">
-          <div class="title2">Catches</div>
-          <div class="subtitle2" id="tripMeta">—</div>
-        </div>
-
-        <div class="row gap" style="justify-content:flex-end;">
-          <button id="flyBoxBtn" class="btn ghost">FlyBox</button>
-          <button id="collageBtnTop" class="btn">Build Collage</button>
-          <button id="editTripBtn" class="btn ghost">Trip Recap</button>
-        </div>
-      </div>
-
-      <div class="divider"></div>
-
-      <div id="catchList" class="list"></div>
-      <div id="emptyState" class="empty">No catches yet. Log your first one above.</div>
-    </section>
-
-    <!-- ✅ FIXED: use .hidden class (not the hidden attribute) -->
-    <section class="card hidden" id="flyBoxCard" aria-hidden="true">
-      <div class="row">
-        <div class="grow">
-          <div class="title2">FlyBox</div>
-          <div class="subtitle2" id="flyBoxMeta">Track patterns + quantities</div>
-        </div>
-
-        <!-- ✅ UPDATED: header actions -->
-        <div class="row gap" style="justify-content:flex-end;">
-          <button id="deleteFlyBoxBtn" class="btn ghost danger" type="button">Delete Box</button>
-          <button id="clearFlyBoxesBtn" class="btn danger" type="button">Clear All</button>
-          <button id="addFlyBtn" class="btn accent" type="button">Add Fly</button>
-        </div>
-      </div>
-
-      <div class="divider"></div>
-
-      <div class="row gap topGap">
-        <select id="flyBoxSelect" class="input"></select>
-        <button id="newFlyBoxBtn" class="btn ghost">New Box</button>
-      </div>
-
-      <div class="divider"></div>
-
-      <div class="grid2">
-        <div>
-          <label class="label">Type</label>
-          <select id="flyType" class="input">
-            <option value="">—</option>
-            <option value="nymph">Nymph</option>
-            <option value="dry">Dry</option>
-            <option value="wet">Wet</option>
-            <option value="streamer">Streamer</option>
-            <option value="other">Other</option>
-          </select>
-        </div>
-
-        <div>
-          <label class="label">Pattern</label>
-          <input id="flyPattern" class="input" placeholder="e.g., Zebra Midge" />
-        </div>
-
-        <div>
-          <label class="label">Size</label>
-          <input id="flySize" class="input" inputmode="numeric" placeholder="e.g., 16" />
-        </div>
-
-        <div>
-          <label class="label">Qty</label>
-          <input id="flyQty" class="input" inputmode="numeric" placeholder="e.g., 12" />
-        </div>
-
-        <div class="span2">
-          <label class="label">Colors (optional)</label>
-          <input id="flyColors" class="input" placeholder="black/silver, olive, tan..." />
-        </div>
-
-        <!-- ✅ NEW: photo per pattern -->
-        <div class="span2">
-          <label class="label">Photo (optional)</label>
-          <input id="flyPhoto" class="input" type="file" accept="image/*" />
-          <div id="flyPhotoPreview" class="photoPreview hidden"></div>
-        </div>
-      </div>
-
-      <div class="row gap topGap">
-        <button id="addFlyBtn" class="btn accent">Add Fly</button>
-      </div>
-
-      <div class="divider"></div>
-
-      <div id="flyList" class="list"></div>
-      <div id="flyEmpty" class="empty">No flies yet. Add your first pattern above.</div>
-    </section>
-
+    <!-- Trip Recap drawer (unchanged) -->
     <section class="card tripRecap" id="tripDrawer" aria-hidden="true">
       <div class="row">
         <div class="grow">
           <div class="title2">Trip Recap</div>
           <div class="subtitle2">Fill this out later (or now if you want). This lives on the trip.</div>
         </div>
-        <button id="closeTripDrawer" class="btn ghost">Close</button>
+        <button id="closeTripDrawer" class="btn ghost" type="button">Close</button>
       </div>
 
       <div class="divider"></div>
 
       <div class="row gap topGap">
-        <button id="collageBtn" class="btn">Build Collage</button>
+        <button id="collageBtn" class="btn" type="button">Build Collage</button>
       </div>
       <div class="hint">Build a post-trip collage from your catch photos (sorted by length).</div>
 
@@ -269,7 +302,7 @@
       <textarea id="tripRecap" class="input area" placeholder="what happened, what you loved, what you’d do again"></textarea>
 
       <div class="row gap topGap">
-        <button id="saveTripBtn" class="btn accent">Save Recap</button>
+        <button id="saveTripBtn" class="btn accent" type="button">Save Recap</button>
       </div>
     </section>
   </main>
@@ -298,8 +331,8 @@
       </div>
 
       <div class="row gap topGap">
-        <button id="createTripBtn" class="btn accent">Save new trip</button>
-        <button id="cancelTripBtn" class="btn ghost">Cancel</button>
+        <button id="createTripBtn" class="btn accent" type="button">Save new trip</button>
+        <button id="cancelTripBtn" class="btn ghost" type="button">Cancel</button>
       </div>
 
       <div class="hint">Create it fast now; add recap + lessons later.</div>
@@ -313,7 +346,7 @@
         <div class="toastTitle" id="badgeToastTitle"></div>
         <div class="toastSub" id="badgeToastSub"></div>
       </div>
-      <button id="badgeToastClose" class="toastClose" aria-label="Close badge notification">✕</button>
+      <button id="badgeToastClose" class="toastClose" aria-label="Close badge notification" type="button">✕</button>
     </div>
   </div>
 
@@ -325,7 +358,7 @@
         <div class="modalTitle">Trip Collage</div>
         <div class="modalSub" id="collageMeta">Top catches by length</div>
       </div>
-      <button id="collageClose" class="btnGhost">Close</button>
+      <button id="collageClose" class="btnGhost" type="button">Close</button>
     </div>
 
     <div class="modalBody">
@@ -335,14 +368,14 @@
     </div>
 
     <div class="modalFoot">
-      <button id="collageShare" class="btn ghost">Share</button>
-      <button id="collageDownload" class="btn">Download PNG</button>
+      <button id="collageShare" class="btn ghost" type="button">Share</button>
+      <button id="collageDownload" class="btn" type="button">Download PNG</button>
     </div>
   </div>
 
   <canvas id="collageCanvas" width="1400" height="1400" style="display:none;"></canvas>
 
   <script src="vendor/jszip.min.js"></script>
-  <script type="module" src="js/main.js?v=29"></script>
+  <script type="module" src="js/main.js?v=30"></script>
 </body>
 </html>

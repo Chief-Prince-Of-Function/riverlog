@@ -189,6 +189,36 @@ input[type="date"].input{
 .grid2{display:grid; grid-template-columns: 1fr 1fr; gap:12px;}
 .span2{ grid-column: 1 / -1; }
 
+/* =========================
+   Insights tiles (3-up, mobile stacks)
+========================= */
+.grid3{
+  display:grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap:12px;
+}
+@media (max-width:720px){
+  .grid3{ grid-template-columns: 1fr; }
+}
+
+.insightTile{
+  padding: 12px;
+  border-radius: 16px;
+  background: rgba(8,12,20,.35);
+  border:1px solid rgba(255,255,255,.10);
+}
+
+.insightBig{
+  font-size: 20px;
+  font-weight: 900;
+  margin-top: 6px;
+}
+
+/* Optional: make collapsible content breathe */
+details.collapse > .divider:first-of-type{
+  margin-top: 12px;
+}
+
 .btn.danger{
   border-color: rgba(231,76,60,.65);
   background: rgba(231,76,60,.14);
@@ -254,15 +284,12 @@ input[type="date"].input{
   border:1px solid rgba(255,255,255,.10);
   overflow:hidden;
   display:grid; place-items:center;
+  position: relative; /* required for badge positioning */
 }
 
 .thumb img{width:100%; height:100%; object-fit:cover; display:block;}
 
 /* FlyBox: size badge overlay on photo thumbs */
-.thumb{
-  position: relative; /* required for badge positioning */
-}
-
 .sizeBadge{
   position: absolute;
   left: 8px;
@@ -594,6 +621,87 @@ select.input option:checked{
 .toast.hidden{ display:none !important; }
 
 /* =========================
+   Collapsible (details/summary)
+========================= */
+.collapse{
+  border: 1px solid rgba(255,255,255,.12);
+  background: rgba(0,0,0,.18);
+  border-radius: 18px;
+  padding: 10px 12px;
+  margin-top: 10px;
+}
+
+.collapseSummary{
+  list-style: none;
+  cursor: pointer;
+  font-weight: 700;
+  color: rgba(238,244,255,.92);
+  outline: none;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+
+  user-select: none;
+  padding: 6px 2px;
+}
+
+.collapseSummary::-webkit-details-marker{ display:none; }
+
+.collapseSummary:active{
+  transform: translateY(1px);
+}
+
+.collapseSummary::after{
+  content: "▾";
+  margin-left: auto;
+  opacity: .75;
+  transform: rotate(0deg);
+  transition: transform .15s ease;
+}
+
+.collapse[open] .collapseSummary::after{
+  transform: rotate(180deg);
+}
+
+/* add a little spacing only when open */
+.collapse[open] #badgeGrid{
+  margin-top: 10px;
+}
+
+/* Make details behave like a section inside the card (avoid double surface) */
+section.card > details.collapse{
+  border: none;
+  background: transparent;
+  padding: 0;
+}
+
+/* =========================
+   Catch list right-side actions (pill + Edit + Delete)
+========================= */
+.item .right{
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+
+/* Keep buttons from looking tiny next to pill */
+.item .right .btn{
+  padding: 8px 10px;
+  border-radius: 12px;
+  font-weight: 650;
+}
+
+/* Optional: make Update state slightly clearer */
+.btn.isEditing{
+  border-color: rgba(19,163,139,.65) !important;
+  background: rgba(19,163,139,.22) !important;
+}
+
+.muted{ color: var(--muted); }
+
+/* =========================
    Mobile layout + iOS safety
 ========================= */
 @media (max-width:720px){
@@ -793,88 +901,6 @@ select.input option:checked{
   flex: 1 1 auto;
   min-width: 0;
 }
-
-.collapse{
-  border: 1px solid rgba(255,255,255,.12);
-  background: rgba(0,0,0,.18);
-  border-radius: 18px;
-  padding: 10px 12px;
-}
-
-.collapseSummary{
-  list-style: none;
-  cursor: pointer;
-  font-weight: 700;
-  color: rgba(238,244,255,.92);
-  outline: none;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-
-.collapseSummary::-webkit-details-marker{ display:none; }
-
-/* =========================
-   Collapsible badges polish
-========================= */
-.collapse{
-  margin-top: 10px; /* gives breathing room after divider */
-}
-
-.collapseSummary{
-  user-select: none;
-}
-
-.collapseSummary::after{
-  content: "▾";
-  margin-left: auto;
-  opacity: .75;
-  transform: rotate(0deg);
-  transition: transform .15s ease;
-}
-
-.collapse[open] .collapseSummary::after{
-  transform: rotate(180deg);
-}
-
-/* add a little spacing only when open */
-.collapse[open] #badgeGrid{
-  margin-top: 10px;
-}
-
-/* =========================
-   Catch list right-side actions (pill + Edit + Delete)
-========================= */
-.item .right{
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  flex-wrap: wrap;
-  justify-content: flex-end;
-}
-
-/* Keep buttons from looking tiny next to pill */
-.item .right .btn{
-  padding: 8px 10px;
-  border-radius: 12px;
-  font-weight: 650;
-}
-
-/* Optional: make Update state slightly clearer */
-.btn.isEditing{
-  border-color: rgba(19,163,139,.65) !important;
-  background: rgba(19,163,139,.22) !important;
-}
-
-/* Mobile: right area already spans full width, ensure nice wrap */
-@media (max-width:720px){
-  .item .right{
-    width: 100%;
-    justify-content: flex-end;
-  }
-}
-
-.muted{ color: var(--muted); }
 
 /* =========================
    iOS FIX: Trip Recap date input (tripDate) overflowing / wide

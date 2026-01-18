@@ -64,6 +64,13 @@ function tx(db, store, mode="readonly"){
   return db.transaction(store, mode).objectStore(store);
 }
 
+function reqToPromise(req){
+  return new Promise((resolve, reject)=>{
+    req.onsuccess = ()=> resolve(req.result);
+    req.onerror = ()=> reject(req.error);
+  });
+}
+
 export function uid(prefix="id"){
   return `${prefix}_${Math.random().toString(16).slice(2)}_${Date.now()}`;
 }
@@ -102,50 +109,34 @@ export async function ensureDefaultTrip(){
 export async function listTrips(){
   const db = await openDB();
   const store = tx(db, "trips");
-  return new Promise((resolve, reject)=>{
-    const req = store.getAll();
-    req.onsuccess = ()=>{
-      const rows = req.result || [];
-      rows.sort((a,b)=> (b.createdAt||0) - (a.createdAt||0));
-      resolve(rows);
-    };
-    req.onerror = ()=> reject(req.error);
-  });
+  const rows = (await reqToPromise(store.getAll())) || [];
+  rows.sort((a,b)=> (b.createdAt||0) - (a.createdAt||0));
+  return rows;
 }
 
 export async function getTrip(id){
   const db = await openDB();
   const store = tx(db, "trips");
-  return new Promise((resolve, reject)=>{
-    const req = store.get(id);
-    req.onsuccess = ()=> resolve(req.result || null);
-    req.onerror = ()=> reject(req.error);
-  });
+  return (await reqToPromise(store.get(id))) || null;
 }
 
 export async function saveTrip(trip){
   const db = await openDB();
   const store = tx(db, "trips", "readwrite");
-  return new Promise((resolve, reject)=>{
-    const req = store.put(trip);
-    req.onsuccess = ()=> resolve(true);
-    req.onerror = ()=> reject(req.error);
-  });
+  await reqToPromise(store.put(trip));
+  return true;
 }
 
 export async function deleteTrip(tripId){
   const db = await openDB();
 
   // delete trip
-  await new Promise((resolve, reject)=>{
-    const req = tx(db, "trips", "readwrite").delete(tripId);
-    req.onsuccess = ()=> resolve(true);
-    req.onerror = ()=> reject(req.error);
-  });
+  await reqToPromise(tx(db, "trips", "readwrite").delete(tripId));
 
   // delete catches in trip
   const catches = await listCatches(tripId);
   await Promise.all(catches.map(c=> deleteCatch(c.id)));
+  return true;
 }
 
 /* =========================
@@ -156,58 +147,36 @@ export async function listCatches(tripId){
   const db = await openDB();
   const store = tx(db, "catches");
   const idx = store.index("tripId");
-  return new Promise((resolve, reject)=>{
-    const req = idx.getAll(tripId);
-    req.onsuccess = ()=>{
-      const rows = req.result || [];
-      rows.sort((a,b)=> (b.createdAt||0) - (a.createdAt||0));
-      resolve(rows);
-    };
-    req.onerror = ()=> reject(req.error);
-  });
+  const rows = (await reqToPromise(idx.getAll(tripId))) || [];
+  rows.sort((a,b)=> (b.createdAt||0) - (a.createdAt||0));
+  return rows;
 }
 
 export async function listAllCatches(){
   const db = await openDB();
   const store = tx(db, "catches");
-  return new Promise((resolve, reject)=>{
-    const req = store.getAll();
-    req.onsuccess = ()=>{
-      const rows = req.result || [];
-      rows.sort((a,b)=> (b.createdAt||0) - (a.createdAt||0));
-      resolve(rows);
-    };
-    req.onerror = ()=> reject(req.error);
-  });
+  const rows = (await reqToPromise(store.getAll())) || [];
+  rows.sort((a,b)=> (b.createdAt||0) - (a.createdAt||0));
+  return rows;
 }
 
 export async function getCatchById(id){
   const db = await openDB();
   const store = tx(db, "catches");
-  return new Promise((resolve, reject)=>{
-    const req = store.get(id);
-    req.onsuccess = ()=> resolve(req.result || null);
-    req.onerror = ()=> reject(req.error);
-  });
+  return (await reqToPromise(store.get(id))) || null;
 }
 
 export async function saveCatch(catchRow){
   const db = await openDB();
   const store = tx(db, "catches", "readwrite");
-  return new Promise((resolve, reject)=>{
-    const req = store.put(catchRow);
-    req.onsuccess = ()=> resolve(true);
-    req.onerror = ()=> reject(req.error);
-  });
+  await reqToPromise(store.put(catchRow));
+  return true;
 }
 
 export async function deleteCatch(catchId){
   const db = await openDB();
-  return new Promise((resolve, reject)=>{
-    const req = tx(db, "catches", "readwrite").delete(catchId);
-    req.onsuccess = ()=> resolve(true);
-    req.onerror = ()=> reject(req.error);
-  });
+  await reqToPromise(tx(db, "catches", "readwrite").delete(catchId));
+  return true;
 }
 
 /* =========================
@@ -233,87 +202,55 @@ export async function ensureDefaultFlyBox(){
 export async function listFlyBoxes(){
   const db = await openDB();
   const store = tx(db, "flyboxes");
-  return new Promise((resolve, reject)=>{
-    const req = store.getAll();
-    req.onsuccess = ()=>{
-      const rows = req.result || [];
-      rows.sort((a,b)=> (b.updatedAt||0) - (a.updatedAt||0));
-      resolve(rows);
-    };
-    req.onerror = ()=> reject(req.error);
-  });
+  const rows = (await reqToPromise(store.getAll())) || [];
+  rows.sort((a,b)=> (b.updatedAt||0) - (a.updatedAt||0));
+  return rows;
 }
 
 export async function getFlyBox(id){
   const db = await openDB();
   const store = tx(db, "flyboxes");
-  return new Promise((resolve, reject)=>{
-    const req = store.get(id);
-    req.onsuccess = ()=> resolve(req.result || null);
-    req.onerror = ()=> reject(req.error);
-  });
+  return (await reqToPromise(store.get(id))) || null;
 }
 
 export async function saveFlyBox(box){
   const db = await openDB();
   const store = tx(db, "flyboxes", "readwrite");
-  return new Promise((resolve, reject)=>{
-    const req = store.put(box);
-    req.onsuccess = ()=> resolve(true);
-    req.onerror = ()=> reject(req.error);
-  });
+  await reqToPromise(store.put(box));
+  return true;
 }
 
 export async function deleteFlyBox(boxId){
   const db = await openDB();
 
-  // 1) delete flies + events in this box (best-effort, but we do it properly)
+  // 1) delete flies + events in this box
   const flies = await listFliesByBox(boxId);
 
   // delete flyevents by box
   try{
     const evs = await listFlyEventsByBox(boxId);
-    await Promise.all(evs.map(e => deleteFlyEvent(e.id)));
+    await Promise.allSettled(evs.map(e => deleteFlyEvent(e.id)));
   }catch(_){}
 
   // delete flies (each fly delete also attempts to clear its events by flyId)
   await Promise.allSettled(flies.map(f => deleteFly(f.id)));
 
   // 2) delete the box itself
-  await new Promise((resolve, reject)=>{
-    const req = tx(db, "flyboxes", "readwrite").delete(boxId);
-    req.onsuccess = ()=> resolve(true);
-    req.onerror = ()=> reject(req.error);
-  });
-
+  await reqToPromise(tx(db, "flyboxes", "readwrite").delete(boxId));
   return true;
 }
 
 export async function clearAllFlyBoxes(){
   const db = await openDB();
 
-  // Gather boxes first, then delete them (keeps behavior consistent + simple)
+  // Gather boxes first, then delete them
   const boxes = await listFlyBoxes();
   await Promise.allSettled(boxes.map(b => deleteFlyBox(b.id)));
 
-  // Safety: if anything survived for some reason, clear stores directly
-  await new Promise((resolve, reject)=>{
-    const req = tx(db, "flyboxes", "readwrite").clear();
-    req.onsuccess = ()=> resolve(true);
-    req.onerror = ()=> reject(req.error);
-  });
-
-  await new Promise((resolve, reject)=>{
-    const req = tx(db, "flies", "readwrite").clear();
-    req.onsuccess = ()=> resolve(true);
-    req.onerror = ()=> reject(req.error);
-  });
-
-  await new Promise((resolve, reject)=>{
-    const req = tx(db, "flyevents", "readwrite").clear();
-    req.onsuccess = ()=> resolve(true);
-    req.onerror = ()=> reject(req.error);
-  });
+  // Safety: clear stores directly
+  await reqToPromise(tx(db, "flyboxes", "readwrite").clear());
+  await reqToPromise(tx(db, "flies", "readwrite").clear());
+  await reqToPromise(tx(db, "flyevents", "readwrite").clear());
 
   return true;
 }
@@ -322,15 +259,9 @@ export async function listFliesByBox(boxId){
   const db = await openDB();
   const store = tx(db, "flies");
   const idx = store.index("boxId");
-  return new Promise((resolve, reject)=>{
-    const req = idx.getAll(boxId);
-    req.onsuccess = ()=>{
-      const rows = req.result || [];
-      rows.sort((a,b)=> (b.updatedAt||0) - (a.updatedAt||0));
-      resolve(rows);
-    };
-    req.onerror = ()=> reject(req.error);
-  });
+  const rows = (await reqToPromise(idx.getAll(boxId))) || [];
+  rows.sort((a,b)=> (b.updatedAt||0) - (a.updatedAt||0));
+  return rows;
 }
 
 /** Alias for sanity (older UI code will call listFlies) */
@@ -338,14 +269,26 @@ export async function listFlies(boxId){
   return listFliesByBox(boxId);
 }
 
+export async function listAllFlies(){
+  const db = await openDB();
+  const store = tx(db, "flies");
+  const rows = (await reqToPromise(store.getAll())) || [];
+  rows.sort((a,b)=> (b.updatedAt||0) - (a.updatedAt||0));
+  return rows;
+}
+
+export async function listAllFlyEvents(){
+  const db = await openDB();
+  const store = tx(db, "flyevents");
+  const rows = (await reqToPromise(store.getAll())) || [];
+  rows.sort((a,b)=> (b.createdAt||0) - (a.createdAt||0));
+  return rows;
+}
+
 export async function getFly(id){
   const db = await openDB();
   const store = tx(db, "flies");
-  return new Promise((resolve, reject)=>{
-    const req = store.get(id);
-    req.onsuccess = ()=> resolve(req.result || null);
-    req.onerror = ()=> reject(req.error);
-  });
+  return (await reqToPromise(store.get(id))) || null;
 }
 
 /** Alias for sanity (older UI code will call getFlyById) */
@@ -356,11 +299,8 @@ export async function getFlyById(id){
 export async function saveFly(flyRow){
   const db = await openDB();
   const store = tx(db, "flies", "readwrite");
-  return new Promise((resolve, reject)=>{
-    const req = store.put(flyRow);
-    req.onsuccess = ()=> resolve(true);
-    req.onerror = ()=> reject(req.error);
-  });
+  await reqToPromise(store.put(flyRow));
+  return true;
 }
 
 export async function deleteFly(flyId){
@@ -369,14 +309,11 @@ export async function deleteFly(flyId){
   // delete events for this fly (best-effort)
   try{
     const evs = await listFlyEventsByFly(flyId);
-    await Promise.all(evs.map(e=> deleteFlyEvent(e.id)));
+    await Promise.allSettled(evs.map(e=> deleteFlyEvent(e.id)));
   }catch(_){}
 
-  return new Promise((resolve, reject)=>{
-    const req = tx(db, "flies", "readwrite").delete(flyId);
-    req.onsuccess = ()=> resolve(true);
-    req.onerror = ()=> reject(req.error);
-  });
+  await reqToPromise(tx(db, "flies", "readwrite").delete(flyId));
+  return true;
 }
 
 /**
@@ -431,50 +368,32 @@ export async function expendFly(flyId, kind="use"){
 export async function saveFlyEvent(ev){
   const db = await openDB();
   const store = tx(db, "flyevents", "readwrite");
-  return new Promise((resolve, reject)=>{
-    const req = store.put(ev);
-    req.onsuccess = ()=> resolve(true);
-    req.onerror = ()=> reject(req.error);
-  });
+  await reqToPromise(store.put(ev));
+  return true;
 }
 
 export async function deleteFlyEvent(evId){
   const db = await openDB();
-  return new Promise((resolve, reject)=>{
-    const req = tx(db, "flyevents", "readwrite").delete(evId);
-    req.onsuccess = ()=> resolve(true);
-    req.onerror = ()=> reject(req.error);
-  });
+  await reqToPromise(tx(db, "flyevents", "readwrite").delete(evId));
+  return true;
 }
 
 export async function listFlyEventsByBox(boxId){
   const db = await openDB();
   const store = tx(db, "flyevents");
   const idx = store.index("boxId");
-  return new Promise((resolve, reject)=>{
-    const req = idx.getAll(boxId);
-    req.onsuccess = ()=>{
-      const rows = req.result || [];
-      rows.sort((a,b)=> (b.createdAt||0) - (a.createdAt||0));
-      resolve(rows);
-    };
-    req.onerror = ()=> reject(req.error);
-  });
+  const rows = (await reqToPromise(idx.getAll(boxId))) || [];
+  rows.sort((a,b)=> (b.createdAt||0) - (a.createdAt||0));
+  return rows;
 }
 
 export async function listFlyEventsByFly(flyId){
   const db = await openDB();
   const store = tx(db, "flyevents");
   const idx = store.index("flyId");
-  return new Promise((resolve, reject)=>{
-    const req = idx.getAll(flyId);
-    req.onsuccess = ()=>{
-      const rows = req.result || [];
-      rows.sort((a,b)=> (b.createdAt||0) - (a.createdAt||0));
-      resolve(rows);
-    };
-    req.onerror = ()=> reject(req.error);
-  });
+  const rows = (await reqToPromise(idx.getAll(flyId))) || [];
+  rows.sort((a,b)=> (b.createdAt||0) - (a.createdAt||0));
+  return rows;
 }
 
 /* =========================
@@ -604,6 +523,11 @@ export async function exportAllTripsZip(){
   const trips = await listTrips();
   const catches = await listAllCatches();
 
+  // ✅ include Quiver in full backup
+  const flyboxes = await listFlyBoxes();
+  const flies = await listAllFlies();
+  const flyevents = await listAllFlyEvents();
+
   await loadJSZip();
   const JSZipCtor = (window.JSZip && (window.JSZip.default || window.JSZip)) || null;
   if(typeof JSZipCtor !== "function"){
@@ -627,10 +551,15 @@ export async function exportAllTripsZip(){
 
   const manifest = {
     _schema: "riverlog_all_zip",
-    _version: 1,
+    _version: 2,
     exportedAt: Date.now(),
     trips,
-    catches: catchesOut
+    catches: catchesOut,
+
+    // ✅ Quiver
+    flyboxes,
+    flies,
+    flyevents
   };
 
   zip.file("riverlog_all.json", JSON.stringify(manifest, null, 2));
@@ -673,6 +602,63 @@ export async function importTripZip(file){
   }
 
   return { tripId: trip.id };
+}
+
+// ✅ NEW: import full backup zip (riverlog_all.json)
+export async function importAllTripsZip(file){
+  const JSZip = await loadJSZip();
+  const ab = await file.arrayBuffer();
+  const zip = await JSZip.loadAsync(ab);
+
+  const jsonFile = zip.file("riverlog_all.json");
+  if(!jsonFile) throw new Error("Zip missing riverlog_all.json");
+
+  const text = await jsonFile.async("string");
+  const manifest = JSON.parse(text);
+
+  if(manifest._schema !== "riverlog_all_zip"){
+    throw new Error("Not a RiverLog all-zip export");
+  }
+
+  const trips = manifest.trips || [];
+  const catches = manifest.catches || [];
+
+  const flyboxes = manifest.flyboxes || [];
+  const flies = manifest.flies || [];
+  const flyevents = manifest.flyevents || [];
+
+  // trips
+  for(const t of trips){
+    const row = { ...t, updatedAt: Date.now() };
+    await saveTrip(row);
+  }
+
+  // catches (+ photos)
+  for(const c of catches){
+    const row = { ...c };
+    if(row.photoFile){
+      const zf = zip.file(row.photoFile);
+      if(zf){
+        const blob = await zf.async("blob");
+        row.photoBlob = blob;
+      }
+    }
+    delete row.photoFile;
+    await saveCatch(row);
+  }
+
+  // quiver
+  for(const b of flyboxes){
+    await saveFlyBox(b);
+  }
+  for(const f of flies){
+    await saveFly(f);
+  }
+  for(const e of flyevents){
+    await saveFlyEvent(e);
+  }
+
+  return { ok: true };
 }
 
 export async function importTripPackage(pkg){

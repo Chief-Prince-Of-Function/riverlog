@@ -4,20 +4,18 @@ import { $ } from "./utils.js";
    DOM helpers (exports)
 ========================= */
 
-// FlyBox (NEW)
-export const flyBoxBtn = $("flyBoxBtn");
-export const flyBoxCard = $("flyBoxCard");
-export const flyBoxClose = $("flyBoxClose");
+/* ===== Collapsible sections (NEW) ===== */
+export const catchesCollapse = $("catchesCollapse");
+export const flyBoxCollapse = $("flyBoxCollapse");
+export const badgesCollapse = $("badgesCollapse");
+export const catchesSummaryMeta = $("catchesSummaryMeta");
+
+/* ===== Quiver (FlyBox) ===== */
 export const flyBoxMeta = $("flyBoxMeta");
 
 export const flyBoxSelect = $("flyBoxSelect");
 export const newFlyBoxBtn = $("newFlyBoxBtn");
-
-// ✅ NEW: Fly photo input + preview
-export const flyPhoto = $("flyPhoto");
-export const flyPhotoPreview = $("flyPhotoPreview");
-
-// ✅ NEW: Clear all boxes (danger zone button)
+export const deleteFlyBoxBtn = $("deleteFlyBoxBtn");
 export const clearFlyBoxesBtn = $("clearFlyBoxesBtn");
 
 export const flyType = $("flyType");
@@ -30,17 +28,17 @@ export const addFlyBtn = $("addFlyBtn");
 export const flyList = $("flyList");
 export const flyEmpty = $("flyEmpty");
 
-// (keep consistent with $ helper)
-export const deleteFlyBoxBtn = $("deleteFlyBoxBtn");
+// Photo per pattern
+export const flyPhoto = $("flyPhoto");
+export const flyPhotoPreview = $("flyPhotoPreview");
 
-// Trips (top section)
+/* ===== Trips (top section) ===== */
 export const tripSelect = $("tripSelect");
 export const newTripBtn = $("newTripBtn");
 export const deleteTripBtn = $("deleteTripBtn");
 
-// NEW: overlay wrapper for the mobile “New Trip” modal
+/* New Trip Overlay (modal) */
 export const tripSheetOverlay = $("tripSheetOverlay");
-
 export const newTripForm = $("newTripForm");
 export const newTripLocation = $("newTripLocation");
 export const newTripDate = $("newTripDate");
@@ -48,7 +46,7 @@ export const newTripDesc = $("newTripDesc");
 export const createTripBtn = $("createTripBtn");
 export const cancelTripBtn = $("cancelTripBtn");
 
-// Catch inputs + actions
+/* ===== Catch inputs + actions ===== */
 export const saveCatchBtn = $("saveCatchBtn");
 export const gpsBtn = $("gpsBtn");
 export const photoInput = $("photoInput");
@@ -60,22 +58,42 @@ export const notes = $("notes");
 export const gpsHint = $("gpsHint");
 export const photoHint = $("photoHint");
 
-// Import / Export
+/* ===== Import / Export ===== */
 export const exportBtn = $("exportBtn");
 export const importInput = $("importInput");
+export const installBtn = $("installBtn"); // optional (exists in HTML)
 
-// Catches list + meta
+/* ===== Catches list + meta ===== */
 export const catchList = $("catchList");
 export const emptyState = $("emptyState");
 export const catchCount = $("catchCount");
 export const tripMeta = $("tripMeta");
 export const syncStatus = $("syncStatus");
 
-// Trip recap drawer
+/* ===== Badges + Insights ===== */
+export const badgeGrid = $("badgeGrid");
+
+// Insight tiles
+export const prTile = $("prTile");
+export const prSub = $("prSub");
+export const topFlyTile = $("topFlyTile");
+export const topFlySub = $("topFlySub");
+export const topSpeciesTile = $("topSpeciesTile");
+export const topSpeciesSub = $("topSpeciesSub");
+
+/* Toast (badge unlock) */
+export const badgeToast = $("badgeToast");
+export const badgeToastTitle = $("badgeToastTitle");
+export const badgeToastSub = $("badgeToastSub");
+export const badgeToastClose = $("badgeToastClose");
+
+/* ===== Trip recap drawer ===== */
 export const tripDrawer = $("tripDrawer");
-export const editTripBtn = $("editTripBtn");
 export const closeTripDrawer = $("closeTripDrawer");
 export const saveTripBtn = $("saveTripBtn");
+
+export const collageBtn = $("collageBtn");
+
 export const tripName = $("tripName");
 export const tripDate = $("tripDate");
 export const tripLocation = $("tripLocation");
@@ -84,27 +102,12 @@ export const tripFlyWin = $("tripFlyWin");
 export const tripLessons = $("tripLessons");
 export const tripRecap = $("tripRecap");
 
-// Collage buttons (drawer + top)
-export const collageBtn = $("collageBtn");
-export const collageBtnTop = $("collageBtnTop");
-
-// Collage modal bits
+/* ===== Collage modal ===== */
 export const collageOverlay = $("collageOverlay");
 export const collageModal = $("collageModal");
 export const collageClose = $("collageClose");
 export const collageMeta = $("collageMeta");
 export const collagePreview = $("collagePreview");
 export const collageDownload = $("collageDownload");
-export const collageShare = $("collageShare");   // <-- ADD
+export const collageShare = $("collageShare");
 export const collageCanvas = $("collageCanvas");
-
-/* =========================
-   Badges UI (optional)
-========================= */
-export const badgeGrid = $("badgeGrid");
-
-// Toast (small pop-up when a badge unlocks)
-export const badgeToast = $("badgeToast");
-export const badgeToastTitle = $("badgeToastTitle");
-export const badgeToastSub = $("badgeToastSub");
-export const badgeToastClose = $("badgeToastClose");
