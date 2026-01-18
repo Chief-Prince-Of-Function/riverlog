@@ -112,10 +112,9 @@
       <div class="hint" id="gpsHint">GPS: not added</div>
       <div class="hint" id="photoHint">Photo: none</div>
 
-      <!-- BADGES (NEW) -->
+      <!-- BADGES -->
       <div class="divider"></div>
 
-      <!-- Collapsible Badges -->
       <details class="collapse" id="badgesCollapse" open>
         <summary class="collapseSummary">
           Badges <span class="muted">(milestones earned on this device)</span>
@@ -123,8 +122,6 @@
 
         <div id="badgeGrid" class="badgeGrid"></div>
       </details>
-      <!-- /Collapsible Badges -->
-      <!-- /BADGES -->
     </section>
 
     <section class="card">
@@ -147,7 +144,8 @@
       <div id="emptyState" class="empty">No catches yet. Log your first one above.</div>
     </section>
 
-    <section class="card" id="flyBoxCard" hidden aria-hidden="true">
+    <!-- ✅ FIXED: use .hidden class (not the hidden attribute) -->
+    <section class="card hidden" id="flyBoxCard" aria-hidden="true">
       <div class="row">
         <div class="grow">
           <div class="title2">FlyBox</div>
@@ -209,7 +207,6 @@
       <div id="flyEmpty" class="empty">No flies yet. Add your first pattern above.</div>
     </section>
 
-    <!-- Added class "tripRecap" so your Trip Recap overflow CSS can target this drawer -->
     <section class="card tripRecap" id="tripDrawer" aria-hidden="true">
       <div class="row">
         <div class="grow">
@@ -269,7 +266,7 @@
     <div class="muted" id="syncStatus">—</div>
   </footer>
 
-  <!-- New Trip Overlay (moved to body-level for iOS reliability) -->
+  <!-- New Trip Overlay -->
   <div id="tripSheetOverlay" class="tripSheetOverlay" hidden aria-hidden="true">
     <div id="newTripForm" class="newTrip" hidden role="dialog" aria-modal="true" aria-label="Create new trip">
       <div class="grid2">
@@ -295,7 +292,6 @@
       <div class="hint">Create it fast now; add recap + lessons later.</div>
     </div>
   </div>
-  <!-- /New Trip Overlay -->
 
   <!-- Badge Toast -->
   <div id="badgeToast" class="toast hidden" role="status" aria-live="polite" aria-atomic="true">
@@ -307,7 +303,6 @@
       <button id="badgeToastClose" class="toastClose" aria-label="Close badge notification">✕</button>
     </div>
   </div>
-  <!-- /Badge Toast -->
 
   <!-- Collage Modal -->
   <div id="collageOverlay" class="overlay hidden"></div>

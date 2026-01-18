@@ -6,7 +6,7 @@ import {
   saveFlyBox,
   deleteFlyBox,
   listFliesByBox,
-  getFly,               // ✅ NEW (to preserve createdAt on edit)
+  getFly,               // ✅ preserve createdAt on edit
   saveFly,
   deleteFly,
   adjustFlyQty
@@ -41,7 +41,19 @@ import {
 
 function showFlyBox(open){
   if(!flyBoxCard) return;
+
+  // Support BOTH patterns:
+  // 1) class="hidden"
+  // 2) hidden attribute
   flyBoxCard.classList.toggle("hidden", !open);
+
+  if(open){
+    flyBoxCard.removeAttribute("hidden");
+    flyBoxCard.setAttribute("aria-hidden", "false");
+  }else{
+    flyBoxCard.setAttribute("hidden", "");
+    flyBoxCard.setAttribute("aria-hidden", "true");
+  }
 }
 
 function parseSize(v){
@@ -203,7 +215,7 @@ async function renderFlyList(boxId, setStatus){
     delBtn.className = "btn danger";
     delBtn.textContent = "Delete";
     delBtn.onclick = async ()=> {
-      const ok = confirm(`Delete "${f.pattern || "this fly"}" (#${f.size || "-"})?\n\nThis cannot be undone.`);
+      const ok = confirm(`Delete "${f.pattern || "this fly"}" (${f.size ? `#${f.size}` : "#-"})?\n\nThis cannot be undone.`);
       if(!ok) return;
 
       try{
@@ -238,7 +250,7 @@ async function setActiveBox(boxId, setStatus){
 }
 
 export function initFlyBox({ setStatus }){
-  // open/close
+  // open
   flyBoxBtn?.addEventListener("click", async ()=> {
     showFlyBox(true);
 
@@ -250,6 +262,7 @@ export function initFlyBox({ setStatus }){
     setStatus?.("FlyBox ready.");
   });
 
+  // close
   flyBoxClose?.addEventListener("click", ()=> {
     showFlyBox(false);
     clearFlyForm();
@@ -306,7 +319,7 @@ export function initFlyBox({ setStatus }){
     const now = Date.now();
     const wasEditing = !!state.flyEditingId;
 
-    // ✅ preserve createdAt on edit
+    // preserve createdAt on edit
     let createdAt = now;
     if(wasEditing){
       try{
@@ -330,8 +343,6 @@ export function initFlyBox({ setStatus }){
 
     try{
       await saveFly(row);
-
-      // ✅ show correct message BEFORE we clear form/state
       const msg = wasEditing ? "Fly updated." : "Fly added.";
 
       clearFlyForm();
