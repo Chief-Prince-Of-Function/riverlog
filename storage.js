@@ -264,25 +264,23 @@ export async function saveFlyBox(box){
   });
 }
 
-export async function deleteFlyBox(boxId){
-  const db = await openDB();
+export function deleteFlyBox(boxId){
+  const data = load();
+  data.flyBoxes = Array.isArray(data.flyBoxes) ? data.flyBoxes : [];
+  data.flies = Array.isArray(data.flies) ? data.flies : [];
 
-  // delete flies in this box
-  const flies = await listFliesByBox(boxId);
-  await Promise.all(flies.map(f=> deleteFly(f.id)));
+  // remove the box
+  data.flyBoxes = data.flyBoxes.filter(b => b.id !== boxId);
 
-  // delete events in this box (best-effort)
-  try{
-    const evs = await listFlyEventsByBox(boxId);
-    await Promise.all(evs.map(e=> deleteFlyEvent(e.id)));
-  }catch(_){}
+  // cascade: remove flies in that box
+  data.flies = data.flies.filter(f => f.boxId !== boxId);
 
-  // delete box
-  await new Promise((resolve, reject)=>{
-    const req = tx(db, "flyboxes", "readwrite").delete(boxId);
-    req.onsuccess = ()=> resolve(true);
-    req.onerror = ()=> reject(req.error);
-  });
+  // ensure currentFlyBoxId points at something valid (or null)
+  if(data.currentFlyBoxId === boxId || !data.flyBoxes.some(b => b.id === data.currentFlyBoxId)){
+    data.currentFlyBoxId = data.flyBoxes[0]?.id || null;
+  }
+
+  save(data);
 }
 
 export async function listFliesByBox(boxId){

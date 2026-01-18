@@ -13,6 +13,13 @@ export const flyBoxMeta = $("flyBoxMeta");
 export const flyBoxSelect = $("flyBoxSelect");
 export const newFlyBoxBtn = $("newFlyBoxBtn");
 
+// ✅ NEW: Fly photo input + preview
+export const flyPhoto = $("flyPhoto");
+export const flyPhotoPreview = $("flyPhotoPreview");
+
+// ✅ NEW: Clear all boxes (danger zone button)
+export const clearFlyBoxesBtn = $("clearFlyBoxesBtn");
+
 export const flyType = $("flyType");
 export const flyPattern = $("flyPattern");
 export const flySize = $("flySize");
@@ -22,6 +29,9 @@ export const addFlyBtn = $("addFlyBtn");
 
 export const flyList = $("flyList");
 export const flyEmpty = $("flyEmpty");
+
+// (keep consistent with $ helper)
+export const deleteFlyBoxBtn = $("deleteFlyBoxBtn");
 
 // Trips (top section)
 export const tripSelect = $("tripSelect");

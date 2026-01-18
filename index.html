@@ -19,7 +19,7 @@
   <link rel="apple-touch-icon" href="assets/icon-192.png" />
 
   <!-- Styles -->
-  <link rel="stylesheet" href="app.css?v=27" />
+  <link rel="stylesheet" href="app.css?v=28" />
 </head>
 
 <body>
@@ -151,7 +151,13 @@
           <div class="title2">FlyBox</div>
           <div class="subtitle2" id="flyBoxMeta">Track patterns + quantities</div>
         </div>
-        <button id="flyBoxClose" class="btn ghost">Close</button>
+
+        <!-- ✅ UPDATED: header actions -->
+        <div class="row gap" style="justify-content:flex-end;">
+          <button id="deleteFlyBoxBtn" class="btn ghost danger">Delete Box</button>
+          <button id="clearFlyBoxesBtn" class="btn danger">Clear All</button>
+          <button id="flyBoxClose" class="btn ghost">Close</button>
+        </div>
       </div>
 
       <div class="divider"></div>
@@ -194,6 +200,13 @@
         <div class="span2">
           <label class="label">Colors (optional)</label>
           <input id="flyColors" class="input" placeholder="black/silver, olive, tan..." />
+        </div>
+
+        <!-- ✅ NEW: photo per pattern -->
+        <div class="span2">
+          <label class="label">Photo (optional)</label>
+          <input id="flyPhoto" class="input" type="file" accept="image/*" />
+          <div id="flyPhotoPreview" class="photoPreview hidden"></div>
         </div>
       </div>
 
@@ -330,6 +343,6 @@
   <canvas id="collageCanvas" width="1400" height="1400" style="display:none;"></canvas>
 
   <script src="vendor/jszip.min.js"></script>
-  <script type="module" src="js/main.js?v=27"></script>
+  <script type="module" src="js/main.js?v=28"></script>
 </body>
 </html>

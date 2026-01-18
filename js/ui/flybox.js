@@ -29,7 +29,13 @@ import {
   flyColors,
   addFlyBtn,
   flyList,
-  flyEmpty
+  deleteFlyBoxBtn,
+  flyEmpty,
+
+  // ✅ NEW (you will add in dom.js + HTML next)
+  flyPhoto,
+  flyPhotoPreview,
+  clearFlyBoxesBtn
 } from "../dom.js";
 
 /* =========================
@@ -37,6 +43,9 @@ import {
    - Boxes (“quiver”)
    - Flies inventory inside a box
    - Quick +/- qty + delete
+   - NEW: delete box (can delete last box)
+   - NEW: clear all boxes (strong confirm)
+   - NEW: photo per pattern row (offline dataURL)
 ========================= */
 
 function showFlyBox(open){
@@ -78,6 +87,41 @@ function flyLabel(row){
 function flySub(row){
   const c = String(row.colors || "").trim();
   return c ? c : "—";
+}
+
+/* ===== Photo helpers (offline dataURL) ===== */
+function fileToDataURL(file){
+  return new Promise((resolve, reject)=>{
+    const reader = new FileReader();
+    reader.onload = ()=> resolve(String(reader.result || ""));
+    reader.onerror = reject;
+    reader.readAsDataURL(file);
+  });
+}
+
+function clearPhotoInput(){
+  if(flyPhoto) flyPhoto.value = "";
+  if(flyPhotoPreview){
+    flyPhotoPreview.innerHTML = "";
+    flyPhotoPreview.classList.add("hidden");
+  }
+}
+
+async function refreshPhotoPreviewFromFile(){
+  const f = flyPhoto?.files?.[0];
+  if(!f){
+    clearPhotoInput();
+    return;
+  }
+  try{
+    const dataUrl = await fileToDataURL(f);
+    if(flyPhotoPreview){
+      flyPhotoPreview.innerHTML = `<img src="${dataUrl}" alt="Fly photo preview" />`;
+      flyPhotoPreview.classList.remove("hidden");
+    }
+  }catch(_){
+    // ignore preview failure
+  }
 }
 
 async function refreshBoxSelect(selectedId){
@@ -126,6 +170,7 @@ function clearFlyForm(){
   if(flySize) flySize.value = "";
   if(flyQty) flyQty.value = "";
   if(flyColors) flyColors.value = "";
+  clearPhotoInput();
   setEditingFly(null);
 }
 
@@ -144,10 +189,19 @@ async function renderFlyList(boxId, setStatus){
     const el = document.createElement("div");
     el.className = "item";
 
-    // left thumb placeholder (you can replace with photo later)
+    // left thumb: show photo if available, else size placeholder
     const thumb = document.createElement("div");
     thumb.className = "thumb";
-    thumb.innerHTML = `<div class="muted" style="font-size:12px; font-weight:800;">#${safeText(f.size)}</div>`;
+
+    const hasPhoto = !!(f.photo && String(f.photo).startsWith("data:image"));
+    if(hasPhoto){
+      thumb.innerHTML = `
+        <img class="flyThumb" src="${f.photo}" alt="Fly photo" />
+        <div class="sizeBadge">#${safeText(f.size || "-")}</div>
+      `;
+    }else{
+      thumb.innerHTML = `<div class="muted" style="font-size:12px; font-weight:800;">#${safeText(f.size)}</div>`;
+    }
 
     const meta = document.createElement("div");
     meta.className = "meta";
@@ -208,6 +262,10 @@ async function renderFlyList(boxId, setStatus){
       if(flySize) flySize.value = f.size || "";
       if(flyQty) flyQty.value = String(Number(f.qty)||0);
       if(flyColors) flyColors.value = f.colors || "";
+
+      // photo: keep existing unless user picks a new one (so just clear file input)
+      clearPhotoInput();
+
       setStatus?.("Editing fly…");
     };
 
@@ -215,7 +273,9 @@ async function renderFlyList(boxId, setStatus){
     delBtn.className = "btn danger";
     delBtn.textContent = "Delete";
     delBtn.onclick = async ()=> {
-      const ok = confirm(`Delete "${f.pattern || "this fly"}" (${f.size ? `#${f.size}` : "#-"})?\n\nThis cannot be undone.`);
+      const ok = confirm(
+        `Delete "${f.pattern || "this fly"}" (${f.size ? `#${f.size}` : "#-"})?\n\nThis cannot be undone.`
+      );
       if(!ok) return;
 
       try{
@@ -247,6 +307,83 @@ async function setActiveBox(boxId, setStatus){
   state.flyBoxId = boxId;
   await refreshFlyMeta(boxId);
   await renderFlyList(boxId, setStatus);
+}
+
+/* ===== Delete one box (ALLOWED even if it's the last box) ===== */
+async function handleDeleteBox(setStatus){
+  const boxId = flyBoxSelect?.value || state.flyBoxId;
+  if(!boxId){
+    setStatus?.("No fly box selected.");
+    return;
+  }
+
+  const box = await getFlyBox(boxId);
+  const flies = await listFliesByBox(boxId);
+
+  const msg = flies.length
+    ? `Delete "${box?.name || "this box"}" and its ${flies.length} pattern(s)?\n\nThis cannot be undone.`
+    : `Delete "${box?.name || "this box"}"?\n\nThis cannot be undone.`;
+
+  if(!confirm(msg)) return;
+
+  try{
+    await deleteFlyBox(boxId);
+
+    // After delete, ensure we still have at least one box
+    const ensured = await ensureDefaultFlyBox();
+
+    // Rebuild selector + UI on ensured box
+    await refreshBoxSelect(ensured.id);
+    clearFlyForm();
+    await setActiveBox(ensured.id, setStatus);
+
+    setStatus?.("Fly box deleted.");
+  }catch(e){
+    setStatus?.(`Delete box failed: ${e?.message || e}`);
+  }
+}
+
+/* ===== Clear ALL boxes (strong confirm) =====
+   We delete each box id we can see, then ensure default box.
+*/
+async function handleClearAllBoxes(setStatus){
+  const boxes = await listFlyBoxes();
+
+  if(!boxes.length){
+    // still ensure one exists
+    const ensured = await ensureDefaultFlyBox();
+    await refreshBoxSelect(ensured.id);
+    clearFlyForm();
+    await setActiveBox(ensured.id, setStatus);
+    setStatus?.("No boxes to clear.");
+    return;
+  }
+
+  const typed = prompt(
+    `DANGER ZONE\n\nThis will delete ALL fly boxes and ALL flies inside them.\n\nType DELETE to confirm:`,
+    ""
+  );
+
+  if(String(typed || "").trim().toUpperCase() !== "DELETE"){
+    setStatus?.("Clear all canceled.");
+    return;
+  }
+
+  try{
+    // delete them all (storage should cascade flies per box)
+    for(const b of boxes){
+      await deleteFlyBox(b.id);
+    }
+
+    const ensured = await ensureDefaultFlyBox();
+    await refreshBoxSelect(ensured.id);
+    clearFlyForm();
+    await setActiveBox(ensured.id, setStatus);
+
+    setStatus?.("All fly boxes cleared.");
+  }catch(e){
+    setStatus?.(`Clear all failed: ${e?.message || e}`);
+  }
 }
 
 export function initFlyBox({ setStatus }){
@@ -297,7 +434,22 @@ export function initFlyBox({ setStatus }){
     setStatus?.("Fly box created.");
   });
 
-  // add/update fly
+  // delete active box (allowed even if last)
+  deleteFlyBoxBtn?.addEventListener("click", async ()=> {
+    await handleDeleteBox(setStatus);
+  });
+
+  // clear all boxes (danger)
+  clearFlyBoxesBtn?.addEventListener("click", async ()=> {
+    await handleClearAllBoxes(setStatus);
+  });
+
+  // photo input preview
+  flyPhoto?.addEventListener("change", async ()=>{
+    await refreshPhotoPreviewFromFile();
+  });
+
+  // add/update fly (pattern row)
   addFlyBtn?.addEventListener("click", async ()=> {
     const boxId = state.flyBoxId;
     if(!boxId){
@@ -319,13 +471,28 @@ export function initFlyBox({ setStatus }){
     const now = Date.now();
     const wasEditing = !!state.flyEditingId;
 
-    // preserve createdAt on edit
+    // preserve createdAt + existing photo on edit (unless user selected a new one)
     let createdAt = now;
+    let existingPhoto = "";
+
     if(wasEditing){
       try{
         const existing = await getFly(state.flyEditingId);
         if(existing && existing.createdAt) createdAt = existing.createdAt;
+        if(existing && existing.photo) existingPhoto = existing.photo;
       }catch(_){}
+    }
+
+    // If user picked a new photo, use it; else keep existing photo.
+    // This is "one photo for the pattern".
+    let photo = existingPhoto;
+    const picked = flyPhoto?.files?.[0];
+    if(picked){
+      try{
+        photo = await fileToDataURL(picked);
+      }catch(_){
+        photo = existingPhoto;
+      }
     }
 
     const id = state.flyEditingId || uid("fly");
@@ -337,6 +504,7 @@ export function initFlyBox({ setStatus }){
       size,
       qty,
       colors,
+      photo,        // ✅ photo stored on the pattern row
       createdAt,
       updatedAt: now
     };
