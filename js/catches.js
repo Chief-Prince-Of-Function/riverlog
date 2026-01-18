@@ -7,8 +7,7 @@ import {
   species, fly, length, notes,
   gpsHint, photoHint,
   tripSelect,
-  collageBtn,
-  collageBtnTop
+  collageBtn
 } from "./dom.js";
 
 import { canBuildCollage, buildTripCollage } from "./collage.js";
@@ -129,11 +128,6 @@ function setCollageButtonsEnabled(ok, count){
     collageBtn.disabled = !ok;
     collageBtn.title = title;
     collageBtn.style.opacity = ok ? "1" : ".55";
-  }
-  if(collageBtnTop){
-    collageBtnTop.disabled = !ok;
-    collageBtnTop.title = title;
-    collageBtnTop.style.opacity = ok ? "1" : ".55";
   }
 }
 

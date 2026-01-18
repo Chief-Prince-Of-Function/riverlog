@@ -4,34 +4,13 @@ import { $ } from "./utils.js";
    DOM helpers (exports)
 ========================= */
 
-/* ===== Collapsible sections (NEW) ===== */
+/* ===== Collapsible sections ===== */
 export const catchesCollapse = $("catchesCollapse");
 export const flyBoxCollapse = $("flyBoxCollapse");
 export const badgesCollapse = $("badgesCollapse");
 export const tripRecapCollapse = $("tripRecapCollapse");
+
 export const catchesSummaryMeta = $("catchesSummaryMeta");
-
-/* ===== Quiver (FlyBox) ===== */
-export const flyBoxMeta = $("flyBoxMeta");
-
-export const flyBoxSelect = $("flyBoxSelect");
-export const newFlyBoxBtn = $("newFlyBoxBtn");
-export const deleteFlyBoxBtn = $("deleteFlyBoxBtn");
-export const clearFlyBoxesBtn = $("clearFlyBoxesBtn");
-
-export const flyType = $("flyType");
-export const flyPattern = $("flyPattern");
-export const flySize = $("flySize");
-export const flyQty = $("flyQty");
-export const flyColors = $("flyColors");
-export const addFlyBtn = $("addFlyBtn");
-
-export const flyList = $("flyList");
-export const flyEmpty = $("flyEmpty");
-
-// Photo per pattern
-export const flyPhoto = $("flyPhoto");
-export const flyPhotoPreview = $("flyPhotoPreview");
 
 /* ===== Trips (top section) ===== */
 export const tripSelect = $("tripSelect");
@@ -39,11 +18,13 @@ export const newTripBtn = $("newTripBtn");
 export const editTripBtn = $("editTripBtn");
 export const deleteTripBtn = $("deleteTripBtn");
 
+export const tripMeta = $("tripMeta"); // subtitle inside Catches collapse
+
 /* New Trip Overlay (modal) */
 export const tripSheetOverlay = $("tripSheetOverlay");
 export const newTripForm = $("newTripForm");
 
-export const newTripName = $("newTripName");
+export const newTripName = $("newTripName");         // exists in HTML
 export const newTripLocation = $("newTripLocation");
 export const newTripDate = $("newTripDate");
 export const newTripDesc = $("newTripDesc");
@@ -72,13 +53,32 @@ export const installBtn = $("installBtn");
 export const catchList = $("catchList");
 export const emptyState = $("emptyState");
 export const catchCount = $("catchCount");
-export const tripMeta = $("tripMeta");
 export const syncStatus = $("syncStatus");
+
+/* ===== Quiver (FlyBox) ===== */
+export const flyBoxMeta = $("flyBoxMeta");
+
+export const flyBoxSelect = $("flyBoxSelect");
+export const newFlyBoxBtn = $("newFlyBoxBtn");
+export const deleteFlyBoxBtn = $("deleteFlyBoxBtn");
+export const clearFlyBoxesBtn = $("clearFlyBoxesBtn");
+
+export const flyType = $("flyType");
+export const flyPattern = $("flyPattern");
+export const flySize = $("flySize");
+export const flyQty = $("flyQty");
+export const flyColors = $("flyColors");
+export const addFlyBtn = $("addFlyBtn");
+
+export const flyList = $("flyList");
+export const flyEmpty = $("flyEmpty");
+
+export const flyPhoto = $("flyPhoto");
+export const flyPhotoPreview = $("flyPhotoPreview");
 
 /* ===== Badges + Insights ===== */
 export const badgeGrid = $("badgeGrid");
 
-// Insight tiles
 export const prTile = $("prTile");
 export const prSub = $("prSub");
 export const topFlyTile = $("topFlyTile");
@@ -92,12 +92,10 @@ export const badgeToastTitle = $("badgeToastTitle");
 export const badgeToastSub = $("badgeToastSub");
 export const badgeToastClose = $("badgeToastClose");
 
-/* ===== Trip recap drawer ===== */
-export const tripDrawer = $("tripDrawer");
-export const closeTripDrawer = $("closeTripDrawer");
-export const saveTripBtn = $("saveTripBtn");
+/* ===== Trip Recap section (collapsible) ===== */
 export const collageBtn = $("collageBtn");
 
+export const saveTripBtn = $("saveTripBtn");
 export const tripName = $("tripName");
 export const tripDate = $("tripDate");
 export const tripLocation = $("tripLocation");
@@ -115,4 +113,3 @@ export const collagePreview = $("collagePreview");
 export const collageDownload = $("collageDownload");
 export const collageShare = $("collageShare");
 export const collageCanvas = $("collageCanvas");
-export const collageBtnTop = $("collageBtnTop"); // optional top button (may not exist)
