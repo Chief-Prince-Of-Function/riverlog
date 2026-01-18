@@ -414,72 +414,51 @@ async function buildTripCollage(tripId, tripLabel){
       }
     }
   }else{
-    // PANE SCATTER COLLAGE (10–20): less pattern, more viewable
-    // Deterministic seed per trip + count
-    const seed = (String(tripId || "trip").split("").reduce((a,c)=>a + c.charCodeAt(0), 0) + n*97) >>> 0;
-    const rnd = mulberry32(seed);
+    // ORDERED “POLAROID” COLLAGE (10–20)
+    // - biggest centered
+    // - others placed in a deterministic spiral outward (no chaos)
+    const centerX = area.x + area.w/2;
+    const centerY = area.y + area.h/2;
 
-    // Keep a safe zone for brand mark (bottom-right)
-    const brandSafe = { x: area.x + area.w - 220, y: area.y + area.h - 240, w: 220, h: 240 };
-
-    // base tile sizes (bigger than before, less overlap)
-    const baseW = Math.round(area.w * 0.34);
+    const baseW = Math.round(area.w * 0.32);
     const baseH = Math.round(area.h * 0.30);
 
-    const placed = [];
+    // hero in the middle (biggest fish)
+    drawPolaroid(
+      ctx,
+      imgs[0],
+      centerX,
+      centerY,
+      baseW,
+      baseH,
+      (-6 * Math.PI/180),
+      makeCaption(use[0])
+    );
 
-    // Place the hero (largest fish) near center
-    {
-      const heroW = Math.round(baseW * 1.08);
-      const heroH = Math.round(baseH * 1.08);
-      const heroX = area.x + Math.round((area.w - heroW)/2);
-      const heroY = area.y + Math.round((area.h - heroH)/2);
+    // golden-angle spiral: even, predictable distribution
+    const golden = 2.399963229728653; // radians (~137.5deg)
+    const maxR = Math.min(area.w, area.h) * 0.42;
 
-      placed.push({ x: heroX, y: heroY, w: heroW, h: heroH });
-      const rot = ((rnd()*14) - 7) * Math.PI/180;
-      // draw hero last for prominence? we’ll draw in z-order later.
-      // For simplicity, draw hero first but it’s large anyway.
-      drawTile(ctx, imgs[0], heroX, heroY, heroW, heroH, makeCaption(use[0]));
-    }
+    for(let i=1; i<n; i++){
+      // spiral radius grows smoothly
+      const t = i / (n - 1);               // 0..1
+      const r = Math.min(maxR, (0.16 + 0.88*t) * maxR);
 
-    // Scatter the rest, trying to avoid heavy overlap
-    for(let i=1;i<n;i++){
-      const depth = i / (n-1);
-      const scale = clamp(1.0 - depth*0.18, 0.80, 1.0);
+      const ang = i * golden;
+
+      const cx = centerX + Math.cos(ang) * r;
+      const cy = centerY + Math.sin(ang) * r;
+
+      // gentle, consistent rotation pattern (no random)
+      const rotDeg = ((i % 2 === 0) ? 8 : -8) * (1 - t*0.55);
+      const rot = rotDeg * Math.PI/180;
+
+      // scale down gradually outward
+      const scale = 0.92 - (t * 0.22);
       const w = Math.round(baseW * scale);
       const h = Math.round(baseH * scale);
 
-      // shrink area slightly so tiles don't touch edges
-      const inset = 8;
-      const usable = {
-        x: area.x + inset,
-        y: area.y + inset,
-        w: area.w - inset*2,
-        h: area.h - inset*2
-      };
-
-      const rect = tryPlaceRect(rnd, usable, w, h, placed, 220);
-
-      // avoid brand safe zone (simple push away)
-      if(rectsOverlap(rect, brandSafe)){
-        rect.x = clamp(rect.x - 120, usable.x, usable.x + usable.w - rect.w);
-        rect.y = clamp(rect.y - 120, usable.y, usable.y + usable.h - rect.h);
-      }
-
-      // tiny rotation for “collage” feel, but not crazy
-      const rot = ((rnd()*10) - 5) * Math.PI/180;
-
-      // We’re drawing as panes (no polaroid frame). This makes it feel “pane collage”
-      // If you want polaroid frames back, tell me and we’ll wrap it.
-      ctx.save();
-      // rotation about center
-      const cx = rect.x + rect.w/2;
-      const cy = rect.y + rect.h/2;
-      ctx.translate(cx, cy);
-      ctx.rotate(rot);
-      ctx.translate(-cx, -cy);
-      drawTile(ctx, imgs[i], rect.x, rect.y, rect.w, rect.h, makeCaption(use[i]));
-      ctx.restore();
+      drawPolaroid(ctx, imgs[i], cx, cy, w, h, rot, makeCaption(use[i]));
     }
   }
 
