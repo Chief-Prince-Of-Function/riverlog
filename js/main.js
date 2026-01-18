@@ -6,6 +6,7 @@ import { initCatches } from "./catches.js";
 import { initCollage } from "./collage.js";
 import { initIO } from "./io.js";
 import { initBadges } from "./badges.js";
+import { initFlyBox } from "./ui/flybox.js"; // ✅ NEW
 
 function setStatus(msg){
   if(syncStatus) syncStatus.textContent = msg;
@@ -16,6 +17,9 @@ function setStatus(msg){
     initPWA();
 
     const { evaluateBadges } = initBadges();
+
+    // ✅ FlyBox wiring (safe even if user never opens it)
+    initFlyBox({ setStatus });
 
     // init catches first so trips can call refreshCatches
     const { refreshCatches } = initCatches({ setStatus });

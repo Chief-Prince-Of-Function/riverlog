@@ -1,7 +1,7 @@
-// storage.js — IndexedDB wrapper (Trips + Catches + Attachments)
+// storage.js — IndexedDB wrapper (Trips + Catches + FlyBox)
 
 const DB_NAME = "riverlog";
-const DB_VERSION = 1;
+const DB_VERSION = 2;
 
 function openDB(){
   return new Promise((resolve, reject)=>{
@@ -22,6 +22,37 @@ function openDB(){
         c.createIndex("tripId", "tripId");
         c.createIndex("createdAt", "createdAt");
       }
+
+      /* =========================
+         FlyBox (NEW)
+      ========================= */
+
+      // flyboxes (your “quiver”)
+      if(!db.objectStoreNames.contains("flyboxes")){
+        const b = db.createObjectStore("flyboxes", { keyPath: "id" });
+        b.createIndex("createdAt", "createdAt");
+        b.createIndex("updatedAt", "updatedAt");
+      }
+
+      // flies (inventory items)
+      if(!db.objectStoreNames.contains("flies")){
+        const f = db.createObjectStore("flies", { keyPath: "id" });
+        f.createIndex("boxId", "boxId");
+        f.createIndex("createdAt", "createdAt");
+        f.createIndex("updatedAt", "updatedAt");
+        // optional quick filters
+        f.createIndex("type", "type");   // nymph/dry/wet/streamer/other
+        f.createIndex("size", "size");   // "18", "14", etc
+      }
+
+      // flyevents (audit trail: lost/tied/added/etc)
+      if(!db.objectStoreNames.contains("flyevents")){
+        const e = db.createObjectStore("flyevents", { keyPath: "id" });
+        e.createIndex("boxId", "boxId");
+        e.createIndex("flyId", "flyId");
+        e.createIndex("createdAt", "createdAt");
+        e.createIndex("kind", "kind");   // "add" | "use" | "lost" | "tie" | "adjust"
+      }
     };
 
     req.onsuccess = ()=> resolve(req.result);
@@ -35,6 +66,12 @@ function tx(db, store, mode="readonly"){
 
 export function uid(prefix="id"){
   return `${prefix}_${Math.random().toString(16).slice(2)}_${Date.now()}`;
+}
+
+function clampQty(n){
+  n = Number(n);
+  if(!Number.isFinite(n)) return 0;
+  return Math.max(0, Math.floor(n));
 }
 
 /* =========================
@@ -144,7 +181,6 @@ export async function listAllCatches(){
   });
 }
 
-/** REQUIRED FIX: direct store.get (do NOT call listCatches with no tripId) */
 export async function getCatchById(id){
   const db = await openDB();
   const store = tx(db, "catches");
@@ -170,6 +206,240 @@ export async function deleteCatch(catchId){
   return new Promise((resolve, reject)=>{
     const req = tx(db, "catches", "readwrite").delete(catchId);
     req.onsuccess = ()=> resolve(true);
+    req.onerror = ()=> reject(req.error);
+  });
+}
+
+/* =========================
+   FlyBox
+========================= */
+
+export async function ensureDefaultFlyBox(){
+  const boxes = await listFlyBoxes();
+  if(boxes.length) return boxes[0];
+
+  const now = Date.now();
+  const box = {
+    id: uid("box"),
+    name: "My Fly Box",
+    notes: "",
+    createdAt: now,
+    updatedAt: now
+  };
+  await saveFlyBox(box);
+  return box;
+}
+
+export async function listFlyBoxes(){
+  const db = await openDB();
+  const store = tx(db, "flyboxes");
+  return new Promise((resolve, reject)=>{
+    const req = store.getAll();
+    req.onsuccess = ()=>{
+      const rows = req.result || [];
+      rows.sort((a,b)=> (b.updatedAt||0) - (a.updatedAt||0));
+      resolve(rows);
+    };
+    req.onerror = ()=> reject(req.error);
+  });
+}
+
+export async function getFlyBox(id){
+  const db = await openDB();
+  const store = tx(db, "flyboxes");
+  return new Promise((resolve, reject)=>{
+    const req = store.get(id);
+    req.onsuccess = ()=> resolve(req.result || null);
+    req.onerror = ()=> reject(req.error);
+  });
+}
+
+export async function saveFlyBox(box){
+  const db = await openDB();
+  const store = tx(db, "flyboxes", "readwrite");
+  return new Promise((resolve, reject)=>{
+    const req = store.put(box);
+    req.onsuccess = ()=> resolve(true);
+    req.onerror = ()=> reject(req.error);
+  });
+}
+
+export async function deleteFlyBox(boxId){
+  const db = await openDB();
+
+  // delete flies in this box
+  const flies = await listFliesByBox(boxId);
+  await Promise.all(flies.map(f=> deleteFly(f.id)));
+
+  // delete events in this box (best-effort)
+  try{
+    const evs = await listFlyEventsByBox(boxId);
+    await Promise.all(evs.map(e=> deleteFlyEvent(e.id)));
+  }catch(_){}
+
+  // delete box
+  await new Promise((resolve, reject)=>{
+    const req = tx(db, "flyboxes", "readwrite").delete(boxId);
+    req.onsuccess = ()=> resolve(true);
+    req.onerror = ()=> reject(req.error);
+  });
+}
+
+export async function listFliesByBox(boxId){
+  const db = await openDB();
+  const store = tx(db, "flies");
+  const idx = store.index("boxId");
+  return new Promise((resolve, reject)=>{
+    const req = idx.getAll(boxId);
+    req.onsuccess = ()=>{
+      const rows = req.result || [];
+      rows.sort((a,b)=> (b.updatedAt||0) - (a.updatedAt||0));
+      resolve(rows);
+    };
+    req.onerror = ()=> reject(req.error);
+  });
+}
+
+/** Alias for sanity (older UI code will call listFlies) */
+export async function listFlies(boxId){
+  return listFliesByBox(boxId);
+}
+
+export async function getFly(id){
+  const db = await openDB();
+  const store = tx(db, "flies");
+  return new Promise((resolve, reject)=>{
+    const req = store.get(id);
+    req.onsuccess = ()=> resolve(req.result || null);
+    req.onerror = ()=> reject(req.error);
+  });
+}
+
+/** Alias for sanity (older UI code will call getFlyById) */
+export async function getFlyById(id){
+  return getFly(id);
+}
+
+export async function saveFly(flyRow){
+  const db = await openDB();
+  const store = tx(db, "flies", "readwrite");
+  return new Promise((resolve, reject)=>{
+    const req = store.put(flyRow);
+    req.onsuccess = ()=> resolve(true);
+    req.onerror = ()=> reject(req.error);
+  });
+}
+
+export async function deleteFly(flyId){
+  const db = await openDB();
+
+  // delete events for this fly (best-effort)
+  try{
+    const evs = await listFlyEventsByFly(flyId);
+    await Promise.all(evs.map(e=> deleteFlyEvent(e.id)));
+  }catch(_){}
+
+  return new Promise((resolve, reject)=>{
+    const req = tx(db, "flies", "readwrite").delete(flyId);
+    req.onsuccess = ()=> resolve(true);
+    req.onerror = ()=> reject(req.error);
+  });
+}
+
+/**
+ * Adjust qty (positive or negative) AND record an event.
+ * kind: "add" | "use" | "lost" | "tie" | "adjust"
+ */
+export async function adjustFlyQty({ flyId, delta, kind="adjust", note="" }){
+  const now = Date.now();
+  const flyRow = await getFly(flyId);
+  if(!flyRow) throw new Error("Fly not found");
+
+  const before = clampQty(flyRow.qty);
+  const after = clampQty(before + Number(delta || 0));
+
+  flyRow.qty = after;
+  flyRow.updatedAt = now;
+  await saveFly(flyRow);
+
+  // touch box updatedAt for sorting
+  try{
+    const box = await getFlyBox(flyRow.boxId);
+    if(box){
+      box.updatedAt = now;
+      await saveFlyBox(box);
+    }
+  }catch(_){}
+
+  // record event
+  const ev = {
+    id: uid("fev"),
+    boxId: flyRow.boxId,
+    flyId: flyRow.id,
+    kind,
+    delta: Number(delta || 0),
+    qtyBefore: before,
+    qtyAfter: after,
+    note: String(note || "").trim(),
+    createdAt: now
+  };
+  await saveFlyEvent(ev);
+
+  return { before, after };
+}
+
+/** Convenience: expend one fly (−1) */
+export async function expendFly(flyId, kind="use"){
+  return adjustFlyQty({ flyId, delta: -1, kind });
+}
+
+/* --- Fly events --- */
+
+export async function saveFlyEvent(ev){
+  const db = await openDB();
+  const store = tx(db, "flyevents", "readwrite");
+  return new Promise((resolve, reject)=>{
+    const req = store.put(ev);
+    req.onsuccess = ()=> resolve(true);
+    req.onerror = ()=> reject(req.error);
+  });
+}
+
+export async function deleteFlyEvent(evId){
+  const db = await openDB();
+  return new Promise((resolve, reject)=>{
+    const req = tx(db, "flyevents", "readwrite").delete(evId);
+    req.onsuccess = ()=> resolve(true);
+    req.onerror = ()=> reject(req.error);
+  });
+}
+
+export async function listFlyEventsByBox(boxId){
+  const db = await openDB();
+  const store = tx(db, "flyevents");
+  const idx = store.index("boxId");
+  return new Promise((resolve, reject)=>{
+    const req = idx.getAll(boxId);
+    req.onsuccess = ()=>{
+      const rows = req.result || [];
+      rows.sort((a,b)=> (b.createdAt||0) - (a.createdAt||0));
+      resolve(rows);
+    };
+    req.onerror = ()=> reject(req.error);
+  });
+}
+
+export async function listFlyEventsByFly(flyId){
+  const db = await openDB();
+  const store = tx(db, "flyevents");
+  const idx = store.index("flyId");
+  return new Promise((resolve, reject)=>{
+    const req = idx.getAll(flyId);
+    req.onsuccess = ()=>{
+      const rows = req.result || [];
+      rows.sort((a,b)=> (b.createdAt||0) - (a.createdAt||0));
+      resolve(rows);
+    };
     req.onerror = ()=> reject(req.error);
   });
 }
@@ -211,9 +481,7 @@ export async function exportTripPackage(tripId){
 ========================= */
 
 async function loadJSZip(){
-  // vendor/jszip.min.js is loaded in index.html (non-module script)
   if(window.JSZip) return window.JSZip;
-  // fallback (usually not needed)
   const mod = await import("./vendor/jszip.min.js");
   return (mod && (mod.default || mod.JSZip)) || window.JSZip;
 }
@@ -244,7 +512,6 @@ function safeAllFilename(){
   return `${datePart}_riverlog_all.zip`;
 }
 
-/** Helper used by io.js */
 export function downloadBlob(blob, filename){
   const url = URL.createObjectURL(blob);
   const a = document.createElement("a");

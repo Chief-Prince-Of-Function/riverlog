@@ -19,7 +19,7 @@
   <link rel="apple-touch-icon" href="assets/icon-192.png" />
 
   <!-- Styles -->
-  <link rel="stylesheet" href="app.css?v=25" />
+  <link rel="stylesheet" href="app.css?v=26" />
 </head>
 
 <body>
@@ -135,6 +135,7 @@
         </div>
 
         <div class="row gap" style="justify-content:flex-end;">
+          <button id="flyBoxBtn" class="btn ghost">FlyBox</button>
           <button id="collageBtnTop" class="btn">Build Collage</button>
           <button id="editTripBtn" class="btn ghost">Trip Recap</button>
         </div>
@@ -144,6 +145,68 @@
 
       <div id="catchList" class="list"></div>
       <div id="emptyState" class="empty">No catches yet. Log your first one above.</div>
+    </section>
+
+    <section class="card" id="flyBoxCard" hidden aria-hidden="true">
+      <div class="row">
+        <div class="grow">
+          <div class="title2">FlyBox</div>
+          <div class="subtitle2" id="flyBoxMeta">Track patterns + quantities</div>
+        </div>
+        <button id="flyBoxClose" class="btn ghost">Close</button>
+      </div>
+
+      <div class="divider"></div>
+
+      <div class="row gap topGap">
+        <select id="flyBoxSelect" class="input"></select>
+        <button id="newFlyBoxBtn" class="btn ghost">New Box</button>
+      </div>
+
+      <div class="divider"></div>
+
+      <div class="grid2">
+        <div>
+          <label class="label">Type</label>
+          <select id="flyType" class="input">
+            <option value="">—</option>
+            <option value="nymph">Nymph</option>
+            <option value="dry">Dry</option>
+            <option value="wet">Wet</option>
+            <option value="streamer">Streamer</option>
+            <option value="other">Other</option>
+          </select>
+        </div>
+
+        <div>
+          <label class="label">Pattern</label>
+          <input id="flyPattern" class="input" placeholder="e.g., Zebra Midge" />
+        </div>
+
+        <div>
+          <label class="label">Size</label>
+          <input id="flySize" class="input" inputmode="numeric" placeholder="e.g., 16" />
+        </div>
+
+        <div>
+          <label class="label">Qty</label>
+          <input id="flyQty" class="input" inputmode="numeric" placeholder="e.g., 12" />
+        </div>
+
+        <div class="span2">
+          <label class="label">Colors (optional)</label>
+          <input id="flyColors" class="input" placeholder="black/silver, olive, tan..." />
+        </div>
+      </div>
+
+      <div class="row gap topGap">
+        <button id="addFlyBtn" class="btn accent">Add Fly</button>
+      </div>
+
+      <div class="divider"></div>
+
+      <div id="flyList" class="list"></div>
+      <div id="flyEmpty" class="empty">No flies yet. Add your first pattern above.</div>
     </section>
 
     <!-- Added class "tripRecap" so your Trip Recap overflow CSS can target this drawer -->
@@ -272,6 +335,6 @@
   <canvas id="collageCanvas" width="1400" height="1400" style="display:none;"></canvas>
 
   <script src="vendor/jszip.min.js"></script>
-  <script type="module" src="js/main.js?v=25"></script>
+  <script type="module" src="js/main.js?v=26"></script>
 </body>
 </html>

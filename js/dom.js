@@ -4,6 +4,25 @@ import { $ } from "./utils.js";
    DOM helpers (exports)
 ========================= */
 
+// FlyBox (NEW)
+export const flyBoxBtn = $("flyBoxBtn");
+export const flyBoxCard = $("flyBoxCard");
+export const flyBoxClose = $("flyBoxClose");
+export const flyBoxMeta = $("flyBoxMeta");
+
+export const flyBoxSelect = $("flyBoxSelect");
+export const newFlyBoxBtn = $("newFlyBoxBtn");
+
+export const flyType = $("flyType");
+export const flyPattern = $("flyPattern");
+export const flySize = $("flySize");
+export const flyQty = $("flyQty");
+export const flyColors = $("flyColors");
+export const addFlyBtn = $("addFlyBtn");
+
+export const flyList = $("flyList");
+export const flyEmpty = $("flyEmpty");
+
 // Trips (top section)
 export const tripSelect = $("tripSelect");
 export const newTripBtn = $("newTripBtn");
