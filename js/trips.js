@@ -4,6 +4,7 @@ import { state } from "./state.js";
 import {
   tripSelect,
   newTripBtn,
+  editTripBtn,
   deleteTripBtn,
   newTripForm,
   tripSheetOverlay,
@@ -12,27 +13,49 @@ import {
   newTripDesc,
   createTripBtn,
   cancelTripBtn,
-  tripMeta
+  tripMeta,
+  tripDrawer,
+  closeTripDrawer,
+  saveTripBtn,
+  tripName,
+  tripDate,
+  tripLocation,
+  tripDesc,
+  tripFlyWin,
+  tripLessons,
+  tripRecap
 } from "./dom.js";
 
 /* =========================
    Trips module
-   - New Trip modal (existing)
-   - Edit Trip (re-uses same modal + save button)
-   - Delete Trip (keeps at least 1)
+   - New Trip modal (fast create)
+   - Edit Trip (same modal reused)
+   - Trip Recap collapsible (drawer)
 ========================= */
 
-function openTripSheet(){
+/* ===== New Trip Modal ===== */
+
+function openNewTripSheet(){
   if(tripSheetOverlay) tripSheetOverlay.hidden = false;
   if(newTripForm) newTripForm.hidden = false;
   document.body.classList.add("tripSheetOpen");
 }
 
-function closeTripSheet(){
+function closeNewTripSheet(){
   if(tripSheetOverlay) tripSheetOverlay.hidden = true;
   if(newTripForm) newTripForm.hidden = true;
   document.body.classList.remove("tripSheetOpen");
 }
+
+/* ===== Trip Recap (collapsible) ===== */
+
+function setTripDrawerOpen(open){
+  if(!tripDrawer) return;
+  tripDrawer.hidden = !open;
+  tripDrawer.setAttribute("aria-hidden", open ? "false" : "true");
+}
+
+/* ===== Helpers ===== */
 
 async function refreshTripSelect(selectedId){
   const trips = await listTrips();
@@ -43,13 +66,14 @@ async function refreshTripSelect(selectedId){
     const opt = document.createElement("option");
     opt.value = t.id;
 
-    // Prefer location if set; else name; else "Trip"
+    // show location if set, else fallback to name/date
     const loc = safeText(t.location);
-    opt.textContent = (loc && loc !== "-") ? t.location : (t.name || "Trip");
+    opt.textContent = (loc && loc !== "-") ? loc : (t.name || "Trip");
+
     tripSelect.appendChild(opt);
   }
 
-  const target = selectedId || (trips[0]?.id || "");
+  const target = selectedId || (trips[0] ? trips[0].id : "");
   if(target) tripSelect.value = target;
 
   return trips;
@@ -75,16 +99,67 @@ async function refreshTripMeta(tripId){
   tripMeta.textContent = parts.length ? parts.join(" • ") : "—";
 }
 
-function clearTripSheetFields(){
-  if(newTripLocation) newTripLocation.value = "";
-  if(newTripDate) newTripDate.value = "";
-  if(newTripDesc) newTripDesc.value = "";
+async function loadTripIntoRecapDrawer(tripId){
+  const t = await getTrip(tripId);
+  if(!t) return;
+
+  if(tripName) tripName.value = t.name || "";
+  if(tripDate) tripDate.value = t.date || "";
+  if(tripLocation) tripLocation.value = t.location || "";
+  if(tripDesc) tripDesc.value = t.desc || "";
+  if(tripFlyWin) tripFlyWin.value = t.flyWin || "";
+  if(tripLessons) tripLessons.value = t.lessons || "";
+  if(tripRecap) tripRecap.value = t.recap || "";
 }
 
-function fillTripSheetFromTrip(t){
-  if(newTripLocation) newTripLocation.value = t?.location || "";
-  if(newTripDate) newTripDate.value = t?.date || "";
-  if(newTripDesc) newTripDesc.value = t?.desc || "";
+async function saveRecapDrawerTrip(tripId, setStatus){
+  const t = await getTrip(tripId);
+  if(!t){
+    setStatus?.("Trip not found.");
+    return;
+  }
+
+  const now = Date.now();
+  const next = {
+    ...t,
+    updatedAt: now,
+    name: (tripName?.value || "").trim(),
+    date: (tripDate?.value || "").trim(),
+    location: (tripLocation?.value || "").trim(),
+    desc: (tripDesc?.value || "").trim(),
+    flyWin: (tripFlyWin?.value || "").trim(),
+    lessons: (tripLessons?.value || "").trim(),
+    recap: (tripRecap?.value || "").trim()
+  };
+
+  await saveTrip(next);
+  setStatus?.("Trip recap saved.");
+}
+
+/* ===== Trip editing in the SAME modal as New Trip ===== */
+
+let editingTripId = null;
+
+async function openEditTripSheet(tripId){
+  const t = await getTrip(tripId);
+  if(!t) return;
+
+  editingTripId = t.id;
+
+  // Fill modal fields (reuse “new trip” modal)
+  if(newTripLocation) newTripLocation.value = t.location || "";
+  if(newTripDate) newTripDate.value = t.date || "";
+  if(newTripDesc) newTripDesc.value = t.desc || "";
+
+  // Button label changes
+  if(createTripBtn) createTripBtn.textContent = "Save changes";
+
+  openNewTripSheet();
+}
+
+function resetTripSheetToCreateMode(){
+  editingTripId = null;
+  if(createTripBtn) createTripBtn.textContent = "Save new trip";
 }
 
 async function setActiveTrip(tripId, refreshCatches){
@@ -103,71 +178,57 @@ async function maybeDisableDeleteButton(){
     : "Delete this trip";
 }
 
+/* =========================
+   init
+========================= */
+
 export function initTrips({ refreshCatches, setStatus }){
-  // Are we editing an existing trip in the sheet?
-  let editingTripId = null;
 
-  function setSheetMode(mode){
-    // mode: "new" | "edit"
-    const isEdit = mode === "edit";
-    editingTripId = isEdit ? (state.tripId || null) : null;
-
-    if(createTripBtn){
-      createTripBtn.textContent = isEdit ? "Save changes" : "Save new trip";
-      createTripBtn.classList.toggle("isEditing", isEdit);
-    }
-  }
-
-  // Open sheet for NEW trip
+  // New Trip
   newTripBtn?.addEventListener("click", ()=>{
-    setSheetMode("new");
-    clearTripSheetFields();
-    openTripSheet();
+    resetTripSheetToCreateMode();
+
+    if(newTripLocation) newTripLocation.value = "";
+    if(newTripDate) newTripDate.value = "";
+    if(newTripDesc) newTripDesc.value = "";
+
+    openNewTripSheet();
+  });
+
+  // Edit Trip (NEW)
+  editTripBtn?.addEventListener("click", async ()=>{
+    if(!state.tripId) return;
+    await openEditTripSheet(state.tripId);
   });
 
   // Overlay click closes
   tripSheetOverlay?.addEventListener("click", (e)=>{
-    if(e.target === tripSheetOverlay) closeTripSheet();
+    if(e.target === tripSheetOverlay){
+      closeNewTripSheet();
+      resetTripSheetToCreateMode();
+    }
   });
 
-  cancelTripBtn?.addEventListener("click", closeTripSheet);
-
-  // Trip select changes active trip
-  tripSelect?.addEventListener("change", async ()=>{
-    const id = tripSelect.value;
-    if(!id) return;
-    await setActiveTrip(id, refreshCatches);
-    setStatus?.("Trip loaded.");
+  cancelTripBtn?.addEventListener("click", ()=>{
+    closeNewTripSheet();
+    resetTripSheetToCreateMode();
   });
 
-  // ✅ New: Edit current trip using same sheet (prompt-based, no HTML changes)
-  // If you add a real Edit button in HTML later, we can wire it by id.
-  tripSelect?.addEventListener("dblclick", async ()=>{
-    // desktop-only convenience: double click trip dropdown to edit
-    if(!state.tripId) return;
-    const t = await getTrip(state.tripId);
-    if(!t) return;
-
-    setSheetMode("edit");
-    fillTripSheetFromTrip(t);
-    openTripSheet();
-    setStatus?.("Editing trip…");
-  });
-
-  // Save (create new OR update existing)
+  // Save trip (create OR edit)
   createTripBtn?.addEventListener("click", async ()=>{
     const now = Date.now();
 
-    // === UPDATE EXISTING ===
+    // EDIT MODE
     if(editingTripId){
       const existing = await getTrip(editingTripId);
       if(!existing){
         setStatus?.("Trip not found.");
-        setSheetMode("new");
+        closeNewTripSheet();
+        resetTripSheetToCreateMode();
         return;
       }
 
-      const next = {
+      const updated = {
         ...existing,
         updatedAt: now,
         date: (newTripDate?.value || "").trim(),
@@ -175,21 +236,17 @@ export function initTrips({ refreshCatches, setStatus }){
         desc: (newTripDesc?.value || "").trim()
       };
 
-      // Keep a sensible name if blank
-      if(!String(next.name || "").trim()){
-        next.name = new Date(existing.createdAt || now).toLocaleDateString();
-      }
+      await saveTrip(updated);
 
-      await saveTrip(next);
-      closeTripSheet();
+      closeNewTripSheet();
+      resetTripSheetToCreateMode();
 
-      await refreshTrips(next.id);
+      await refreshTrips(updated.id);
       setStatus?.("Trip updated.");
-      setSheetMode("new");
       return;
     }
 
-    // === CREATE NEW ===
+    // CREATE MODE
     const trip = {
       id: uid("trip"),
       name: new Date(now).toLocaleDateString(),
@@ -204,13 +261,56 @@ export function initTrips({ refreshCatches, setStatus }){
     };
 
     await saveTrip(trip);
-    closeTripSheet();
+
+    closeNewTripSheet();
+    resetTripSheetToCreateMode();
 
     await refreshTrips(trip.id);
     setStatus?.("Trip created.");
   });
 
-  // ✅ DELETE TRIP
+  // Trip selection
+  tripSelect?.addEventListener("change", async ()=>{
+    const id = tripSelect.value;
+    if(!id) return;
+
+    // close recap drawer on trip switch
+    setTripDrawerOpen(false);
+
+    await setActiveTrip(id, refreshCatches);
+    setStatus?.("Trip loaded.");
+  });
+
+  /* ===== Trip Recap collapsible wiring ===== */
+
+  // If your recap has a close button
+  closeTripDrawer?.addEventListener("click", ()=>{
+    setTripDrawerOpen(false);
+  });
+
+  // Save recap
+  saveTripBtn?.addEventListener("click", async ()=>{
+    if(!state.tripId) return;
+    await saveRecapDrawerTrip(state.tripId, setStatus);
+    await refreshTrips(state.tripId);
+  });
+
+  // Make recap drawer open when you click the meta line (nice UX)
+  tripMeta?.addEventListener("click", async ()=>{
+    if(!state.tripId) return;
+
+    const isOpen = !tripDrawer?.hidden;
+    if(isOpen){
+      setTripDrawerOpen(false);
+      return;
+    }
+
+    await loadTripIntoRecapDrawer(state.tripId);
+    setTripDrawerOpen(true);
+    setStatus?.("Trip recap opened.");
+  });
+
+  // Delete trip
   deleteTripBtn?.addEventListener("click", async ()=>{
     if(!state.tripId) return;
 
@@ -232,12 +332,15 @@ export function initTrips({ refreshCatches, setStatus }){
 
     try{
       const deletingId = state.tripId;
+
       await deleteTrip(deletingId);
 
       const remaining = (await listTrips()) || [];
       const nextId = remaining[0]?.id || null;
 
       await refreshTrips(nextId);
+      setTripDrawerOpen(false);
+
       setStatus?.("Trip deleted.");
     }catch(e){
       setStatus?.(`Delete failed: ${e?.message || e}`);
@@ -247,31 +350,13 @@ export function initTrips({ refreshCatches, setStatus }){
   async function refreshTrips(selectedId){
     const trips = await refreshTripSelect(selectedId);
 
-    const active = tripSelect?.value || (trips[0]?.id || "");
+    const active = tripSelect?.value || (trips[0] ? trips[0].id : "");
     if(active){
       await setActiveTrip(active, refreshCatches);
     }
 
     await maybeDisableDeleteButton();
-
-    // Reset sheet mode to "new" after refresh
-    setSheetMode("new");
   }
 
-  // Public API
-  return {
-    refreshTrips,
-
-    // ✅ Call this from anywhere (e.g., a future Edit button)
-    openEditTrip: async ()=>{
-      if(!state.tripId) return;
-      const t = await getTrip(state.tripId);
-      if(!t) return;
-
-      setSheetMode("edit");
-      fillTripSheetFromTrip(t);
-      openTripSheet();
-      setStatus?.("Editing trip…");
-    }
-  };
+  return { refreshTrips };
 }
