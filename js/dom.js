@@ -8,6 +8,7 @@ import { $ } from "./utils.js";
 export const catchesCollapse = $("catchesCollapse");
 export const flyBoxCollapse = $("flyBoxCollapse");
 export const badgesCollapse = $("badgesCollapse");
+export const tripRecapCollapse = $("tripRecapCollapse");
 export const catchesSummaryMeta = $("catchesSummaryMeta");
 
 /* ===== Quiver (FlyBox) ===== */
@@ -35,19 +36,18 @@ export const flyPhotoPreview = $("flyPhotoPreview");
 /* ===== Trips (top section) ===== */
 export const tripSelect = $("tripSelect");
 export const newTripBtn = $("newTripBtn");
-export const deleteTripBtn = $("deleteTripBtn");
-
-/* Trip Recap open button (legacy compat)
-   trips.js in older builds may import this. Your HTML might not include it.
-   Exporting it keeps boot from crashing. */
 export const editTripBtn = $("editTripBtn");
+export const deleteTripBtn = $("deleteTripBtn");
 
 /* New Trip Overlay (modal) */
 export const tripSheetOverlay = $("tripSheetOverlay");
 export const newTripForm = $("newTripForm");
+
+export const newTripName = $("newTripName");
 export const newTripLocation = $("newTripLocation");
 export const newTripDate = $("newTripDate");
 export const newTripDesc = $("newTripDesc");
+
 export const createTripBtn = $("createTripBtn");
 export const cancelTripBtn = $("cancelTripBtn");
 
@@ -96,11 +96,7 @@ export const badgeToastClose = $("badgeToastClose");
 export const tripDrawer = $("tripDrawer");
 export const closeTripDrawer = $("closeTripDrawer");
 export const saveTripBtn = $("saveTripBtn");
-
 export const collageBtn = $("collageBtn");
-
-// ✅ NEW: top collage button (some builds have this; safe if null)
-export const collageBtnTop = $("collageBtnTop");
 
 export const tripName = $("tripName");
 export const tripDate = $("tripDate");

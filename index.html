@@ -19,7 +19,7 @@
   <link rel="apple-touch-icon" href="assets/icon-192.png" />
 
   <!-- Styles -->
-  <link rel="stylesheet" href="app.css?v=31" />
+  <link rel="stylesheet" href="app.css?v=32" />
 </head>
 
 <body>
@@ -36,10 +36,6 @@
     </div>
 
     <div class="actions">
-      <!-- Keep these IDs present so existing JS/dom.js doesn’t break -->
-      <button id="flyBoxBtn" class="btn ghost" type="button" hidden>Quiver</button>
-      <button id="flyBoxClose" class="btn ghost" type="button" hidden>Close</button>
-
       <button id="installBtn" class="btn ghost" hidden>Install</button>
       <button id="exportBtn" class="btn" type="button">Export</button>
       <label class="btn ghost fileBtn">
@@ -58,6 +54,7 @@
           <div class="row gap">
             <select id="tripSelect" class="input"></select>
             <button id="newTripBtn" class="btn ghost" type="button">New</button>
+            <button id="editTripBtn" class="btn ghost" type="button">Edit</button>
             <button id="deleteTripBtn" class="btn ghost danger" type="button">Delete</button>
           </div>
           <div class="hint">Tip: make a new trip at the river. Later you’ll add recap + “Fly that won the day” on your Mac.</div>
@@ -143,7 +140,7 @@
     </section>
 
     <!-- QUIVER (FlyBox, collapsed by default) -->
-    <section class="card" id="flyBoxCard">
+    <section class="card">
       <details class="collapse" id="flyBoxCollapse">
         <summary class="collapseSummary">
           Quiver <span class="muted" style="margin-left:8px;">(patterns + quantities)</span>
@@ -252,58 +249,68 @@
       </details>
     </section>
 
-    <!-- Trip Recap drawer (unchanged) -->
-    <section class="card tripRecap" id="tripDrawer" aria-hidden="true">
-      <div class="row">
-        <div class="grow">
-          <div class="title2">Trip Recap</div>
-          <div class="subtitle2">Fill this out later (or now if you want). This lives on the trip.</div>
-        </div>
-        <button id="closeTripDrawer" class="btn ghost" type="button">Close</button>
-      </div>
+    <!-- TRIP RECAP (collapsed by default) -->
+    <section class="card">
+      <details class="collapse" id="tripRecapCollapse">
+        <summary class="collapseSummary">
+          Trip Recap <span class="muted" style="margin-left:8px;">(notes + winner fly)</span>
+        </summary>
 
-      <div class="divider"></div>
+        <div class="divider"></div>
 
-      <div class="row gap topGap">
-        <button id="collageBtn" class="btn" type="button">Build Collage</button>
-      </div>
-      <div class="hint">Build a post-trip collage from your catch photos (sorted by length).</div>
+        <section class="tripRecap" id="tripDrawer" aria-hidden="true" style="padding:0;">
+          <div class="row">
+            <div class="grow">
+              <div class="title2">Trip Recap</div>
+              <div class="subtitle2">Lives on the trip. Keep it short on mobile, expand later on desktop.</div>
+            </div>
+            <button id="closeTripDrawer" class="btn ghost" type="button">Close</button>
+          </div>
 
-      <div class="divider"></div>
+          <div class="divider"></div>
 
-      <div class="grid2">
-        <div>
-          <label class="label">Trip Name</label>
-          <input id="tripName" class="input" placeholder="e.g., Upper Delaware – Jan 15" />
-        </div>
-        <div>
-          <label class="label">Trip Date</label>
-          <input id="tripDate" class="input" type="date" />
-        </div>
-        <div>
-          <label class="label">Location (optional)</label>
-          <input id="tripLocation" class="input" placeholder="river / section" />
-        </div>
-        <div>
-          <label class="label">Trip note (optional)</label>
-          <input id="tripDesc" class="input" placeholder="who/what/conditions" />
-        </div>
-        <div>
-          <label class="label">Fly that won the day</label>
-          <input id="tripFlyWin" class="input" placeholder="one fly to rule them all" />
-        </div>
-        <div>
-          <label class="label">Lessons learned</label>
-          <input id="tripLessons" class="input" placeholder="short" />
-        </div>
-      </div>
+          <div class="row gap topGap">
+            <button id="collageBtn" class="btn" type="button">Build Collage</button>
+          </div>
+          <div class="hint">Build a post-trip collage from your catch photos (sorted by length).</div>
 
-      <label class="label topGap">Recap</label>
-      <textarea id="tripRecap" class="input area" placeholder="what happened, what you loved, what you’d do again"></textarea>
+          <div class="divider"></div>
 
-      <div class="row gap topGap">
-        <button id="saveTripBtn" class="btn accent" type="button">Save Recap</button>
-      </div>
+          <div class="grid2">
+            <div>
+              <label class="label">Trip Name</label>
+              <input id="tripName" class="input" placeholder="e.g., Upper Delaware – Jan 15" />
+            </div>
+            <div>
+              <label class="label">Trip Date</label>
+              <input id="tripDate" class="input" type="date" />
+            </div>
+            <div>
+              <label class="label">Location (optional)</label>
+              <input id="tripLocation" class="input" placeholder="river / section" />
+            </div>
+            <div>
+              <label class="label">Trip note (optional)</label>
+              <input id="tripDesc" class="input" placeholder="who/what/conditions" />
+            </div>
+            <div>
+              <label class="label">Fly that won the day</label>
+              <input id="tripFlyWin" class="input" placeholder="one fly to rule them all" />
+            </div>
+            <div>
+              <label class="label">Lessons learned</label>
+              <input id="tripLessons" class="input" placeholder="short" />
+            </div>
+          </div>
+
+          <label class="label topGap">Recap</label>
+          <textarea id="tripRecap" class="input area" placeholder="what happened, what you loved, what you’d do again"></textarea>
+
+          <div class="row gap topGap">
+            <button id="saveTripBtn" class="btn accent" type="button">Save Recap</button>
+          </div>
+        </section>
+      </details>
     </section>
   </main>
 
@@ -316,6 +323,10 @@
   <div id="tripSheetOverlay" class="tripSheetOverlay" hidden aria-hidden="true">
     <div id="newTripForm" class="newTrip" hidden role="dialog" aria-modal="true" aria-label="Create new trip">
       <div class="grid2">
+        <div class="span2">
+          <label class="label">Trip Name</label>
+          <input id="newTripName" class="input" placeholder="e.g., A Lifetime" />
+        </div>
         <div>
           <label class="label">Where</label>
           <input id="newTripLocation" class="input" placeholder="e.g., West Branch Delaware" />
@@ -335,7 +346,7 @@
         <button id="cancelTripBtn" class="btn ghost" type="button">Cancel</button>
       </div>
 
-      <div class="hint">Create it fast now; add recap + lessons later.</div>
+      <div class="hint">Create it fast now; edit anytime later.</div>
     </div>
   </div>
 
@@ -376,6 +387,6 @@
   <canvas id="collageCanvas" width="1400" height="1400" style="display:none;"></canvas>
 
   <script src="vendor/jszip.min.js"></script>
-  <script type="module" src="js/main.js?v=31"></script>
+  <script type="module" src="js/main.js?v=32"></script>
 </body>
 </html>
