@@ -351,23 +351,17 @@ async function handleClearAllBoxes(setStatus){
 function bindTap(el, handler){
   if(!el) return;
 
-  let last = 0;
+  // Always keep normal click
+  el.onclick = handler;
 
-  const wrapped = async (e)=>{
-    const now = Date.now();
-    if(now - last < 450) return; // debounce double events
-    last = now;
-    await handler(e);
-  };
+  // Only add touchstart for actual buttons (not select/inputs/labels)
+  const tag = (el.tagName || "").toLowerCase();
+  if(tag === "select" || tag === "input" || tag === "textarea" || tag === "label") return;
 
-  el.onclick = wrapped;
-
-  // Pointer events (covers iOS 13+ / modern browsers)
-  el.onpointerup = (e)=>{
-    // if pointer events fire, avoid the delayed click doing it again
-    e.preventDefault();
-    wrapped(e);
-  };
+  // iOS: use touchstart but DO NOT preventDefault (that breaks selects)
+  el.addEventListener("touchstart", ()=> {
+    handler();
+  }, { passive: true });
 }
 
 /* ===== Prevent concurrent writes ===== */

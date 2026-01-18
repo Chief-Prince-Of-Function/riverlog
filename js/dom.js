@@ -99,6 +99,9 @@ export const saveTripBtn = $("saveTripBtn");
 
 export const collageBtn = $("collageBtn");
 
+// ✅ NEW: top collage button (some builds have this; safe if null)
+export const collageBtnTop = $("collageBtnTop");
+
 export const tripName = $("tripName");
 export const tripDate = $("tripDate");
 export const tripLocation = $("tripLocation");

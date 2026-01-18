@@ -1,12 +1,12 @@
 import { ensureDefaultTrip } from "../storage.js";
-import { syncStatus, tripDrawer } from "./dom.js";
+import { syncStatus } from "./dom.js";
 import { initPWA } from "./pwa.js";
 import { initTrips } from "./trips.js";
 import { initCatches } from "./catches.js";
 import { initCollage } from "./collage.js";
 import { initIO } from "./io.js";
 import { initBadges } from "./badges.js";
-import { initFlyBox } from "./ui/flybox.js"; // ✅ NEW
+import { initFlyBox } from "./ui/flybox.js";
 
 function setStatus(msg){
   if(syncStatus) syncStatus.textContent = msg;
@@ -15,13 +15,14 @@ function setStatus(msg){
 (async function boot(){
   try{
     initPWA();
+    setStatus("Booting…");
 
     const { evaluateBadges } = initBadges();
 
-    // ✅ FlyBox wiring (init ONCE)
+    // FlyBox wiring (init ONCE)
     initFlyBox({ setStatus });
 
-    // init catches first so trips can call refreshCatches
+    // catches first so trips can call refreshCatches
     const { refreshCatches } = initCatches({ setStatus });
     const { refreshTrips } = initTrips({ refreshCatches, setStatus });
 
@@ -29,19 +30,18 @@ function setStatus(msg){
     const t = await ensureDefaultTrip();
     await refreshTrips(t.id);
 
-    await evaluateBadges();
-
     // collage buttons + modal wiring
     initCollage({ setStatus });
 
     // export/import wiring
     initIO({ refreshTrips, setStatus });
 
-    if(tripDrawer) tripDrawer.style.display = "none";
+    // badges after UI is populated
+    try{ await evaluateBadges(); }catch(_){}
 
     setStatus("Ready (offline-first)." + (navigator.onLine ? " Online." : " Offline."));
   }catch(e){
-    setStatus(`Boot error: ${e.message || e}`);
+    setStatus(`Boot error: ${e?.message || e}`);
     console.error(e);
   }
 })();

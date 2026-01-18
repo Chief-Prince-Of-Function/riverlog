@@ -12,22 +12,15 @@ import {
   newTripDesc,
   createTripBtn,
   cancelTripBtn,
-  tripMeta,
-  tripDrawer,
-  editTripBtn,
-  closeTripDrawer,
-  saveTripBtn,
-  tripName,
-  tripDate,
-  tripLocation,
-  tripDesc,
-  tripFlyWin,
-  tripLessons,
-  tripRecap
+  tripMeta
 } from "./dom.js";
 
 /* =========================
-   Trips module
+   Trips module (Top card only)
+   - Trip select
+   - New Trip modal
+   - Delete Trip
+   - Updates trip meta line + refreshCatches callback
 ========================= */
 
 function openNewTripSheet(){
@@ -42,12 +35,6 @@ function closeNewTripSheet(){
   document.body.classList.remove("tripSheetOpen");
 }
 
-function setTripDrawerOpen(open){
-  if(!tripDrawer) return;
-  tripDrawer.style.display = open ? "block" : "none";
-  tripDrawer.setAttribute("aria-hidden", open ? "false" : "true");
-}
-
 async function refreshTripSelect(selectedId){
   const trips = await listTrips();
   if(!tripSelect) return trips;
@@ -56,12 +43,16 @@ async function refreshTripSelect(selectedId){
   for(const t of trips){
     const opt = document.createElement("option");
     opt.value = t.id;
-    opt.textContent = safeText(t.location) !== "-" ? t.location : (t.name || "Trip");
+
+    // Prefer location; fall back to name; never show empty
+    const loc = String(t.location || "").trim();
+    const name = String(t.name || "").trim();
+    opt.textContent = (loc && safeText(loc) !== "-") ? loc : (name || "Trip");
+
     tripSelect.appendChild(opt);
   }
 
-  // choose selected
-  const target = selectedId || (trips[0] ? trips[0].id : "");
+  const target = selectedId || (trips[0]?.id || "");
   if(target) tripSelect.value = target;
 
   return trips;
@@ -69,6 +60,7 @@ async function refreshTripSelect(selectedId){
 
 async function refreshTripMeta(tripId){
   if(!tripMeta) return;
+
   const t = await getTrip(tripId);
   if(!t){
     tripMeta.textContent = "—";
@@ -77,7 +69,7 @@ async function refreshTripMeta(tripId){
 
   const parts = [];
   const date = String(t.date || "").trim();
-  const loc = String(t.location || "").trim();
+  const loc  = String(t.location || "").trim();
   const desc = String(t.desc || "").trim();
 
   if(loc) parts.push(loc);
@@ -85,43 +77,6 @@ async function refreshTripMeta(tripId){
   if(desc) parts.push(desc);
 
   tripMeta.textContent = parts.length ? parts.join(" • ") : "—";
-}
-
-async function loadTripIntoDrawer(tripId){
-  const t = await getTrip(tripId);
-  if(!t) return;
-
-  if(tripName) tripName.value = t.name || "";
-  if(tripDate) tripDate.value = t.date || "";
-  if(tripLocation) tripLocation.value = t.location || "";
-  if(tripDesc) tripDesc.value = t.desc || "";
-  if(tripFlyWin) tripFlyWin.value = t.flyWin || "";
-  if(tripLessons) tripLessons.value = t.lessons || "";
-  if(tripRecap) tripRecap.value = t.recap || "";
-}
-
-async function saveDrawerTrip(tripId, setStatus){
-  const t = await getTrip(tripId);
-  if(!t){
-    setStatus?.("Trip not found.");
-    return;
-  }
-
-  const now = Date.now();
-  const next = {
-    ...t,
-    updatedAt: now,
-    name: (tripName?.value || "").trim(),
-    date: (tripDate?.value || "").trim(),
-    location: (tripLocation?.value || "").trim(),
-    desc: (tripDesc?.value || "").trim(),
-    flyWin: (tripFlyWin?.value || "").trim(),
-    lessons: (tripLessons?.value || "").trim(),
-    recap: (tripRecap?.value || "").trim()
-  };
-
-  await saveTrip(next);
-  setStatus?.("Trip recap saved.");
 }
 
 async function setActiveTrip(tripId, refreshCatches){
@@ -133,14 +88,19 @@ async function setActiveTrip(tripId, refreshCatches){
 async function maybeDisableDeleteButton(){
   if(!deleteTripBtn) return;
   const trips = await listTrips();
-  deleteTripBtn.disabled = trips.length <= 1;
-  deleteTripBtn.style.opacity = deleteTripBtn.disabled ? ".55" : "1";
-  deleteTripBtn.title = deleteTripBtn.disabled
-    ? "You must have at least 1 trip"
-    : "Delete this trip";
+  const disabled = trips.length <= 1;
+  deleteTripBtn.disabled = disabled;
+  deleteTripBtn.style.opacity = disabled ? ".55" : "1";
+  deleteTripBtn.title = disabled ? "You must have at least 1 trip" : "Delete this trip";
 }
 
 export function initTrips({ refreshCatches, setStatus }){
+  // iOS/Android: make sure selecting doesn’t instantly “cancel” via some outer tap handler
+  // (safe no-op on desktop)
+  tripSelect?.addEventListener("touchstart", (e)=> {
+    e.stopPropagation();
+  }, { passive: true });
+
   // Open “New Trip” modal
   newTripBtn?.addEventListener("click", ()=>{
     if(newTripLocation) newTripLocation.value = "";
@@ -149,7 +109,7 @@ export function initTrips({ refreshCatches, setStatus }){
     openNewTripSheet();
   });
 
-  // Overlay click closes
+  // Overlay click closes (only when tapping the dark backdrop)
   tripSheetOverlay?.addEventListener("click", (e)=>{
     if(e.target === tripSheetOverlay) closeNewTripSheet();
   });
@@ -168,6 +128,8 @@ export function initTrips({ refreshCatches, setStatus }){
       desc: (newTripDesc?.value || "").trim(),
       createdAt: now,
       updatedAt: now,
+
+      // keep fields for later features (harmless if unused)
       flyWin: "",
       lessons: "",
       recap: ""
@@ -188,24 +150,7 @@ export function initTrips({ refreshCatches, setStatus }){
     setStatus?.("Trip loaded.");
   });
 
-  // Drawer open/close
-  editTripBtn?.addEventListener("click", async ()=>{
-    if(!state.tripId) return;
-    await loadTripIntoDrawer(state.tripId);
-    setTripDrawerOpen(true);
-  });
-
-  closeTripDrawer?.addEventListener("click", ()=>{
-    setTripDrawerOpen(false);
-  });
-
-  saveTripBtn?.addEventListener("click", async ()=>{
-    if(!state.tripId) return;
-    await saveDrawerTrip(state.tripId, setStatus);
-    await refreshTrips(state.tripId);
-  });
-
-  // ✅ DELETE TRIP
+  // Delete trip
   deleteTripBtn?.addEventListener("click", async ()=>{
     if(!state.tripId) return;
 
@@ -227,18 +172,12 @@ export function initTrips({ refreshCatches, setStatus }){
 
     try{
       const deletingId = state.tripId;
-
-      // delete from DB
       await deleteTrip(deletingId);
 
-      // pick next trip
-      const remaining = (await listTrips()) || [];
+      const remaining = await listTrips();
       const nextId = remaining[0]?.id || null;
 
-      // refresh UI
       await refreshTrips(nextId);
-      setTripDrawerOpen(false);
-
       setStatus?.("Trip deleted.");
     }catch(e){
       setStatus?.(`Delete failed: ${e?.message || e}`);
@@ -247,10 +186,14 @@ export function initTrips({ refreshCatches, setStatus }){
 
   async function refreshTrips(selectedId){
     const trips = await refreshTripSelect(selectedId);
+    const active = tripSelect?.value || trips[0]?.id || "";
 
-    const active = tripSelect?.value || (trips[0] ? trips[0].id : "");
     if(active){
       await setActiveTrip(active, refreshCatches);
+    }else{
+      state.tripId = null;
+      if(tripMeta) tripMeta.textContent = "—";
+      await refreshCatches?.();
     }
 
     await maybeDisableDeleteButton();

@@ -138,6 +138,18 @@ function setCollageButtonsEnabled(ok, count){
 }
 
 /* =========================
+   Mobile select reliability
+========================= */
+
+// Prevent “open then instantly close” on iOS by stopping touch bubbling.
+// IMPORTANT: do NOT preventDefault here (that can break native select).
+function stabilizeSelect(el){
+  if(!el) return;
+  el.addEventListener("touchstart", (e)=> e.stopPropagation(), { passive: true });
+  el.addEventListener("pointerdown", (e)=> e.stopPropagation(), { passive: true });
+}
+
+/* =========================
    Module
 ========================= */
 
@@ -145,14 +157,38 @@ export function initCatches({ setStatus }){
   // Editing state
   let editingCatchId = null;
 
+  // Photo preview URL (avoid leaks)
+  let _pendingPhotoUrl = "";
+
+  function clearPendingPhotoPreview(){
+    try{
+      if(_pendingPhotoUrl){
+        URL.revokeObjectURL(_pendingPhotoUrl);
+        _pendingPhotoUrl = "";
+      }
+    }catch(_){}
+  }
+
   function resetPendingAddOns(){
     state.pendingGPS = null;
     state.pendingPhotoBlob = null;
     state.pendingPhotoName = "";
+
+    clearPendingPhotoPreview();
+
     if(gpsHint) gpsHint.textContent = "GPS: not added";
-    if(photoHint) photoHint.textContent = "Photo: none";
+
+    if(photoHint){
+      // keep it simple + consistent
+      photoHint.textContent = "Photo: none";
+    }
+
     if(photoInput) photoInput.value = "";
   }
+
+  // Make Trip + Species selects more reliable on mobile
+  stabilizeSelect(tripSelect);
+  stabilizeSelect(species);
 
   function beginEditCatch(c){
     editingCatchId = c.id;
@@ -227,6 +263,7 @@ export function initCatches({ setStatus }){
     if(!file){
       state.pendingPhotoBlob = null;
       state.pendingPhotoName = "";
+      clearPendingPhotoPreview();
       if(photoHint) photoHint.textContent = "Photo: none";
       return;
     }
@@ -235,7 +272,25 @@ export function initCatches({ setStatus }){
     const blob = await compressImageFileToBlob(file, 1600, 0.82);
     state.pendingPhotoBlob = blob;
     state.pendingPhotoName = file.name || "photo.jpg";
-    if(photoHint) photoHint.textContent = `Photo: ready (${Math.round((blob.size||0)/1024)} KB)`;
+
+    // Preview (uses the COMPRESSED blob)
+    clearPendingPhotoPreview();
+    try{
+      _pendingPhotoUrl = URL.createObjectURL(blob);
+      if(photoHint){
+        const kb = Math.round((blob.size || 0) / 1024);
+        photoHint.innerHTML = `
+          <div style="display:flex; gap:10px; align-items:center;">
+            <img src="${_pendingPhotoUrl}" alt="Catch photo preview"
+                 style="width:52px; height:52px; object-fit:cover; border-radius:12px; border:1px solid rgba(255,255,255,.14);" />
+            <div class="muted">Photo: ready (${kb} KB)</div>
+          </div>
+        `;
+      }
+    }catch(_){
+      if(photoHint) photoHint.textContent = `Photo: ready (${Math.round((blob.size||0)/1024)} KB)`;
+    }
+
     setStatus(editingCatchId ? "Photo ready (will replace on update)." : "Photo ready for next catch.");
   });
 
