@@ -10,7 +10,10 @@ import {
   exportTripZip,
   importTripZip,
   exportTripPackage,
-  importTripPackage
+  importTripPackage,
+  exportAllTripsZip,
+  exportSelectedTripZip,
+  getCatchById
 } from "./storage.js";
 
 /* =========================
@@ -92,6 +95,9 @@ let state = {
   pendingGPS: null,
   pendingPhotoBlob: null,
   pendingPhotoName: "",
+
+  // Edit mode
+  editingCatchId: null
 };
 
 function setStatus(msg){
@@ -154,6 +160,10 @@ async function refreshTrips(selectedId=null){
   if(selectedId) tripSelect.value = selectedId;
   if(!tripSelect.value && trips[0]) tripSelect.value = trips[0].id;
   state.tripId = tripSelect.value || null;
+
+  // Exit catch edit mode when switching trips
+  exitCatchEditMode();
+
   await refreshTripMeta();
   await refreshCatches();
 }
@@ -235,6 +245,7 @@ createTripBtn?.addEventListener("click", async ()=>{
 
 tripSelect.addEventListener("change", async ()=>{
   state.tripId = tripSelect.value;
+  exitCatchEditMode();
   await refreshTripMeta();
   await refreshCatches();
 });
@@ -319,6 +330,18 @@ function safeText(v){
   return s ? s : "-";
 }
 
+function enterCatchEditMode(catchId){
+  state.editingCatchId = catchId;
+  saveCatchBtn.textContent = "Update Catch";
+  saveCatchBtn.classList.add("isEditing");
+}
+
+function exitCatchEditMode(){
+  state.editingCatchId = null;
+  saveCatchBtn.textContent = "Save Catch";
+  saveCatchBtn.classList.remove("isEditing");
+}
+
 async function refreshCatches(){
   if(!state.tripId) return;
   const rows = await listCatches(state.tripId);
@@ -371,21 +394,51 @@ async function refreshCatches(){
     const right = document.createElement("div");
     right.className = "right";
 
+    const pill = document.createElement("div");
+    pill.className = "pill";
+    pill.textContent = c.fly ? "Logged" : "Quick log";
+
+    // EDIT button (next to Delete)
+    const edit = document.createElement("button");
+    edit.className = "btn ghost";
+    edit.textContent = "Edit";
+    edit.addEventListener("click", async ()=>{
+      // Load freshest copy (safe)
+      const full = await getCatchById(c.id);
+      if(!full) return;
+
+      // Fill form fields
+      species.value = full.species || "";
+      fly.value = full.fly || "";
+      length.value = full.length || "";
+      notes.value = full.notes || "";
+
+      // NOTE: For MVP we do NOT try to auto-load the old photo/gps into "pending".
+      // If you want, we can add "keep existing photo/gps unless user adds new" (we already do that on update).
+
+      enterCatchEditMode(full.id);
+
+      // Optional: bring user back to the top form
+      window.scrollTo({ top: 0, behavior: "smooth" });
+      setStatus("Editing catch. Update fields, then tap Update Catch.");
+    });
+
     const del = document.createElement("button");
     del.className = "btn ghost";
     del.textContent = "Delete";
     del.addEventListener("click", async ()=>{
       if(!confirm("Delete this catch?")) return;
       await deleteCatch(c.id);
+
+      // If you deleted the one you were editing, exit edit mode
+      if(state.editingCatchId === c.id) exitCatchEditMode();
+
       setStatus("Catch deleted.");
       await refreshCatches();
     });
 
-    const pill = document.createElement("div");
-    pill.className = "pill";
-    pill.textContent = c.fly ? "Logged" : "Quick log";
-
     right.appendChild(pill);
+    right.appendChild(edit);
     right.appendChild(del);
 
     el.appendChild(thumb);
@@ -397,23 +450,65 @@ async function refreshCatches(){
 
 saveCatchBtn.addEventListener("click", async ()=>{
   if(!state.tripId) return;
-  const now = Date.now();
 
-  const row = {
-    id: uid("catch"),
+  // Common fields from form
+  const patch = {
     tripId: state.tripId,
-    createdAt: now,
-    updatedAt: now,
     species: (species.value || "").trim(),
     fly: (fly.value || "").trim(),
     length: (length.value || "").trim(),
     notes: (notes.value || "").trim(),
-    gps: state.pendingGPS,
-    photoBlob: state.pendingPhotoBlob
+    updatedAt: Date.now()
   };
 
-  await saveCatch(row);
+  // If editing: update existing catch
+  if(state.editingCatchId){
+    const existing = await getCatchById(state.editingCatchId);
+    if(!existing){
+      setStatus("Could not find that catch to update.");
+      exitCatchEditMode();
+      return;
+    }
 
+    // Keep existing photo/gps unless user added new pending ones
+    const next = {
+      ...existing,
+      ...patch,
+      gps: state.pendingGPS ? state.pendingGPS : existing.gps,
+      photoBlob: state.pendingPhotoBlob ? state.pendingPhotoBlob : existing.photoBlob,
+      photoName: state.pendingPhotoName ? state.pendingPhotoName : existing.photoName
+    };
+
+    await saveCatch(next);
+
+    // Clear edit mode + pending
+    exitCatchEditMode();
+    state.pendingGPS = null;
+    state.pendingPhotoBlob = null;
+    state.pendingPhotoName = "";
+    gpsHint.textContent = "GPS: not added";
+    photoHint.textContent = "Photo: none";
+    if(photoInput) photoInput.value = "";
+
+    setStatus("Catch updated.");
+    await refreshCatches();
+    return;
+  }
+
+  // Otherwise: create new catch
+  const now = Date.now();
+  const c = {
+    id: uid("catch"),
+    ...patch,
+    createdAt: now,
+    gps: state.pendingGPS || null,
+    photoBlob: state.pendingPhotoBlob || null,
+    photoName: state.pendingPhotoName || ""
+  };
+
+  await saveCatch(c);
+
+  // Clear inputs + pending
   species.value = "";
   fly.value = "";
   length.value = "";
@@ -424,7 +519,7 @@ saveCatchBtn.addEventListener("click", async ()=>{
   state.pendingPhotoName = "";
   gpsHint.textContent = "GPS: not added";
   photoHint.textContent = "Photo: none";
-  photoInput.value = "";
+  if(photoInput) photoInput.value = "";
 
   setStatus("Catch saved.");
   await refreshCatches();
@@ -786,20 +881,34 @@ collageBtnTop?.addEventListener("click", onBuildCollage);
 /* =========================
    Export / Import
 ========================= */
-exportBtn.addEventListener("click", async ()=>{
-  if(!state.tripId) return;
-  setStatus("Exporting…");
-  try{
-    const { blob, filename } = await exportTripZip(state.tripId);
-    const a = document.createElement("a");
-    a.href = URL.createObjectURL(blob);
-    a.download = filename;
-    document.body.appendChild(a);
-    a.click();
-    a.remove();
-    setTimeout(()=> URL.revokeObjectURL(a.href), 1200);
+function downloadBlob(blob, filename){
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = filename || "riverlog.zip";
+  a.click();
+  setTimeout(()=> URL.revokeObjectURL(url), 800);
+}
 
-    setStatus("Export complete. AirDrop the ZIP to your Mac and import.");
+exportBtn?.addEventListener("click", async ()=>{
+  const choice = window.prompt(
+    "Export options:\n1 = Selected trip\n2 = All trips\n\nEnter 1 or 2:"
+  );
+
+  try{
+    if(choice === "2"){
+      const { blob, filename } = await exportAllTripsZip();
+      downloadBlob(blob, filename);
+      setStatus("Exported all trips.");
+    }else if(choice === "1"){
+      if(!state.tripId){
+        setStatus("No trip selected.");
+        return;
+      }
+      const { blob, filename } = await exportSelectedTripZip(state.tripId);
+      downloadBlob(blob, filename);
+      setStatus("Exported selected trip.");
+    }
   }catch(e){
     setStatus(`Export failed: ${e.message || e}`);
   }
@@ -836,6 +945,17 @@ importInput.addEventListener("change", async (e)=>{
     const t = await ensureDefaultTrip();
     await refreshTrips(t.id);
     tripDrawer.style.display = "none";
+
+    // 5C: Remember badges collapse state
+    const d = document.getElementById("badgesCollapse");
+    if(d){
+      const saved = localStorage.getItem("riverlog_badges_open");
+      if(saved !== null) d.open = saved === "1";
+      d.addEventListener("toggle", ()=>{
+        localStorage.setItem("riverlog_badges_open", d.open ? "1" : "0");
+      });
+    }
+
     setStatus("Ready (offline-first)." + (navigator.onLine ? " Online." : " Offline."));
   }catch(e){
     setStatus(`Boot error: ${e.message || e}`);

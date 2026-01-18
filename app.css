@@ -667,3 +667,118 @@ select.input option:checked{
 #newTripForm textarea::placeholder{
   color: rgba(238,244,255,.55);
 }
+
+/* ===== Trip Recap: prevent date overflow on iOS ===== */
+.tripRecap,
+.tripRecap *{
+  box-sizing: border-box;
+}
+
+.tripRecap .field,
+.tripRecap .row{
+  min-width: 0;               /* critical in flex layouts */
+}
+
+.tripRecap input,
+.tripRecap textarea,
+.tripRecap select{
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+}
+
+/* If Trip Recap uses a date input specifically */
+.tripRecap input[type="date"]{
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  display: block;
+}
+
+/* If Trip Recap uses a flex row wrapper */
+.tripRecap .row > *{
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.collapse{
+  border: 1px solid rgba(255,255,255,.12);
+  background: rgba(0,0,0,.18);
+  border-radius: 18px;
+  padding: 10px 12px;
+}
+
+.collapseSummary{
+  list-style: none;
+  cursor: pointer;
+  font-weight: 700;
+  color: rgba(238,244,255,.92);
+  outline: none;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.collapseSummary::-webkit-details-marker{ display:none; }
+
+/* =========================
+   Collapsible badges polish
+========================= */
+.collapse{
+  margin-top: 10px; /* gives breathing room after divider */
+}
+
+.collapseSummary{
+  user-select: none;
+}
+
+.collapseSummary::after{
+  content: "▾";
+  margin-left: auto;
+  opacity: .75;
+  transform: rotate(0deg);
+  transition: transform .15s ease;
+}
+
+.collapse[open] .collapseSummary::after{
+  transform: rotate(180deg);
+}
+
+/* add a little spacing only when open */
+.collapse[open] #badgeGrid{
+  margin-top: 10px;
+}
+
+/* =========================
+   Catch list right-side actions (pill + Edit + Delete)
+========================= */
+.item .right{
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+
+/* Keep buttons from looking tiny next to pill */
+.item .right .btn{
+  padding: 8px 10px;
+  border-radius: 12px;
+  font-weight: 650;
+}
+
+/* Optional: make Update state slightly clearer */
+.btn.isEditing{
+  border-color: rgba(19,163,139,.65) !important;
+  background: rgba(19,163,139,.22) !important;
+}
+
+/* Mobile: right area already spans full width, ensure nice wrap */
+@media (max-width:720px){
+  .item .right{
+    width: 100%;
+    justify-content: flex-end;
+  }
+}
+
+.muted{ color: var(--muted); }

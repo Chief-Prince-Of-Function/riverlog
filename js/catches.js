@@ -1,5 +1,4 @@
-import { listCatches, saveCatch, deleteCatch } from "../storage.js";
-import { uid } from "../storage.js";
+import { listCatches, saveCatch, deleteCatch, getCatchById, uid } from "../storage.js";
 import { fmtTime, safeText } from "./utils.js";
 import { state } from "./state.js";
 import {
@@ -16,8 +15,6 @@ import { canBuildCollage, buildTripCollage } from "./collage.js";
 
 /* =========================
    Badge engine (local, device-based)
-   - stores earned badges in localStorage
-   - emits `riverlog:badge_unlock` events for UI to react
 ========================= */
 
 const BADGE_KEY = "riverlog_badges_v1";
@@ -33,18 +30,15 @@ function getEarnedSet(){
 }
 
 function saveEarnedSet(set){
-  try{
-    localStorage.setItem(BADGE_KEY, JSON.stringify(Array.from(set)));
-  }catch(_){}
+  try{ localStorage.setItem(BADGE_KEY, JSON.stringify(Array.from(set))); }catch(_){}
 }
 
-function unlockBadge(id, payload={}){
+function unlockBadge(id, payload = {}){
   const earned = getEarnedSet();
   if(earned.has(id)) return false;
   earned.add(id);
   saveEarnedSet(earned);
 
-  // notify UI layer (badges grid + toast)
   try{
     window.dispatchEvent(new CustomEvent("riverlog:badge_unlock", {
       detail: { id, ...payload }
@@ -54,19 +48,16 @@ function unlockBadge(id, payload={}){
   return true;
 }
 
-/* Optional helpers */
 function parseLenNumber(val){
   const n = parseFloat(String(val || "").replace(/[^\d.]+/g, ""));
   return Number.isFinite(n) ? n : 0;
 }
 
-/** Checks milestone badges based on current trip catches */
 function evalBadgesFromRows(rows){
   const total = rows.length;
   const photoCount = rows.filter(r => r.photoBlob instanceof Blob).length;
   const gpsCount = rows.filter(r => r.gps && typeof r.gps.lat === "number").length;
 
-  // First catch (device-wide-ish; based on "ever earned" not per-trip)
   if(total >= 1) unlockBadge("first_catch", { title: "First Catch", sub: "Log started." });
 
   if(photoCount >= 1) unlockBadge("first_photo", { title: "First Photo", sub: "A memory worth keeping." });
@@ -78,11 +69,9 @@ function evalBadgesFromRows(rows){
 
   if(photoCount >= 10) unlockBadge("collage_unlocked", { title: "Collage Unlocked", sub: "10 photo catches." });
 
-  // Personal best (by length) — looks at numeric inches if provided
   const lengths = rows.map(r => parseLenNumber(r.length)).filter(n => n > 0);
   if(lengths.length){
     const best = Math.max(...lengths);
-    // store best in localStorage so it persists
     const PB_KEY = "riverlog_pb_in";
     const prev = parseFloat(localStorage.getItem(PB_KEY) || "0") || 0;
     if(best > prev){
@@ -153,6 +142,62 @@ function setCollageButtonsEnabled(ok, count){
 ========================= */
 
 export function initCatches({ setStatus }){
+  // Editing state
+  let editingCatchId = null;
+
+  function resetPendingAddOns(){
+    state.pendingGPS = null;
+    state.pendingPhotoBlob = null;
+    state.pendingPhotoName = "";
+    if(gpsHint) gpsHint.textContent = "GPS: not added";
+    if(photoHint) photoHint.textContent = "Photo: none";
+    if(photoInput) photoInput.value = "";
+  }
+
+  function beginEditCatch(c){
+    editingCatchId = c.id;
+
+    // clear pending so we don’t accidentally apply old add-ons
+    resetPendingAddOns();
+
+    if(species) species.value = c.species || "";
+    if(fly) fly.value = c.fly || "";
+    if(length) length.value = c.length || "";
+    if(notes) notes.value = c.notes || "";
+
+    if(saveCatchBtn){
+      saveCatchBtn.textContent = "Update Catch";
+      saveCatchBtn.classList.add("isEditing");
+    }
+
+    setStatus("Editing catch. Update fields, then tap “Update Catch”.");
+  }
+
+  function endEditMode(){
+    editingCatchId = null;
+
+    if(saveCatchBtn){
+      saveCatchBtn.textContent = "Save Catch";
+      saveCatchBtn.classList.remove("isEditing");
+    }
+
+    resetPendingAddOns();
+  }
+
+  // If user switches trips while editing, bail out of edit mode
+  const originalTripSelectHandler = tripSelect?.onchange;
+  if(tripSelect){
+    tripSelect.addEventListener("change", ()=>{
+      if(editingCatchId){
+        endEditMode();
+        setStatus("Edit canceled (switched trips).");
+      }
+      if(typeof originalTripSelectHandler === "function"){
+        originalTripSelectHandler();
+      }
+    });
+  }
+
   gpsBtn?.addEventListener("click", ()=>{
     if(!navigator.geolocation){
       setStatus("GPS not supported on this device.");
@@ -168,7 +213,7 @@ export function initCatches({ setStatus }){
           ts: Date.now()
         };
         if(gpsHint) gpsHint.textContent = `GPS: ${state.pendingGPS.lat}, ${state.pendingGPS.lon} (±${state.pendingGPS.acc}m)`;
-        setStatus("GPS added to next catch.");
+        setStatus(editingCatchId ? "GPS ready (will replace on update)." : "GPS added to next catch.");
       },
       (err)=>{
         setStatus(`GPS failed: ${err.message || "permission denied"}`);
@@ -191,7 +236,7 @@ export function initCatches({ setStatus }){
     state.pendingPhotoBlob = blob;
     state.pendingPhotoName = file.name || "photo.jpg";
     if(photoHint) photoHint.textContent = `Photo: ready (${Math.round((blob.size||0)/1024)} KB)`;
-    setStatus("Photo ready for next catch.");
+    setStatus(editingCatchId ? "Photo ready (will replace on update)." : "Photo ready for next catch.");
   });
 
   async function refreshCatches(){
@@ -246,21 +291,37 @@ export function initCatches({ setStatus }){
       const right = document.createElement("div");
       right.className = "right";
 
+      const pill = document.createElement("div");
+      pill.className = "pill";
+      pill.textContent = c.fly ? "Logged" : "Quick log";
+
+      const edit = document.createElement("button");
+      edit.className = "btn ghost";
+      edit.textContent = (editingCatchId === c.id) ? "Editing…" : "Edit";
+      edit.disabled = (editingCatchId === c.id);
+      edit.addEventListener("click", async ()=>{
+        const fresh = await getCatchById(c.id);
+        if(!fresh) return;
+        beginEditCatch(fresh);
+      });
+
       const del = document.createElement("button");
       del.className = "btn ghost";
       del.textContent = "Delete";
       del.addEventListener("click", async ()=>{
         if(!confirm("Delete this catch?")) return;
+
+        if(editingCatchId === c.id){
+          endEditMode();
+        }
+
         await deleteCatch(c.id);
         setStatus("Catch deleted.");
         await refreshCatches();
       });
 
-      const pill = document.createElement("div");
-      pill.className = "pill";
-      pill.textContent = c.fly ? "Logged" : "Quick log";
-
       right.appendChild(pill);
+      right.appendChild(edit);
       right.appendChild(del);
 
       el.appendChild(thumb);
@@ -269,24 +330,52 @@ export function initCatches({ setStatus }){
       catchList?.appendChild(el);
     }
 
-    // badges (based on current trip)
-    try{
-      evalBadgesFromRows(rows);
-    }catch(_){}
+    try{ evalBadgesFromRows(rows); }catch(_){}
 
-    // Update collage button enable/disable state based on photo count
     try{
       const { ok, count } = await canBuildCollage(state.tripId);
       setCollageButtonsEnabled(ok, count);
-    }catch(_){
-      // ignore
-    }
+    }catch(_){}
   }
 
   saveCatchBtn?.addEventListener("click", async ()=>{
     if(!state.tripId) return;
     const now = Date.now();
 
+    // === UPDATE EXISTING ===
+    if(editingCatchId){
+      const existing = await getCatchById(editingCatchId);
+      if(!existing){
+        setStatus("Could not load catch to edit.");
+        endEditMode();
+        return;
+      }
+
+      const next = {
+        ...existing,
+        updatedAt: now,
+        species: (species?.value || "").trim(),
+        fly: (fly?.value || "").trim(),
+        length: (length?.value || "").trim(),
+        notes: (notes?.value || "").trim(),
+        gps: (state.pendingGPS != null) ? state.pendingGPS : existing.gps,
+        photoBlob: (state.pendingPhotoBlob instanceof Blob) ? state.pendingPhotoBlob : existing.photoBlob
+      };
+
+      await saveCatch(next);
+
+      if(species) species.value = "";
+      if(fly) fly.value = "";
+      if(length) length.value = "";
+      if(notes) notes.value = "";
+
+      endEditMode();
+      setStatus("Catch updated.");
+      await refreshCatches();
+      return;
+    }
+
+    // === CREATE NEW ===
     const row = {
       id: uid("catch"),
       tripId: state.tripId,
@@ -307,13 +396,7 @@ export function initCatches({ setStatus }){
     if(length) length.value = "";
     if(notes) notes.value = "";
 
-    state.pendingGPS = null;
-    state.pendingPhotoBlob = null;
-    state.pendingPhotoName = "";
-
-    if(gpsHint) gpsHint.textContent = "GPS: not added";
-    if(photoHint) photoHint.textContent = "Photo: none";
-    if(photoInput) photoInput.value = "";
+    resetPendingAddOns();
 
     setStatus("Catch saved.");
     await refreshCatches();
@@ -327,9 +410,7 @@ export function initCatches({ setStatus }){
         await buildTripCollage(state.tripId, label);
         setStatus("Collage ready.");
       }
-    }catch(_){
-      // ignore
-    }
+    }catch(_){}
   });
 
   return { refreshCatches };

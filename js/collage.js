@@ -17,8 +17,8 @@ import {
 /* =========================
    Trip Collage Builder (ALWAYS PNG)
    1–9: hero grid (rows of 3, centered)
-   10–19: overlapping “polaroid” collage (all photos)
-   20+: top 20 largest by length (overlapping)
+   10–19: pane “scatter” collage (less patterned, more viewable)
+   20+: top 20 largest by length (scatter)
 ========================= */
 
 function openCollageModal(){
@@ -54,7 +54,6 @@ let _brandImgPromise = null;
 function loadImgFromUrl(url){
   return new Promise((resolve, reject)=>{
     const img = new Image();
-    // same-origin on GitHub Pages; this is safe
     img.onload = ()=> resolve(img);
     img.onerror = (e)=> reject(e);
     img.src = url;
@@ -218,7 +217,6 @@ function drawTile(ctx, img, x, y, w, h, caption){
 }
 
 function layoutHeroRows(n){
-  // bottom-up rows of 3; partial rows centered
   const rows = [];
   let remaining = n;
   while(remaining > 0){
@@ -229,8 +227,7 @@ function layoutHeroRows(n){
   return rows;
 }
 
-/* ---------- Overlapping polaroid collage helpers ---------- */
-
+/* ---------- Deterministic random ---------- */
 function mulberry32(seed){
   return function(){
     let t = seed += 0x6D2B79F5;
@@ -240,89 +237,62 @@ function mulberry32(seed){
   };
 }
 
-function drawPolaroid(ctx, img, cx, cy, w, h, rotRad, caption=""){
-  ctx.save();
-  ctx.translate(cx, cy);
-  ctx.rotate(rotRad);
+/* ---------- Pane scatter layout (less overlap, no ring) ---------- */
+function clamp(n, a, b){ return Math.max(a, Math.min(b, n)); }
 
-  const pad = Math.max(18, Math.round(w * 0.07));
-  const bottomPad = Math.round(pad * 1.8);
-  const cardW = w + pad*2;
-  const cardH = h + pad + bottomPad;
+function rectsOverlap(a, b){
+  return !(a.x + a.w <= b.x || b.x + b.w <= a.x || a.y + a.h <= b.y || b.y + b.h <= a.y);
+}
 
-  // shadow
-  ctx.save();
-  ctx.globalAlpha = 0.32;
-  ctx.fillStyle = "black";
-  ctx.filter = "blur(10px)";
-  ctx.fillRect(-cardW/2 + 10, -cardH/2 + 12, cardW, cardH);
-  ctx.filter = "none";
-  ctx.restore();
+function tryPlaceRect(rnd, area, w, h, placed, tries=180){
+  // we’ll allow a little overlap (soft), but try to avoid heavy overlap
+  for(let i=0;i<tries;i++){
+    const x = area.x + rnd() * (area.w - w);
+    const y = area.y + rnd() * (area.h - h);
+    const rect = { x, y, w, h };
 
-  // card
-  ctx.fillStyle = "rgba(255,255,255,.92)";
-  ctx.fillRect(-cardW/2, -cardH/2, cardW, cardH);
+    let overlaps = 0;
+    for(const p of placed){
+      if(rectsOverlap(rect, p)) overlaps++;
+      if(overlaps >= 2) break; // allow at most 1 overlap
+    }
 
-  // photo clip
-  const px = -w/2;
-  const py = -cardH/2 + pad;
-
-  ctx.save();
-  roundRectPath(ctx, px, py, w, h, 14);
-  ctx.clip();
-  drawImageCover(ctx, img, px, py, w, h);
-  ctx.restore();
-
-  // caption
-  const cap = String(caption || "").trim();
-  if(cap){
-    const bandTop = py + h;
-    const bandH = cardH - (pad + h);
-
-    ctx.save();
-    ctx.fillStyle = "rgba(20,24,32,.95)";
-    ctx.font = "600 14px system-ui, -apple-system, Segoe UI, Roboto, Arial";
-    ctx.textAlign = "center";
-    ctx.textBaseline = "middle";
-
-    const maxW = cardW - 20;
-    const t = fitText(ctx, cap, maxW);
-    ctx.fillText(t, 0, bandTop + (bandH * 0.62));
-    ctx.restore();
+    if(overlaps < 2){
+      placed.push(rect);
+      return rect;
+    }
   }
 
-  ctx.restore();
+  // fallback: just place it somewhere valid
+  const x = area.x + rnd() * (area.w - w);
+  const y = area.y + rnd() * (area.h - h);
+  const rect = { x, y, w, h };
+  placed.push(rect);
+  return rect;
 }
 
 /* --- watermark / brand mark (bottom-right) --- */
 async function drawBrandMark(ctx, W, H){
-  const pad = 44;                 // keep it off the corner
+  const pad = 44;
   const boxW = 130;
   const boxH = 150;
   const x = W - pad - boxW;
   const y = H - pad - boxH;
 
-  // subtle backing plate so it reads on dark backgrounds
   ctx.save();
   ctx.globalAlpha = 0.92;
   ctx.fillStyle = "rgba(10,14,24,.55)";
   roundRectPath(ctx, x, y, boxW, boxH, 18);
   ctx.fill();
 
-  // border
   ctx.strokeStyle = "rgba(255,255,255,.14)";
   ctx.lineWidth = 1;
   roundRectPath(ctx, x, y, boxW, boxH, 18);
   ctx.stroke();
   ctx.restore();
 
-  // icon
   let icon = null;
-  try{
-    icon = await getBrandImg();
-  }catch(_){
-    icon = null;
-  }
+  try{ icon = await getBrandImg(); }catch(_){ icon = null; }
 
   const iconSize = 56;
   const iconX = x + Math.round((boxW - iconSize)/2);
@@ -330,25 +300,21 @@ async function drawBrandMark(ctx, W, H){
 
   if(icon){
     ctx.save();
-    // soft shadow
     ctx.globalAlpha = 0.9;
     ctx.fillStyle = "rgba(0,0,0,.35)";
     ctx.filter = "blur(10px)";
     ctx.fillRect(iconX + 4, iconY + 6, iconSize, iconSize);
     ctx.filter = "none";
 
-    // icon plate (slight glass)
     ctx.fillStyle = "rgba(255,255,255,.08)";
     roundRectPath(ctx, iconX-8, iconY-8, iconSize+16, iconSize+16, 18);
     ctx.fill();
 
-    // draw icon
     ctx.globalAlpha = 0.95;
     ctx.drawImage(icon, iconX, iconY, iconSize, iconSize);
     ctx.restore();
   }
 
-  // text
   ctx.save();
   ctx.fillStyle = "rgba(238,244,255,.92)";
   ctx.textAlign = "center";
@@ -448,52 +414,76 @@ async function buildTripCollage(tripId, tripLabel){
       }
     }
   }else{
-    // OVERLAPPING “POLAROID” COLLAGE (10–20)
-    const centerX = area.x + area.w/2;
-    const centerY = area.y + area.h/2;
-
-    const baseW = Math.round(area.w * 0.30);
-    const baseH = Math.round(area.h * 0.30);
-
+    // PANE SCATTER COLLAGE (10–20): less pattern, more viewable
+    // Deterministic seed per trip + count
     const seed = (String(tripId || "trip").split("").reduce((a,c)=>a + c.charCodeAt(0), 0) + n*97) >>> 0;
     const rnd = mulberry32(seed);
 
-    // hero in the middle (biggest fish)
-    drawPolaroid(
-      ctx,
-      imgs[0],
-      centerX,
-      centerY,
-      baseW,
-      baseH,
-      ((rnd()*18) - 9) * Math.PI/180,
-      makeCaption(use[0])
-    );
+    // Keep a safe zone for brand mark (bottom-right)
+    const brandSafe = { x: area.x + area.w - 220, y: area.y + area.h - 240, w: 220, h: 240 };
 
-    // tighter ring => more overlap / stacked look
-    const ring = Math.min(area.w, area.h) * 0.24;
-    const step = (Math.PI * 2) / Math.max(8, n-1);
+    // base tile sizes (bigger than before, less overlap)
+    const baseW = Math.round(area.w * 0.34);
+    const baseH = Math.round(area.h * 0.30);
 
+    const placed = [];
+
+    // Place the hero (largest fish) near center
+    {
+      const heroW = Math.round(baseW * 1.08);
+      const heroH = Math.round(baseH * 1.08);
+      const heroX = area.x + Math.round((area.w - heroW)/2);
+      const heroY = area.y + Math.round((area.h - heroH)/2);
+
+      placed.push({ x: heroX, y: heroY, w: heroW, h: heroH });
+      const rot = ((rnd()*14) - 7) * Math.PI/180;
+      // draw hero last for prominence? we’ll draw in z-order later.
+      // For simplicity, draw hero first but it’s large anyway.
+      drawTile(ctx, imgs[0], heroX, heroY, heroW, heroH, makeCaption(use[0]));
+    }
+
+    // Scatter the rest, trying to avoid heavy overlap
     for(let i=1;i<n;i++){
-      const ang = (i-1) * step - Math.PI/2;
-
-      const jx = (rnd() - 0.5) * 85;
-      const jy = (rnd() - 0.5) * 85;
-
-      const cx = centerX + Math.cos(ang) * ring + jx;
-      const cy = centerY + Math.sin(ang) * ring + jy;
-
-      const scale = Math.max(0.72, 1 - (i * 0.02));
+      const depth = i / (n-1);
+      const scale = clamp(1.0 - depth*0.18, 0.80, 1.0);
       const w = Math.round(baseW * scale);
       const h = Math.round(baseH * scale);
 
-      const rot = ((rnd()*60) - 30) * Math.PI/180;
+      // shrink area slightly so tiles don't touch edges
+      const inset = 8;
+      const usable = {
+        x: area.x + inset,
+        y: area.y + inset,
+        w: area.w - inset*2,
+        h: area.h - inset*2
+      };
 
-      drawPolaroid(ctx, imgs[i], cx, cy, w, h, rot, makeCaption(use[i]));
+      const rect = tryPlaceRect(rnd, usable, w, h, placed, 220);
+
+      // avoid brand safe zone (simple push away)
+      if(rectsOverlap(rect, brandSafe)){
+        rect.x = clamp(rect.x - 120, usable.x, usable.x + usable.w - rect.w);
+        rect.y = clamp(rect.y - 120, usable.y, usable.y + usable.h - rect.h);
+      }
+
+      // tiny rotation for “collage” feel, but not crazy
+      const rot = ((rnd()*10) - 5) * Math.PI/180;
+
+      // We’re drawing as panes (no polaroid frame). This makes it feel “pane collage”
+      // If you want polaroid frames back, tell me and we’ll wrap it.
+      ctx.save();
+      // rotation about center
+      const cx = rect.x + rect.w/2;
+      const cy = rect.y + rect.h/2;
+      ctx.translate(cx, cy);
+      ctx.rotate(rot);
+      ctx.translate(-cx, -cy);
+      drawTile(ctx, imgs[i], rect.x, rect.y, rect.w, rect.h, makeCaption(use[i]));
+      ctx.restore();
     }
   }
 
-  // --- add brand mark AFTER collage draw so it stays on top ---
+  // add brand mark on top
   try{ await drawBrandMark(ctx, W, H); }catch(_){}
 
   const dataUrl = canvas.toDataURL("image/png");
