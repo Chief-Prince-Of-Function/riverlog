@@ -920,15 +920,34 @@ importInput.addEventListener("change", async (e)=>{
   setStatus("Importing…");
   try{
     const name = (file.name || "").toLowerCase();
+
     if(name.endsWith(".zip")){
-      const res = await importTripZip(file);
-      await refreshTrips(res.tripId || null);
+      // ✅ try trip zip first, then fall back to all-zip
+      let res = null;
+      try{
+        res = await importTripZip(file);
+        await refreshTrips(res.tripId || null);
+      }catch(err){
+        const msg = String(err?.message || err || "");
+        // If it failed because it's not a trip zip (or missing riverlog.json), try all-zip
+        if(
+          msg.includes("Zip missing riverlog.json") ||
+          msg.includes("Not a RiverLog trip zip export")
+        ){
+          await importAllTripsZip(file);
+          await refreshTrips(null);
+        }else{
+          throw err; // real error, bubble up
+        }
+      }
+
     }else{
       const text = await file.text();
       const pkg = JSON.parse(text);
       await importTripPackage(pkg);
       await refreshTrips(pkg.trip?.id || null);
     }
+
     setStatus("Import complete.");
   }catch(err){
     setStatus(`Import failed: ${err.message || err}`);
@@ -936,6 +955,7 @@ importInput.addEventListener("change", async (e)=>{
     importInput.value = "";
   }
 });
+
 
 /* =========================
    Boot
