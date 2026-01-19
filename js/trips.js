@@ -15,8 +15,6 @@ import {
   createTripBtn,
   cancelTripBtn,
 
-  tripMeta,
-
   // Trip Recap (collapsible <details>)
   tripRecapCollapse,
 
@@ -104,34 +102,8 @@ async function refreshTripSelect(selectedId){
   return trips;
 }
 
-async function refreshTripMeta(tripId){
-  if(!tripMeta) return;
-
-  const t = await getTrip(tripId);
-  if(!t){
-    tripMeta.textContent = "—";
-    return;
-  }
-
-  const name = safeText(String(t.name || "").trim() || "Trip");
-  const where = safeText(String(t.location || "").trim() || "—");
-  const date = safeText(fmtTripDate(t.date) || "—");
-
-  // Two-line layout in the “Trip” section under Catches:
-  // Trip name (top), Where • Date (sub)
-  tripMeta.innerHTML = `
-    <div class="tripMetaTop">${name}</div>
-    <div class="tripMetaSub">
-      <span class="tripWhere">${where}</span>
-      <span class="tripDot">•</span>
-      <span class="tripDate">${date}</span>
-    </div>
-  `;
-}
-
 async function setActiveTrip(tripId, refreshCatches){
   state.tripId = tripId;
-  await refreshTripMeta(tripId);
   await refreshCatches?.();
 
   // close recap collapse when switching trips (optional UX)
@@ -185,8 +157,6 @@ async function saveRecap(tripId, setStatus){
 
   await saveTrip(next);
   setStatus?.("Trip recap saved.");
-
-  await refreshTripMeta(tripId);
 }
 
 /* ===== Edit Trip (reuse New Trip modal) ===== */

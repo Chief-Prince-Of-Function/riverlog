@@ -8,7 +8,7 @@ import {
   gpsHint, photoHint,
   tripSelect,
   collageBtn,
-  catchesCollapse, catchesSummaryMeta, tripMeta
+  catchesCollapse, catchesSummaryMeta
 } from "./dom.js";
 
 import { canBuildCollage, buildTripCollage } from "./collage.js";

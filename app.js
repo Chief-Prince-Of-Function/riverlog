@@ -62,7 +62,6 @@ const importInput = $("importInput");
 const catchList = $("catchList");
 const emptyState = $("emptyState");
 const catchCount = $("catchCount");
-const tripMeta = $("tripMeta");
 const syncStatus = $("syncStatus");
 
 // Trip recap drawer
@@ -189,34 +188,7 @@ async function refreshTrips(selectedId=null){
   // Exit catch edit mode when switching trips
   exitCatchEditMode();
 
-  await refreshTripMeta();
   await refreshCatches();
-}
-
-async function refreshTripMeta(){
-  const t = state.tripId ? await getTrip(state.tripId) : null;
-  if(!t){
-    tripMeta.textContent = "—";
-    return;
-  }
-
-  const where = String(t.location || "").trim();
-  const date = fmtTripDate(t.date);
-
-  const bits = [];
-  if(where) bits.push(where);
-  if(date) bits.push(date);
-
-  tripMeta.textContent = bits.length ? bits.join(" • ") : "—";
-
-  // Fill recap drawer fields (keep this behavior)
-  tripName.value = t.name || "";
-  tripDate.value = t.date || "";
-  tripLocation.value = t.location || "";
-  tripDesc.value = t.desc || "";
-  tripFlyWin.value = t.flyWin || "";
-  tripLessons.value = t.lessons || "";
-  tripRecap.value = t.recap || "";
 }
 
 function toggleNewTrip(show){
@@ -270,7 +242,6 @@ createTripBtn?.addEventListener("click", async ()=>{
 tripSelect.addEventListener("change", async ()=>{
   state.tripId = tripSelect.value;
   exitCatchEditMode();
-  await refreshTripMeta();
   await refreshCatches();
 });
 
