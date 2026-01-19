@@ -291,19 +291,15 @@ export function initCatches({ setStatus }){
 
   async function refreshCatches(){
     if(!state.tripId) return;
-        // === Catches header context (Trip date + name/location) ===
+      // === Catches header context (Trip date + name/location) ===
     try{
       const trip = await getTrip(state.tripId);
       const label = (trip?.name || trip?.location || "").trim();
 
-      const dateStr = (trip?.date || "").trim()
-        ? new Date(trip.date).toLocaleDateString(undefined, { month:"short", day:"numeric", year:"numeric" })
-        : "";
-
       // Update the <summary> text inside the catches <details>
       const summaryEl = catchesCollapse?.querySelector("summary");
       if(summaryEl){
-        summaryEl.innerHTML = `Catches <span class="muted">· ${dateStr}${label ? ` — ${safeText(label)}` : ""}</span>`;
+        summaryEl.innerHTML = `Catches <span class="muted">${label ? `· ${safeText(label)}` : ""}</span>`;
       }
     }catch(_){}
     const rows = await listCatches(state.tripId);
