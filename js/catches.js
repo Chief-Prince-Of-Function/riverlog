@@ -294,7 +294,13 @@ export function initCatches({ setStatus }){
       // === Catches header context (Trip date + name/location) ===
     try{
       const trip = await getTrip(state.tripId);
-      const label = (trip?.name || trip?.location || "").trim();
+      const labelRaw = (trip?.location || trip?.name || "").trim();
+
+      // If older data has dates baked into name/location, strip trailing date-ish chunks
+      const label = labelRaw
+        .replace(/\s*[•·\-—]\s*\d{1,2}\/\d{1,2}\/\d{2,4}\s*$/g, "")     // "· 1/17/2026"
+        .replace(/\s*[•·\-—]\s*\d{4}-\d{2}-\d{2}\s*$/g, "")           // "· 2026-01-17"
+        .trim();
 
       // Update the <summary> text inside the catches <details>
       const summaryEl = catchesCollapse?.querySelector("summary");
