@@ -74,6 +74,14 @@ export const flyEmpty = $("flyEmpty");
 export const flyPhoto = $("flyPhoto");
 export const flyPhotoPreview = $("flyPhotoPreview");
 
+export const openFlyModalBtn = $("openFlyModalBtn");
+export const flyModalOverlay = $("flyModalOverlay");
+export const flyModal = $("flyModal");
+export const flyModalClose = $("flyModalClose");
+export const flyModalCancel = $("flyModalCancel");
+export const flyModalTitle = $("flyModalTitle");
+export const flyModalSub = $("flyModalSub");
+
 /* ===== Badges + Insights ===== */
 export const badgeGrid = $("badgeGrid");
 

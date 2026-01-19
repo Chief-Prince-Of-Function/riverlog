@@ -932,3 +932,49 @@ section.card > details.collapse{
   margin: 0;
   line-height: 1.2;
 }
+
+.overlay{
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,.55);
+  z-index: 80;
+}
+
+.sheet{
+  position: fixed;
+  left: 50%;
+  bottom: 0;
+  transform: translateX(-50%);
+  width: min(720px, 100%);
+  max-height: 88vh;
+  overflow: hidden;
+  z-index: 90;
+  border-radius: 18px 18px 0 0;
+  background: rgba(15,20,30,.98);
+  border: 1px solid rgba(255,255,255,.12);
+}
+
+.sheetHeader{
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 14px;
+  border-bottom: 1px solid rgba(255,255,255,.08);
+}
+
+.sheetBody{
+  padding: 12px 14px;
+  overflow: auto;
+  max-height: calc(88vh - 120px);
+}
+
+.sheetFooter{
+  padding: 12px 14px;
+  border-top: 1px solid rgba(255,255,255,.08);
+  justify-content: flex-end;
+}
+
+.sheetTitle{ font-weight: 700; }
+.sheetSub{ opacity: .75; font-size: 12px; }
+
+body.modalOpen{ overflow: hidden; }

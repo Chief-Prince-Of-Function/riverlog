@@ -156,6 +156,8 @@ export async function listAllCatches(){
   const db = await openDB();
   const store = tx(db, "catches");
   const rows = (await reqToPromise(store.getAll())) || [];
+  rows.sort((a,b)=> (b.createdAt||0) - (a.updatedAt||0));
+  // ^ minor: catches don't always have updatedAt; keep stable sort
   rows.sort((a,b)=> (b.createdAt||0) - (a.createdAt||0));
   return rows;
 }
@@ -618,18 +620,77 @@ export async function exportAllTripsZip(){
   return { blob, filename: safeAllFilename() };
 }
 
-/* ---------- Importers (FIX) ---------- */
+/* ---------- Importers (AUTO-DETECT) ---------- */
 
+/**
+ * ✅ import zip (auto-detect)
+ * - Trip zip: riverlog.json
+ * - All zip : riverlog_all.json
+ *
+ * This lets the UI keep a single "Import" path.
+ */
 export async function importTripZip(file){
   const JSZip = await loadJSZip();
   const ab = await file.arrayBuffer();
   const zip = await JSZip.loadAsync(ab);
 
-  // ✅ tolerate nested / renamed folder zips
+  // 1) try ALL first
+  const allEntry = findZipEntry(zip, "riverlog_all.json");
+  if(allEntry){
+    const text = await zip.file(allEntry).async("string");
+    const manifest = JSON.parse(text);
+
+    if(manifest._schema !== "riverlog_all_zip"){
+      throw new Error("Not a RiverLog all-zip export");
+    }
+
+    const trips = manifest.trips || [];
+    const catches = manifest.catches || [];
+    const flyboxes = manifest.flyboxes || [];
+    const flies = manifest.flies || [];
+    const flyevents = manifest.flyevents || [];
+
+    // trips
+    for(const t of trips){
+      const row = { ...t, updatedAt: Date.now() };
+      await saveTrip(row);
+    }
+
+    // catches (+ photos)
+    for(const c of catches){
+      const row = { ...c };
+
+      if(row.photoFile){
+        const photoEntry = findPhotoEntry(zip, row.photoFile);
+        if(photoEntry){
+          const blob = await zip.file(photoEntry).async("blob");
+          row.photoBlob = blob;
+        }
+      }
+
+      delete row.photoFile;
+      await saveCatch(row);
+    }
+
+    // quiver
+    for(const b of flyboxes){
+      await saveFlyBox(b);
+    }
+    for(const f of flies){
+      await saveFly(f);
+    }
+    for(const e of flyevents){
+      await saveFlyEvent(e);
+    }
+
+    return { ok: true, mode: "all" };
+  }
+
+  // 2) else trip zip
   const entryName = findZipEntry(zip, "riverlog.json");
   if(!entryName){
     const names = Object.keys(zip.files || {});
-    throw new Error("Zip missing riverlog.json (found: " + names.join(", ") + ")");
+    throw new Error("Zip missing riverlog.json or riverlog_all.json (found: " + names.join(", ") + ")");
   }
 
   const text = await zip.file(entryName).async("string");
@@ -660,16 +721,18 @@ export async function importTripZip(file){
     await saveCatch(row);
   }
 
-  return { tripId: trip.id };
+  return { tripId: trip.id, mode: "trip" };
 }
 
-// ✅ import full backup zip (riverlog_all.json)
+/**
+ * ✅ optional explicit full-backup importer
+ * (kept for any callers that already use it)
+ */
 export async function importAllTripsZip(file){
   const JSZip = await loadJSZip();
   const ab = await file.arrayBuffer();
   const zip = await JSZip.loadAsync(ab);
 
-  // ✅ tolerate nested / renamed folder zips
   const entryName = findZipEntry(zip, "riverlog_all.json");
   if(!entryName){
     const names = Object.keys(zip.files || {});
@@ -690,13 +753,11 @@ export async function importAllTripsZip(file){
   const flies = manifest.flies || [];
   const flyevents = manifest.flyevents || [];
 
-  // trips
   for(const t of trips){
     const row = { ...t, updatedAt: Date.now() };
     await saveTrip(row);
   }
 
-  // catches (+ photos)
   for(const c of catches){
     const row = { ...c };
 
@@ -712,7 +773,6 @@ export async function importAllTripsZip(file){
     await saveCatch(row);
   }
 
-  // quiver
   for(const b of flyboxes){
     await saveFlyBox(b);
   }
@@ -723,7 +783,7 @@ export async function importAllTripsZip(file){
     await saveFlyEvent(e);
   }
 
-  return { ok: true };
+  return { ok: true, mode: "all" };
 }
 
 export async function importTripPackage(pkg){

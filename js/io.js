@@ -2,7 +2,6 @@ import {
   exportSelectedTripZip,
   exportAllTripsZip,
   importTripZip,
-  importAllTripsZip,
   importTripPackage
 } from "../storage.js";
 
@@ -22,7 +21,7 @@ function downloadBlob(blob, filename){
 export function initIO({ refreshTrips, setStatus }){
   exportBtn?.addEventListener("click", async ()=>{
     const choice = window.prompt(
-      "Export options:\n1 = Selected trip\n2 = All trips\n\nEnter 1 or 2:"
+      "Export options:\n1 = Selected trip\n2 = All data (trips + catches + quiver)\n\nEnter 1 or 2:"
     );
 
     if(choice !== "1" && choice !== "2"){
@@ -41,7 +40,7 @@ export function initIO({ refreshTrips, setStatus }){
       if(choice === "2"){
         const { blob, filename } = await exportAllTripsZip();
         downloadBlob(blob, filename);
-        setStatus("Export complete (ALL trips). AirDrop the ZIP to your Mac and import.");
+        setStatus("Export complete (ALL data). AirDrop the ZIP to your Mac and import.");
       }else{
         const { blob, filename } = await exportSelectedTripZip(state.tripId);
         downloadBlob(blob, filename);
@@ -62,22 +61,9 @@ export function initIO({ refreshTrips, setStatus }){
       const name = (file.name || "").toLowerCase();
 
       if(name.endsWith(".zip")){
-        // Try single-trip zip first; if it’s an ALL backup zip, fall back.
-        try{
-          const res = await importTripZip(file);
-          await refreshTrips(res?.tripId || null);
-        }catch(err){
-          const msg = String(err?.message || err || "");
-          if(
-            msg.includes("Zip missing riverlog.json") ||
-            msg.includes("Not a RiverLog trip zip export")
-          ){
-            await importAllTripsZip(file);
-            await refreshTrips(null);
-          }else{
-            throw err;
-          }
-        }
+        // ✅ auto-detects riverlog.json (trip) vs riverlog_all.json (all data)
+        const res = await importTripZip(file);
+        await refreshTrips(res?.tripId || null);
       }else{
         // JSON package
         const text = await file.text();

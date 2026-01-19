@@ -23,6 +23,16 @@ import {
   deleteFlyBoxBtn,
   clearFlyBoxesBtn,
 
+  // modal trigger + modal shell
+  openFlyModalBtn,
+  flyModalOverlay,
+  flyModal,
+  flyModalClose,
+  flyModalCancel,
+  flyModalTitle,
+  flyModalSub,
+
+  // fly form fields (now inside modal, same IDs)
   flyType,
   flyPattern,
   flySize,
@@ -45,7 +55,7 @@ import {
    - Clear all boxes (type DELETE)
    - Fly photo stored on pattern row (dataURL)
    - Size badge overlay when photo exists
-   - NO “card open/close” UI; this is inline inside <details>
+   - Add/Edit fly lives in modal sheet for field speed
 ========================= */
 
 function parseSize(v){
@@ -106,6 +116,79 @@ async function refreshPhotoPreviewFromFile(){
   }
 }
 
+/* =========================
+   Modal controls
+========================= */
+
+function openFlyModal(mode="add"){
+  // mode: "add" | "edit"
+  const isEdit = mode === "edit";
+
+  if(flyModalTitle) flyModalTitle.textContent = isEdit ? "Edit Fly" : "Add Fly";
+  if(flyModalSub) flyModalSub.textContent = isEdit ? "Update details" : "Quick entry";
+
+  flyModalOverlay?.classList.remove("hidden");
+  flyModal?.classList.remove("hidden");
+  flyModalOverlay?.setAttribute("aria-hidden", "false");
+  flyModal?.setAttribute("aria-hidden", "false");
+  document.body.classList.add("modalOpen");
+
+  // field-speed: focus pattern
+  setTimeout(()=> flyPattern?.focus(), 0);
+}
+
+function closeFlyModal(){
+  flyModalOverlay?.classList.add("hidden");
+  flyModal?.classList.add("hidden");
+  flyModalOverlay?.setAttribute("aria-hidden", "true");
+  flyModal?.setAttribute("aria-hidden", "true");
+  document.body.classList.remove("modalOpen");
+
+  // clear any picked file preview so it doesn’t “stick”
+  clearPhotoInput();
+}
+
+function setEditingFly(id){
+  state.flyEditingId = id || null;
+  if(addFlyBtn){
+    addFlyBtn.textContent = id ? "Save Changes" : "Save Fly";
+    addFlyBtn.classList.toggle("isEditing", !!id);
+  }
+}
+
+function clearFlyForm(){
+  if(flyType) flyType.value = "";
+  if(flyPattern) flyPattern.value = "";
+  if(flySize) flySize.value = "";
+  if(flyQty) flyQty.value = "";
+  if(flyColors) flyColors.value = "";
+  clearPhotoInput();
+  setEditingFly(null);
+}
+
+function fillFlyFormFromRow(f){
+  if(!f) return;
+  if(flyType) flyType.value = f.type || "";
+  if(flyPattern) flyPattern.value = f.pattern || "";
+  if(flySize) flySize.value = f.size || "";
+  if(flyQty) flyQty.value = String(Number(f.qty)||0);
+  if(flyColors) flyColors.value = f.colors || "";
+
+  // keep existing photo unless user picks a new one
+  clearPhotoInput();
+
+  // optional: show existing photo in preview (helpful on edit)
+  const hasPhoto = !!(f.photo && String(f.photo).startsWith("data:image"));
+  if(hasPhoto && flyPhotoPreview){
+    flyPhotoPreview.innerHTML = `<img src="${f.photo}" alt="Fly photo" />`;
+    flyPhotoPreview.classList.remove("hidden");
+  }
+}
+
+/* =========================
+   Render / refresh
+========================= */
+
 async function refreshBoxSelect(selectedId){
   const boxes = await listFlyBoxes();
   if(!flyBoxSelect) return boxes;
@@ -137,24 +220,6 @@ async function refreshFlyMeta(boxId){
   const totalQty = flies.reduce((sum, f)=> sum + (Number(f.qty)||0), 0);
 
   flyBoxMeta.textContent = `${safeText(box.name)} • ${flies.length} patterns • ${totalQty} flies`;
-}
-
-function setEditingFly(id){
-  state.flyEditingId = id || null;
-  if(addFlyBtn){
-    addFlyBtn.textContent = id ? "Update Fly" : "Add Fly";
-    addFlyBtn.classList.toggle("isEditing", !!id);
-  }
-}
-
-function clearFlyForm(){
-  if(flyType) flyType.value = "";
-  if(flyPattern) flyPattern.value = "";
-  if(flySize) flySize.value = "";
-  if(flyQty) flyQty.value = "";
-  if(flyColors) flyColors.value = "";
-  clearPhotoInput();
-  setEditingFly(null);
 }
 
 async function renderFlyList(boxId, setStatus){
@@ -239,16 +304,18 @@ async function renderFlyList(boxId, setStatus){
     editBtn.className = "btn";
     editBtn.type = "button";
     editBtn.textContent = "Edit";
-    editBtn.onclick = ()=> {
+    editBtn.onclick = async ()=> {
       setEditingFly(f.id);
-      if(flyType) flyType.value = f.type || "";
-      if(flyPattern) flyPattern.value = f.pattern || "";
-      if(flySize) flySize.value = f.size || "";
-      if(flyQty) flyQty.value = String(Number(f.qty)||0);
-      if(flyColors) flyColors.value = f.colors || "";
 
-      // keep existing photo unless user picks a new one
-      clearPhotoInput();
+      // pull latest (preserves createdAt/photo)
+      let latest = f;
+      try{
+        const fromDb = await getFly(f.id);
+        if(fromDb) latest = fromDb;
+      }catch(_){}
+
+      fillFlyFormFromRow(latest);
+      openFlyModal("edit");
       setStatus?.("Editing fly…");
     };
 
@@ -345,8 +412,6 @@ async function handleClearAllBoxes(setStatus){
 
 /* =========================
    iOS click reliability (no double-fire)
-   - Use pointerup when available
-   - Fall back to click
 ========================= */
 function bindTap(el, handler){
   if(!el) return;
@@ -392,6 +457,18 @@ export function initFlyBox({ setStatus }){
       setStatus?.("Fly box loaded.");
     };
   }
+
+  // ✅ Open Add Fly modal (field speed)
+  bindTap(openFlyModalBtn, async ()=> {
+    clearFlyForm();
+    setEditingFly(null);
+    openFlyModal("add");
+  });
+
+  // ✅ Close modal
+  bindTap(flyModalOverlay, closeFlyModal);
+  bindTap(flyModalClose, closeFlyModal);
+  bindTap(flyModalCancel, closeFlyModal);
 
   bindTap(newFlyBoxBtn, async ()=> {
     await withLock(async ()=>{
@@ -441,6 +518,7 @@ export function initFlyBox({ setStatus }){
     };
   }
 
+  // ✅ Save from modal (Add or Edit)
   bindTap(addFlyBtn, async ()=> {
     await withLock(async ()=>{
       const boxId = state.flyBoxId;
@@ -503,6 +581,7 @@ export function initFlyBox({ setStatus }){
 
       const msg = wasEditing ? "Fly updated." : "Fly added.";
       clearFlyForm();
+      closeFlyModal();
       await refreshFlyMeta(boxId);
       await renderFlyList(boxId, setStatus);
       setStatus?.(msg);
