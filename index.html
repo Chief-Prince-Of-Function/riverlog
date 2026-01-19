@@ -19,7 +19,7 @@
   <link rel="apple-touch-icon" href="assets/icon-192.png" />
 
   <!-- Styles -->
-  <link rel="stylesheet" href="app.css?v=39" />
+  <link rel="stylesheet" href="app.css?v=40" />
 </head>
 
 <body>
@@ -73,16 +73,49 @@
           <label class="label">Species</label>
           <select id="species" class="input">
             <option value="">—</option>
-            <option>Trout</option>
-            <option>Brown Trout</option>
+
+            <!-- Core Trout -->
             <option>Rainbow Trout</option>
+            <option>Brown Trout</option>
             <option>Brook Trout</option>
+            <option>Lake Trout</option>
+            <option>Cutthroat Trout</option>
+            <option>Golden Trout</option>
+
+            <!-- Cutthroat Subspecies -->
+            <option>Coastal Cutthroat Trout</option>
+            <option>Westslope Cutthroat Trout</option>
+            <option>Yellowstone Cutthroat Trout</option>
+            <option>Lahontan Cutthroat Trout</option>
+            <option>Bonneville Cutthroat Trout</option>
+            <option>Greenback Cutthroat Trout</option>
+            <option>Rio Grande Cutthroat Trout</option>
+            <option>Bear River Cutthroat Trout</option>
+            <option>Colorado River Cutthroat Trout</option>
+            <option>Snake River Fine-spotted Cutthroat Trout</option>
+
+            <!-- Char (often grouped as trout by anglers) -->
+            <option>Brook Trout (Char)</option>
+            <option>Bull Trout</option>
+            <option>Dolly Varden</option>
+            <option>Arctic Char</option>
+
+            <!-- Salmon / Sea-Run Trout -->
+            <option>Steelhead</option>
+            <option>Atlantic Salmon</option>
+
+            <!-- Hybrids -->
+            <option>Tiger Trout</option>
+            <option>Splake</option>
+            <option>Cutbow Trout</option>
+
+            <!-- Bass / Other (keep existing structure intact) -->
             <option>Smallmouth Bass</option>
             <option>Largemouth Bass</option>
-            <option>Salmon</option>
-            <option>Steelhead</option>
+            <option>Salmon (Pacific)</option>
             <option>Other</option>
           </select>
+
         </div>
 
         <div>
@@ -376,6 +409,6 @@
   <canvas id="collageCanvas" width="1400" height="1400" style="display:none;"></canvas>
 
   <script src="vendor/jszip.min.js"></script>
-  <script type="module" src="js/main.js?v=39"></script>
+  <script type="module" src="js/main.js?v=40"></script>
 </body>
 </html>
