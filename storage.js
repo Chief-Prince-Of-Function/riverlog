@@ -475,6 +475,57 @@ export function downloadBlob(blob, filename){
   setTimeout(()=> URL.revokeObjectURL(url), 1500);
 }
 
+/* ---------- ZIP helpers (FIX) ---------- */
+
+function zipBasename(p){
+  return String(p || "").split("/").pop().split("\\").pop();
+}
+
+/**
+ * Find a zip entry whether it's at root ("riverlog.json")
+ * or nested ("Some Folder/riverlog.json")
+ */
+function findZipEntry(zip, preferredName){
+  const names = Object.keys(zip.files || {});
+  const pref = String(preferredName || "");
+  if(!pref) return null;
+
+  // 1) exact match
+  let hit = names.find(n => n === pref);
+  if(hit) return hit;
+
+  const prefLower = pref.toLowerCase();
+
+  // 2) nested (forward slashes)
+  hit = names.find(n => n.toLowerCase().endsWith("/" + prefLower));
+  if(hit) return hit;
+
+  // 3) nested (back slashes)
+  hit = names.find(n => n.toLowerCase().endsWith("\\" + prefLower));
+  if(hit) return hit;
+
+  return null;
+}
+
+/**
+ * Resolve a photo path robustly:
+ * - try exact path in manifest (photos/xyz.jpg)
+ * - else try basename match anywhere in zip
+ */
+function findPhotoEntry(zip, photoFile){
+  if(!photoFile) return null;
+
+  if(zip.file(photoFile)) return photoFile;
+
+  const base = zipBasename(photoFile);
+  if(!base) return null;
+
+  const names = Object.keys(zip.files || {});
+  return names.find(n => zipBasename(n) === base) || null;
+}
+
+/* ---------- Exporters ---------- */
+
 export async function exportTripZip(tripId){
   const trip = await getTrip(tripId);
   const catches = await listCatches(tripId);
@@ -567,15 +618,21 @@ export async function exportAllTripsZip(){
   return { blob, filename: safeAllFilename() };
 }
 
+/* ---------- Importers (FIX) ---------- */
+
 export async function importTripZip(file){
   const JSZip = await loadJSZip();
   const ab = await file.arrayBuffer();
   const zip = await JSZip.loadAsync(ab);
 
-  const jsonFile = zip.file("riverlog.json");
-  if(!jsonFile) throw new Error("Zip missing riverlog.json");
+  // ✅ tolerate nested / renamed folder zips
+  const entryName = findZipEntry(zip, "riverlog.json");
+  if(!entryName){
+    const names = Object.keys(zip.files || {});
+    throw new Error("Zip missing riverlog.json (found: " + names.join(", ") + ")");
+  }
 
-  const text = await jsonFile.async("string");
+  const text = await zip.file(entryName).async("string");
   const manifest = JSON.parse(text);
 
   if(manifest._schema !== "riverlog_trip_zip"){
@@ -590,13 +647,15 @@ export async function importTripZip(file){
 
   for(const c of catches){
     const row = { ...c };
+
     if(row.photoFile){
-      const zf = zip.file(row.photoFile);
-      if(zf){
-        const blob = await zf.async("blob");
+      const photoEntry = findPhotoEntry(zip, row.photoFile);
+      if(photoEntry){
+        const blob = await zip.file(photoEntry).async("blob");
         row.photoBlob = blob;
       }
     }
+
     delete row.photoFile;
     await saveCatch(row);
   }
@@ -604,16 +663,20 @@ export async function importTripZip(file){
   return { tripId: trip.id };
 }
 
-// ✅ NEW: import full backup zip (riverlog_all.json)
+// ✅ import full backup zip (riverlog_all.json)
 export async function importAllTripsZip(file){
   const JSZip = await loadJSZip();
   const ab = await file.arrayBuffer();
   const zip = await JSZip.loadAsync(ab);
 
-  const jsonFile = zip.file("riverlog_all.json");
-  if(!jsonFile) throw new Error("Zip missing riverlog_all.json");
+  // ✅ tolerate nested / renamed folder zips
+  const entryName = findZipEntry(zip, "riverlog_all.json");
+  if(!entryName){
+    const names = Object.keys(zip.files || {});
+    throw new Error("Zip missing riverlog_all.json (found: " + names.join(", ") + ")");
+  }
 
-  const text = await jsonFile.async("string");
+  const text = await zip.file(entryName).async("string");
   const manifest = JSON.parse(text);
 
   if(manifest._schema !== "riverlog_all_zip"){
@@ -636,13 +699,15 @@ export async function importAllTripsZip(file){
   // catches (+ photos)
   for(const c of catches){
     const row = { ...c };
+
     if(row.photoFile){
-      const zf = zip.file(row.photoFile);
-      if(zf){
-        const blob = await zf.async("blob");
+      const photoEntry = findPhotoEntry(zip, row.photoFile);
+      if(photoEntry){
+        const blob = await zip.file(photoEntry).async("blob");
         row.photoBlob = blob;
       }
     }
+
     delete row.photoFile;
     await saveCatch(row);
   }
