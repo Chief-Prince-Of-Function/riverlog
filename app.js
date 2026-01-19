@@ -148,15 +148,40 @@ function loadImageFromFile(file){
 /* =========================
    Trips
 ========================= */
+
+function fmtTripDate(d){
+  const raw = String(d || "").trim();
+  if(!raw) return "";
+  try{
+    const dt = new Date(raw);
+    if(!isNaN(dt)) return dt.toLocaleDateString();
+  }catch(_){}
+  return raw;
+}
+
+function tripSelectLabel(t){
+  const name = String(t?.name || "").trim() || "(Unnamed trip)";
+  const date = fmtTripDate(t?.date);
+  const where = String(t?.location || "").trim();
+
+  const meta = [];
+  if(date) meta.push(date);
+  if(where) meta.push(where);
+
+  return meta.length ? `${name} — ${meta.join(" · ")}` : name;
+}
+
 async function refreshTrips(selectedId=null){
   const trips = await listTrips();
   tripSelect.innerHTML = "";
+
   for(const t of trips){
     const opt = document.createElement("option");
     opt.value = t.id;
-    opt.textContent = t.name || "(Unnamed trip)";
+    opt.textContent = tripSelectLabel(t); // ✅ name + date/where
     tripSelect.appendChild(opt);
   }
+
   if(selectedId) tripSelect.value = selectedId;
   if(!tripSelect.value && trips[0]) tripSelect.value = trips[0].id;
   state.tripId = tripSelect.value || null;
@@ -174,18 +199,17 @@ async function refreshTripMeta(){
     tripMeta.textContent = "—";
     return;
   }
-  const bits = [];
-  if(t.location) bits.push(t.location);
-  if(t.date){
-    bits.push(new Date(t.date + "T00:00:00").toLocaleDateString());
-  }else{
-    bits.push(`Started ${fmtTime(t.createdAt)}`);
-  }
-  if(t.desc) bits.push(t.desc);
-  if(t.flyWin) bits.push(`Fly: ${t.flyWin}`);
-  tripMeta.textContent = bits.join(" • ");
 
-  // Fill recap drawer fields
+  const where = String(t.location || "").trim();
+  const date = fmtTripDate(t.date);
+
+  const bits = [];
+  if(where) bits.push(where);
+  if(date) bits.push(date);
+
+  tripMeta.textContent = bits.length ? bits.join(" • ") : "—";
+
+  // Fill recap drawer fields (keep this behavior)
   tripName.value = t.name || "";
   tripDate.value = t.date || "";
   tripLocation.value = t.location || "";
@@ -222,7 +246,7 @@ createTripBtn?.addEventListener("click", async ()=>{
   const desc = (newTripDesc.value || "").trim();
 
   const labelDate = date ? new Date(date + "T00:00:00").toLocaleDateString() : new Date(now).toLocaleDateString();
-  const name = location ? `${location} • ${labelDate}` : labelDate;
+  const name = location ? `Trip @ ${location}` : `Trip ${labelDate}`;
 
   const t = {
     id: uid("trip"),

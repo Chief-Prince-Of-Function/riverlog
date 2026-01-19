@@ -40,6 +40,9 @@ import {
 
 /* ===== New/Edit Trip Modal ===== */
 
+// Your HTML has this input, but it wasn’t wired in the original trips.js
+const newTripName = document.getElementById("newTripName");
+
 function openTripSheet(){
   if(tripSheetOverlay) tripSheetOverlay.hidden = false;
   if(newTripForm) newTripForm.hidden = false;
@@ -54,19 +57,44 @@ function closeTripSheet(){
 
 /* ===== Helpers ===== */
 
+function fmtTripDate(d){
+  const raw = String(d || "").trim();
+  if(!raw) return "";
+  try{
+    const dt = new Date(raw);
+    if(!isNaN(dt)) return dt.toLocaleDateString();
+  }catch(_){}
+  return raw;
+}
+
+function tripSelectLabel(t){
+  // Primary: Trip name
+  const name = String(t?.name || "").trim() || "Trip";
+
+  // Meta: date + where (optional)
+  const date = fmtTripDate(t?.date);
+  const where = String(t?.location || "").trim();
+
+  // Example: "BBM 26 — 1/19/2026 · Keuka Lake"
+  const meta = [];
+  if(date) meta.push(date);
+  if(where) meta.push(where);
+
+  return meta.length ? `${name} — ${meta.join(" · ")}` : name;
+}
+
 async function refreshTripSelect(selectedId){
   const trips = await listTrips();
   if(!tripSelect) return trips;
 
   tripSelect.innerHTML = "";
+
   for(const t of trips){
     const opt = document.createElement("option");
     opt.value = t.id;
 
-    // show location if set, else fallback to name
-    const loc = safeText(t.location);
-    opt.textContent = (loc && loc !== "-") ? loc : (t.name || "Trip");
-
+    // Dropdown: Trip Name — Date · Where
+    opt.textContent = tripSelectLabel(t);
     tripSelect.appendChild(opt);
   }
 
@@ -78,22 +106,27 @@ async function refreshTripSelect(selectedId){
 
 async function refreshTripMeta(tripId){
   if(!tripMeta) return;
+
   const t = await getTrip(tripId);
   if(!t){
     tripMeta.textContent = "—";
     return;
   }
 
-  const parts = [];
-  const date = String(t.date || "").trim();
-  const loc = String(t.location || "").trim();
-  const desc = String(t.desc || "").trim();
+  const name = safeText(String(t.name || "").trim() || "Trip");
+  const where = safeText(String(t.location || "").trim() || "—");
+  const date = safeText(fmtTripDate(t.date) || "—");
 
-  if(loc) parts.push(loc);
-  if(date) parts.push(date);
-  if(desc) parts.push(desc);
-
-  tripMeta.textContent = parts.length ? parts.join(" • ") : "—";
+  // Two-line layout in the “Trip” section under Catches:
+  // Trip name (top), Where • Date (sub)
+  tripMeta.innerHTML = `
+    <div class="tripMetaTop">${name}</div>
+    <div class="tripMetaSub">
+      <span class="tripWhere">${where}</span>
+      <span class="tripDot">•</span>
+      <span class="tripDate">${date}</span>
+    </div>
+  `;
 }
 
 async function setActiveTrip(tripId, refreshCatches){
@@ -152,6 +185,7 @@ async function saveRecap(tripId, setStatus){
 
   await saveTrip(next);
   setStatus?.("Trip recap saved.");
+
   await refreshTripMeta(tripId);
 }
 
@@ -170,6 +204,8 @@ async function openEditTripSheet(tripId){
 
   editingTripId = t.id;
 
+  // ✅ Now we also fill the Trip Name input in the sheet
+  if(newTripName) newTripName.value = t.name || "";
   if(newTripLocation) newTripLocation.value = t.location || "";
   if(newTripDate) newTripDate.value = t.date || "";
   if(newTripDesc) newTripDesc.value = t.desc || "";
@@ -187,6 +223,7 @@ export function initTrips({ refreshCatches, setStatus }){
   newTripBtn?.addEventListener("click", ()=>{
     resetTripSheetToCreateMode();
 
+    if(newTripName) newTripName.value = "";
     if(newTripLocation) newTripLocation.value = "";
     if(newTripDate) newTripDate.value = "";
     if(newTripDesc) newTripDesc.value = "";
@@ -194,13 +231,13 @@ export function initTrips({ refreshCatches, setStatus }){
     openTripSheet();
   });
 
-  // Edit Trip (optional button)
+  // Edit Trip
   editTripBtn?.addEventListener("click", async ()=>{
     if(!state.tripId) return;
     await openEditTripSheet(state.tripId);
   });
 
-  // Overlay click closes (desktop click; tap ok on mobile)
+  // Overlay click closes
   tripSheetOverlay?.addEventListener("click", (e)=>{
     if(e.target === tripSheetOverlay){
       closeTripSheet();
@@ -230,6 +267,7 @@ export function initTrips({ refreshCatches, setStatus }){
       const updated = {
         ...existing,
         updatedAt: now,
+        name: (newTripName?.value || "").trim() || existing.name || "Trip",
         date: (newTripDate?.value || "").trim(),
         location: (newTripLocation?.value || "").trim(),
         desc: (newTripDesc?.value || "").trim()
@@ -248,12 +286,15 @@ export function initTrips({ refreshCatches, setStatus }){
     // CREATE MODE
     const trip = {
       id: uid("trip"),
-      name: new Date(now).toLocaleDateString(),
+      updatedAt: now,
+      createdAt: now,
+
+      // ✅ Use the Trip Name field if set, otherwise a sensible default
+      name: (newTripName?.value || "").trim() || "New Trip",
       date: (newTripDate?.value || "").trim(),
       location: (newTripLocation?.value || "").trim(),
       desc: (newTripDesc?.value || "").trim(),
-      createdAt: now,
-      updatedAt: now,
+
       flyWin: "",
       lessons: "",
       recap: ""
@@ -303,7 +344,7 @@ export function initTrips({ refreshCatches, setStatus }){
     }
 
     const current = await getTrip(state.tripId);
-    const label = (current?.location || current?.name || "this trip").trim();
+    const label = (current?.name || current?.location || "this trip").trim();
 
     const ok = confirm(
       `Delete "${label}"?\n\nThis deletes the trip AND all catches/photos inside it.\nThis cannot be undone.`
