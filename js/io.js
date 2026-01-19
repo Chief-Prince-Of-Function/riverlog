@@ -2,6 +2,7 @@ import {
   exportSelectedTripZip,
   exportAllTripsZip,
   importTripZip,
+  importAllTripsZip,
   importTripPackage
 } from "../storage.js";
 
@@ -61,11 +62,24 @@ export function initIO({ refreshTrips, setStatus }){
       const name = (file.name || "").toLowerCase();
 
       if(name.endsWith(".zip")){
-        // Trip zip import (riverlog.json)
-        const res = await importTripZip(file);
-        await refreshTrips(res.tripId || null);
+        // Try single-trip zip first; if it’s an ALL backup zip, fall back.
+        try{
+          const res = await importTripZip(file);
+          await refreshTrips(res?.tripId || null);
+        }catch(err){
+          const msg = String(err?.message || err || "");
+          if(
+            msg.includes("Zip missing riverlog.json") ||
+            msg.includes("Not a RiverLog trip zip export")
+          ){
+            await importAllTripsZip(file);
+            await refreshTrips(null);
+          }else{
+            throw err;
+          }
+        }
       }else{
-        // JSON package import
+        // JSON package
         const text = await file.text();
         const pkg = JSON.parse(text);
         await importTripPackage(pkg);
