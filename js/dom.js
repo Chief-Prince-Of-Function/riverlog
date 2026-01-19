@@ -18,8 +18,6 @@ export const newTripBtn = $("newTripBtn");
 export const editTripBtn = $("editTripBtn");
 export const deleteTripBtn = $("deleteTripBtn");
 
-export const tripMeta = $("tripMeta"); // subtitle inside Catches collapse
-
 /* New Trip Overlay (modal) */
 export const tripSheetOverlay = $("tripSheetOverlay");
 export const newTripForm = $("newTripForm");
