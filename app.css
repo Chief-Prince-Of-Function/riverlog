@@ -825,6 +825,10 @@ section.card > details.collapse{
   touch-action: manipulation;
 }
 
+/* Fly modal must sit ABOVE the overlay */
+#flyModalOverlay { z-index: 9998; }
+#flyModal        { z-index: 9999; }
+
 /* =========================
    iOS fix: prevent date input overflow + match sizing in modal
 ========================= */

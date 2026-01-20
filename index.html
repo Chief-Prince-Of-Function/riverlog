@@ -19,7 +19,7 @@
   <link rel="apple-touch-icon" href="assets/icon-192.png" />
 
   <!-- Styles -->
-  <link rel="stylesheet" href="app.css?v=52" />
+  <link rel="stylesheet" href="app.css?v=53" />
 </head>
 
 <body>
@@ -371,16 +371,16 @@
   ========================= -->
   <div id="flyModalOverlay" class="overlay hidden" aria-hidden="true"></div>
 
-  <section id="flyModal" class="sheet hidden" aria-hidden="true" role="dialog" aria-modal="true">
-    <header class="sheetHeader">
+  <section id="flyModal" class="modal hidden" aria-hidden="true" role="dialog" aria-modal="true">
+    <header class="modalHead">
       <div>
-        <div id="flyModalTitle" class="sheetTitle">Add Fly</div>
-        <div id="flyModalSub" class="sheetSub">Quick entry</div>
+        <div id="flyModalTitle" class="modalTitle">Add Fly</div>
+        <div id="flyModalSub" class="modalSub">Quick entry</div>
       </div>
       <button id="flyModalClose" class="btn ghost" type="button" aria-label="Close">✕</button>
     </header>
 
-    <div class="sheetBody">
+    <div class="modalBody">
       <div class="grid2">
         <div>
           <label class="label">Type</label>
@@ -422,7 +422,7 @@
       </div>
     </div>
 
-    <footer class="sheetFooter row gap">
+    <footer class="modalFoot">
       <button id="flyModalCancel" class="btn ghost" type="button">Cancel</button>
       <button id="addFlyBtn" class="btn accent" type="button">Save Fly</button>
     </footer>
@@ -430,6 +430,6 @@
 
   <!-- Scripts -->
   <script src="vendor/jszip.min.js"></script>
-  <script type="module" src="js/main.js?v=52"></script>
+  <script type="module" src="js/main.js?v=53"></script>
 </body>
 </html>

@@ -156,7 +156,7 @@ export async function listAllCatches(){
   const db = await openDB();
   const store = tx(db, "catches");
   const rows = (await reqToPromise(store.getAll())) || [];
-  rows.sort((a,b)=> (b.createdAt||0) - (a.updatedAt||0));
+  rows.sort((a,b)=> (b.updatedAt||0) - (a.updatedAt||0));
   // ^ minor: catches don't always have updatedAt; keep stable sort
   rows.sort((a,b)=> (b.createdAt||0) - (a.createdAt||0));
   return rows;
@@ -604,7 +604,7 @@ export async function exportAllTripsZip(){
 
   const manifest = {
     _schema: "riverlog_all_zip",
-    _version: 2,
+    _version: 3,
     exportedAt: Date.now(),
     trips,
     catches: catchesOut,
@@ -618,6 +618,15 @@ export async function exportAllTripsZip(){
   zip.file("riverlog_all.json", JSON.stringify(manifest, null, 2));
   const blob = await zip.generateAsync({ type: "blob" });
   return { blob, filename: safeAllFilename() };
+}
+
+/* ---------- Import helpers ---------- */
+
+async function afterImportEnsureFlyBox(){
+  // If import didn’t include flyboxes (older zips), make sure UI still has one
+  try{
+    await ensureDefaultFlyBox();
+  }catch(_){}
 }
 
 /* ---------- Importers (AUTO-DETECT) ---------- */
@@ -672,7 +681,7 @@ export async function importTripZip(file){
       await saveCatch(row);
     }
 
-    // quiver
+    // quiver (boxes first, then flies, then events)
     for(const b of flyboxes){
       await saveFlyBox(b);
     }
@@ -682,6 +691,8 @@ export async function importTripZip(file){
     for(const e of flyevents){
       await saveFlyEvent(e);
     }
+
+    await afterImportEnsureFlyBox();
 
     return { ok: true, mode: "all" };
   }
@@ -720,6 +731,9 @@ export async function importTripZip(file){
     delete row.photoFile;
     await saveCatch(row);
   }
+
+  // NOTE: trip zips do NOT include quiver by design
+  await afterImportEnsureFlyBox();
 
   return { tripId: trip.id, mode: "trip" };
 }
@@ -783,6 +797,8 @@ export async function importAllTripsZip(file){
     await saveFlyEvent(e);
   }
 
+  await afterImportEnsureFlyBox();
+
   return { ok: true, mode: "all" };
 }
 
@@ -805,6 +821,8 @@ export async function importTripPackage(pkg){
     delete row.photo;
     await saveCatch(row);
   }
+
+  await afterImportEnsureFlyBox();
 }
 
 /* =========================

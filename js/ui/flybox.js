@@ -50,14 +50,6 @@ import {
 
 /* =========================
    Quiver (FlyBox) module
-   - Boxes (“quiver”)
-   - Flies inventory inside a box
-   - Quick +/- qty + delete
-   - Delete box (default recreated)
-   - Clear all boxes (type DELETE)
-   - Fly photo stored on pattern row (dataURL)
-   - Size badge overlay when photo exists
-   - Add/Edit fly lives in modal sheet for field speed
 ========================= */
 
 function parseSize(v){
@@ -82,7 +74,6 @@ function prettyFlyType(v){
     other: "Other"
   };
   if(map[k]) return map[k];
-  // fallback: capitalize first letter
   return s.charAt(0).toUpperCase() + s.slice(1);
 }
 
@@ -139,7 +130,6 @@ async function refreshPhotoPreviewFromFile(){
 ========================= */
 
 function openFlyModal(mode="add"){
-  // mode: "add" | "edit"
   const isEdit = mode === "edit";
 
   if(flyModalTitle) flyModalTitle.textContent = isEdit ? "Edit Fly" : "Add Fly";
@@ -151,7 +141,6 @@ function openFlyModal(mode="add"){
   flyModal?.setAttribute("aria-hidden", "false");
   document.body.classList.add("modalOpen");
 
-  // field-speed: focus pattern
   setTimeout(()=> flyPattern?.focus(), 0);
 }
 
@@ -162,7 +151,6 @@ function closeFlyModal(){
   flyModal?.setAttribute("aria-hidden", "true");
   document.body.classList.remove("modalOpen");
 
-  // clear any picked file preview so it doesn’t “stick”
   clearPhotoInput();
 }
 
@@ -192,10 +180,8 @@ function fillFlyFormFromRow(f){
   if(flyQty) flyQty.value = String(Number(f.qty)||0);
   if(flyColors) flyColors.value = f.colors || "";
 
-  // keep existing photo unless user picks a new one
   clearPhotoInput();
 
-  // optional: show existing photo in preview (helpful on edit)
   const hasPhoto = !!(f.photo && String(f.photo).startsWith("data:image"));
   if(hasPhoto && flyPhotoPreview){
     flyPhotoPreview.innerHTML = `<img src="${f.photo}" alt="Fly photo" />`;
@@ -227,7 +213,6 @@ async function refreshBoxSelect(selectedId){
 
 async function refreshFlyMeta(boxId){
   const box = await getFlyBox(boxId);
-
   if(!box){
     if(flyBoxMeta) flyBoxMeta.textContent = "—";
     if(flyBoxSummaryMeta) flyBoxSummaryMeta.textContent = "";
@@ -245,10 +230,9 @@ async function refreshFlyMeta(boxId){
       `${safeText(box.name)} • ${flies.length} pattern${flies.length === 1 ? "" : "s"} • ${totalQty} fly${totalQty === 1 ? "" : "ies"}`;
   }
 
-  // Summary meta should be ONLY the box name (CSS draws the separator)
+  // ✅ IMPORTANT: do NOT include the dot here. CSS adds it when not empty.
   if(flyBoxSummaryMeta){
-    const label = String(box.name || "").trim();
-    flyBoxSummaryMeta.textContent = label ? safeText(label) : "";
+    flyBoxSummaryMeta.textContent = safeText(box.name || "");
   }
 }
 
@@ -337,7 +321,6 @@ async function renderFlyList(boxId, setStatus){
     editBtn.onclick = async ()=> {
       setEditingFly(f.id);
 
-      // pull latest (preserves createdAt/photo)
       let latest = f;
       try{
         const fromDb = await getFly(f.id);
@@ -409,7 +392,6 @@ async function handleDeleteBox(setStatus){
 
   await deleteFlyBox(boxId);
 
-  // Always ensure there is a box to show
   const ensured = await ensureDefaultFlyBox();
   await refreshBoxSelect(ensured.id);
   clearFlyForm();
@@ -419,19 +401,16 @@ async function handleDeleteBox(setStatus){
 }
 
 /* =========================
-   iOS click reliability (no double-fire)
+   Tap helpers
 ========================= */
+
 function bindTap(el, handler){
   if(!el) return;
-
-  // Always keep normal click
   el.onclick = handler;
 
-  // Only add touchstart for actual buttons (not select/inputs/labels)
   const tag = (el.tagName || "").toLowerCase();
   if(tag === "select" || tag === "input" || tag === "textarea" || tag === "label") return;
 
-  // iOS: use touchstart but DO NOT preventDefault (that breaks selects)
   el.addEventListener("touchstart", ()=> {
     handler();
   }, { passive: true });
@@ -447,7 +426,6 @@ async function withLock(fn){
 }
 
 export function initFlyBox({ setStatus }){
-  // Ensure a box exists and load it (call once at app init)
   async function boot(){
     const box = await ensureDefaultFlyBox();
     await refreshBoxSelect(box.id);
@@ -466,14 +444,12 @@ export function initFlyBox({ setStatus }){
     };
   }
 
-  // ✅ Open Add Fly modal (field speed)
   bindTap(openFlyModalBtn, async ()=> {
     clearFlyForm();
     setEditingFly(null);
     openFlyModal("add");
   });
 
-  // ✅ Close modal
   bindTap(flyModalOverlay, closeFlyModal);
   bindTap(flyModalClose, closeFlyModal);
   bindTap(flyModalCancel, closeFlyModal);
@@ -510,13 +486,41 @@ export function initFlyBox({ setStatus }){
     });
   });
 
+  bindTap(editFlyBoxBtn, async ()=> {
+    await withLock(async ()=>{
+      const boxId = flyBoxSelect?.value || state.flyBoxId;
+      if(!boxId){
+        setStatus?.("No fly box selected.");
+        return;
+      }
+
+      const box = await getFlyBox(boxId);
+      const current = String(box?.name || "My Fly Box");
+
+      const name = prompt("Rename fly box:", current);
+      if(!name) return;
+
+      const next = String(name).trim();
+      if(!next){
+        setStatus?.("Name cannot be blank.");
+        return;
+      }
+
+      const now = Date.now();
+      await saveFlyBox({ ...box, name: next, updatedAt: now });
+
+      await refreshBoxSelect(boxId);
+      await refreshFlyMeta(boxId);
+      setStatus?.("Fly box renamed.");
+    });
+  });
+
   if(flyPhoto){
     flyPhoto.onchange = async ()=> {
       await refreshPhotoPreviewFromFile();
     };
   }
 
-  // ✅ Save from modal (Add or Edit)
   bindTap(addFlyBtn, async ()=> {
     await withLock(async ()=>{
       const boxId = state.flyBoxId;
@@ -539,7 +543,6 @@ export function initFlyBox({ setStatus }){
       const now = Date.now();
       const wasEditing = !!state.flyEditingId;
 
-      // preserve createdAt + existing photo on edit (unless user picks new)
       let createdAt = now;
       let existingPhoto = "";
 
@@ -583,35 +586,6 @@ export function initFlyBox({ setStatus }){
       await refreshFlyMeta(boxId);
       await renderFlyList(boxId, setStatus);
       setStatus?.(msg);
-    });
-  });
-
-  bindTap(editFlyBoxBtn, async ()=> {
-    await withLock(async ()=>{
-      const boxId = flyBoxSelect?.value || state.flyBoxId;
-      if(!boxId){
-        setStatus?.("No fly box selected.");
-        return;
-      }
-
-      const box = await getFlyBox(boxId);
-      const current = String(box?.name || "My Fly Box");
-
-      const name = prompt("Rename fly box:", current);
-      if(!name) return;
-
-      const next = String(name).trim();
-      if(!next){
-        setStatus?.("Name cannot be blank.");
-        return;
-      }
-
-      const now = Date.now();
-      await saveFlyBox({ ...box, name: next, updatedAt: now });
-
-      await refreshBoxSelect(boxId);
-      await refreshFlyMeta(boxId);
-      setStatus?.("Fly box renamed.");
     });
   });
 
