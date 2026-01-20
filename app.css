@@ -112,7 +112,7 @@ body{
 }
 
 .row{display:flex; align-items:center; justify-content:space-between; gap:12px;}
-.grow{flex:1; min-width: 220px;}
+.grow{flex:1; min-width: 0;}
 .gap{gap:10px;}
 .topGap{margin-top:12px;}
 
@@ -978,3 +978,7 @@ section.card > details.collapse{
 .sheetSub{ opacity: .75; font-size: 12px; }
 
 body.modalOpen{ overflow: hidden; }
+
+.row.between{ justify-content: space-between; }
+.row.center{ align-items: center; }
+.grow{ flex: 1; min-width: 0; }

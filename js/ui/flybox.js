@@ -20,6 +20,7 @@ import {
   flyBoxMeta,
   flyBoxSelect,
   newFlyBoxBtn,
+  editFlyBoxBtn,
   deleteFlyBoxBtn,
   clearFlyBoxesBtn,
 
@@ -31,6 +32,7 @@ import {
   flyModalCancel,
   flyModalTitle,
   flyModalSub,
+  flyCount,
 
   // fly form fields (now inside modal, same IDs)
   flyType,
@@ -68,8 +70,24 @@ function parseQty(v){
   return Number.isFinite(n) ? Math.max(0, n) : 0;
 }
 
+function prettyFlyType(v){
+  const s = String(v ?? "").trim();
+  if(!s) return "—";
+  const k = s.toLowerCase();
+  const map = {
+    nymph: "Nymph",
+    dry: "Dry",
+    wet: "Wet",
+    streamer: "Streamer",
+    other: "Other"
+  };
+  if(map[k]) return map[k];
+  // fallback: capitalize first letter
+  return s.charAt(0).toUpperCase() + s.slice(1);
+}
+
 function flyLabel(row){
-  const t = safeText(row.type);
+  const t = prettyFlyType(row.type);
   const p = safeText(row.pattern);
   const szRaw = String(row.size || "").trim();
   const sz = szRaw ? `#${szRaw}` : "#-";
@@ -220,6 +238,8 @@ async function refreshFlyMeta(boxId){
   const totalQty = flies.reduce((sum, f)=> sum + (Number(f.qty)||0), 0);
 
   flyBoxMeta.textContent = `${safeText(box.name)} • ${flies.length} patterns • ${totalQty} flies`;
+
+  if(flyCount) flyCount.textContent = String(totalQty);
 }
 
 async function renderFlyList(boxId, setStatus){
@@ -585,6 +605,35 @@ export function initFlyBox({ setStatus }){
       await refreshFlyMeta(boxId);
       await renderFlyList(boxId, setStatus);
       setStatus?.(msg);
+    });
+  });
+
+  bindTap(editFlyBoxBtn, async ()=> {
+    await withLock(async ()=>{
+      const boxId = flyBoxSelect?.value || state.flyBoxId;
+      if(!boxId){
+        setStatus?.("No fly box selected.");
+        return;
+      }
+
+      const box = await getFlyBox(boxId);
+      const current = String(box?.name || "My Fly Box");
+
+      const name = prompt("Rename fly box:", current);
+      if(!name) return;
+
+      const next = String(name).trim();
+      if(!next){
+        setStatus?.("Name cannot be blank.");
+        return;
+      }
+
+      const now = Date.now();
+      await saveFlyBox({ ...box, name: next, updatedAt: now });
+
+      await refreshBoxSelect(boxId);
+      await refreshFlyMeta(boxId);
+      setStatus?.("Fly box renamed.");
     });
   });
 
