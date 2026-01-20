@@ -73,7 +73,6 @@ function downloadText(filename, text, mime="application/json"){
 function fmtTripDate(d){
   const s = String(d || "").trim();
   if(!s) return "";
-  // keep as-is if it's already nice; else try Date parse
   const dt = new Date(s);
   if(Number.isFinite(dt.getTime())){
     return dt.toLocaleDateString(undefined, { month:"short", day:"numeric", year:"numeric" });
@@ -81,40 +80,113 @@ function fmtTripDate(d){
   return s;
 }
 
-function drawMetaFooter(ctx, W, H, meta){
-  const padX = Math.round(W * 0.03);
-  const padY = Math.round(H * 0.02);
-  const lineH = clamp(Math.round(H * 0.020), 18, 30);
-  const fontPx = clamp(Math.round(H * 0.016), 14, 22);
+/* ---------- Drawing helpers ---------- */
 
-  const lines = [
-    `RiverLog ${meta.version || ""}`.trim() + (meta.tripId ? ` • TripID: ${meta.tripId}` : ""),
-    `${meta.date || "-"} • ${meta.name || "-"}`,
-    `Location: ${meta.location || "-"}`,
-    `Winner fly: ${meta.flyWin || "-"} • Lessons: ${meta.lessons || "-"}`
-  ];
+function roundRect(ctx, x, y, w, h, r){
+  r = Math.min(r, w/2, h/2);
+  ctx.beginPath();
+  ctx.moveTo(x+r, y);
+  ctx.arcTo(x+w, y, x+w, y+h, r);
+  ctx.arcTo(x+w, y+h, x, y+h, r);
+  ctx.arcTo(x, y+h, x, y, r);
+  ctx.arcTo(x, y, x+w, y, r);
+  ctx.closePath();
+}
 
-  const footerH = padY*2 + lines.length*lineH;
+function drawTopLeftMeta(ctx, W, H, meta){
+  const pad = Math.round(W * 0.05);
+  const titleSize = clamp(Math.round(H * 0.045), 28, 54);
+  const subSize   = clamp(Math.round(H * 0.020), 14, 24);
 
-  // Footer background strip
-  ctx.save();
-  ctx.globalAlpha = 0.70;
-  ctx.fillStyle = "#000";
-  ctx.fillRect(0, H - footerH, W, footerH);
-  ctx.restore();
+  const name = (meta.name || "Trip").trim();
+  const date = (meta.date || "").trim();
+  const where = (meta.location || "").trim();
 
-  // Footer text
   ctx.save();
   ctx.fillStyle = "#fff";
-  ctx.font = `${fontPx}px system-ui, -apple-system, Segoe UI, Roboto, Arial`;
   ctx.textBaseline = "top";
-  ctx.globalAlpha = 0.95;
 
-  let y = H - footerH + padY;
-  for(const line of lines){
-    ctx.fillText(line, padX, y);
-    y += lineH;
+  ctx.globalAlpha = 0.95;
+  ctx.font = `700 ${titleSize}px system-ui, -apple-system, Segoe UI, Roboto, Arial`;
+  ctx.fillText(`${name}${date ? ` • ${date}` : ""}`, pad, pad);
+
+  let y = pad + Math.round(titleSize * 1.08);
+
+  if(where){
+    ctx.globalAlpha = 0.78;
+    ctx.font = `400 ${subSize}px system-ui, -apple-system, Segoe UI, Roboto, Arial`;
+    ctx.fillText(`Location: ${where}`, pad, y);
+    y += Math.round(subSize * 1.35);
   }
+
+  // subtitle like old style
+  if(meta?.collage){
+    const used = meta.collage.photoCountUsed || 0;
+    const total = meta.collage.photoTotal ?? used;
+    ctx.globalAlpha = 0.60;
+    ctx.font = `400 ${subSize}px system-ui, -apple-system, Segoe UI, Roboto, Arial`;
+    ctx.fillText(`Top ${used} biggest (from ${total} photo catches)`, pad, y);
+  }
+
+  ctx.restore();
+}
+
+function drawBottomRightBadge(ctx, W, H){
+  const cardW = Math.round(W * 0.19);
+  const cardH = Math.round(H * 0.095);
+  const pad = Math.round(W * 0.04);
+  const x = W - pad - cardW;
+  const y = H - pad - cardH;
+  const r = Math.round(cardH * 0.25);
+
+  // frosted card
+  ctx.save();
+  ctx.globalAlpha = 0.30;
+  ctx.fillStyle = "#0b1020";
+  roundRect(ctx, x, y, cardW, cardH, r);
+  ctx.fill();
+
+  ctx.globalAlpha = 0.18;
+  ctx.strokeStyle = "#fff";
+  ctx.lineWidth = 2;
+  ctx.stroke();
+  ctx.restore();
+
+  // tiny icon circle
+  ctx.save();
+  ctx.globalAlpha = 0.85;
+  ctx.fillStyle = "#fff";
+  const cx = x + Math.round(cardW * 0.18);
+  const cy = y + Math.round(cardH * 0.50);
+  const cr = Math.round(cardH * 0.22);
+  ctx.beginPath();
+  ctx.arc(cx, cy, cr, 0, Math.PI * 2);
+  ctx.fill();
+
+  // hook-ish glyph
+  ctx.globalAlpha = 0.85;
+  ctx.strokeStyle = "#0b1020";
+  ctx.lineWidth = Math.max(2, Math.round(cardH * 0.05));
+  ctx.beginPath();
+  ctx.arc(cx, cy, cr * 0.55, Math.PI * 0.2, Math.PI * 1.5);
+  ctx.stroke();
+  ctx.restore();
+
+  // text
+  ctx.save();
+  ctx.fillStyle = "#fff";
+  const titleSize = clamp(Math.round(H * 0.022), 14, 22);
+  const subSize   = clamp(Math.round(H * 0.016), 11, 18);
+
+  ctx.globalAlpha = 0.92;
+  ctx.font = `700 ${titleSize}px system-ui, -apple-system, Segoe UI, Roboto, Arial`;
+  ctx.textBaseline = "top";
+  ctx.fillText("RiverLog", x + Math.round(cardW * 0.30), y + Math.round(cardH * 0.28));
+
+  ctx.globalAlpha = 0.68;
+  ctx.font = `400 ${subSize}px system-ui, -apple-system, Segoe UI, Roboto, Arial`;
+  ctx.fillText("Offline-first", x + Math.round(cardW * 0.30), y + Math.round(cardH * 0.58));
+
   ctx.restore();
 }
 
@@ -135,8 +207,10 @@ export async function buildTripCollage(tripIdArg, tripLabel="Trip"){
   if(!tripId) throw new Error("No trip selected");
 
   const rows = await listCatches(tripId);
-  const photos = rows
-    .filter(r => r.photoBlob instanceof Blob)
+
+  const photoRows = rows.filter(r => r.photoBlob instanceof Blob);
+  const photos = photoRows
+    .slice()
     .sort((a,b)=> parseLenNumber(b.length) - parseLenNumber(a.length))
     .slice(0, 9);
 
@@ -166,7 +240,8 @@ export async function buildTripCollage(tripIdArg, tripLabel="Trip"){
     collage: {
       mode: "top_by_length",
       maxPhotos: 9,
-      photoCountUsed: photos.length
+      photoCountUsed: photos.length,
+      photoTotal: photoRows.length
     }
   };
 
@@ -189,7 +264,7 @@ export async function buildTripCollage(tripIdArg, tripLabel="Trip"){
   ctx.fillStyle = "#0b1020";
   ctx.fillRect(0,0,W,H);
 
-  // layout: 3x3
+  // layout: 3x3 (kept for now)
   const cols = 3, rowsN = 3;
   const pad = Math.round(W * 0.02);
   const gap = Math.round(W * 0.015);
@@ -228,8 +303,9 @@ export async function buildTripCollage(tripIdArg, tripLabel="Trip"){
     }
   }
 
-  // Visible metadata footer on the collage image
-  drawMetaFooter(ctx, W, H, meta);
+  // NEW: old-style meta placement
+  drawTopLeftMeta(ctx, W, H, meta);
+  drawBottomRightBadge(ctx, W, H);
 
   // Export to PNG
   const pngUrl = canvas.toDataURL("image/png");
