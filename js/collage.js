@@ -1,5 +1,6 @@
-import { listCatches } from "../storage.js";
+import { listCatches, getTrip } from "../storage.js";
 import { safeText } from "./utils.js";
+import { state } from "./state.js";
 import {
   collageBtn,
   collageOverlay,
@@ -44,6 +45,79 @@ async function blobToDataURL(blob){
   });
 }
 
+function getSelectedTripId(){
+  // Primary: module state (your app uses this everywhere)
+  if(state?.tripId) return state.tripId;
+
+  // Fallback: DOM select value
+  const sel = document.querySelector("#tripSelect");
+  return sel?.value || "";
+}
+
+function getSelectedTripLabel(){
+  return document.querySelector("#tripSelect option:checked")?.textContent?.trim() || "Trip";
+}
+
+function downloadText(filename, text, mime="application/json"){
+  const blob = new Blob([text], { type: mime });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = filename;
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  setTimeout(()=> URL.revokeObjectURL(url), 800);
+}
+
+function fmtTripDate(d){
+  const s = String(d || "").trim();
+  if(!s) return "";
+  // keep as-is if it's already nice; else try Date parse
+  const dt = new Date(s);
+  if(Number.isFinite(dt.getTime())){
+    return dt.toLocaleDateString(undefined, { month:"short", day:"numeric", year:"numeric" });
+  }
+  return s;
+}
+
+function drawMetaFooter(ctx, W, H, meta){
+  const padX = Math.round(W * 0.03);
+  const padY = Math.round(H * 0.02);
+  const lineH = clamp(Math.round(H * 0.020), 18, 30);
+  const fontPx = clamp(Math.round(H * 0.016), 14, 22);
+
+  const lines = [
+    `RiverLog ${meta.version || ""}`.trim() + (meta.tripId ? ` • TripID: ${meta.tripId}` : ""),
+    `${meta.date || "-"} • ${meta.name || "-"}`,
+    `Location: ${meta.location || "-"}`,
+    `Winner fly: ${meta.flyWin || "-"} • Lessons: ${meta.lessons || "-"}`
+  ];
+
+  const footerH = padY*2 + lines.length*lineH;
+
+  // Footer background strip
+  ctx.save();
+  ctx.globalAlpha = 0.70;
+  ctx.fillStyle = "#000";
+  ctx.fillRect(0, H - footerH, W, footerH);
+  ctx.restore();
+
+  // Footer text
+  ctx.save();
+  ctx.fillStyle = "#fff";
+  ctx.font = `${fontPx}px system-ui, -apple-system, Segoe UI, Roboto, Arial`;
+  ctx.textBaseline = "top";
+  ctx.globalAlpha = 0.95;
+
+  let y = H - footerH + padY;
+  for(const line of lines){
+    ctx.fillText(line, padX, y);
+    y += lineH;
+  }
+  ctx.restore();
+}
+
 /* =========================
    Public API
 ========================= */
@@ -56,7 +130,8 @@ export async function canBuildCollage(tripId){
   return { ok: photos.length >= 1, count: photos.length };
 }
 
-export async function buildTripCollage(tripId, tripLabel="Trip"){
+export async function buildTripCollage(tripIdArg, tripLabel="Trip"){
+  const tripId = tripIdArg || getSelectedTripId();
   if(!tripId) throw new Error("No trip selected");
 
   const rows = await listCatches(tripId);
@@ -68,6 +143,32 @@ export async function buildTripCollage(tripId, tripLabel="Trip"){
   if(!photos.length){
     throw new Error("No catch photos in this trip");
   }
+
+  // Pull trip recap fields (schema matches your storage.js)
+  const trip = await getTrip(tripId);
+
+  const meta = {
+    _schema: "riverlog_collage_meta",
+    _version: 1,
+    app: "RiverLog",
+    version: "v32",
+    exportedAt: Date.now(),
+    tripId,
+    // Trip recap fields
+    name: (trip?.name || tripLabel || "").trim(),
+    date: fmtTripDate(trip?.date || ""),
+    location: (trip?.location || "").trim(),
+    desc: (trip?.desc || "").trim(),
+    flyWin: (trip?.flyWin || "").trim(),
+    lessons: (trip?.lessons || "").trim(),
+    recap: (trip?.recap || "").trim(),
+    // helpful collage info
+    collage: {
+      mode: "top_by_length",
+      maxPhotos: 9,
+      photoCountUsed: photos.length
+    }
+  };
 
   // Load images as dataURLs (from blobs)
   const imgUrls = [];
@@ -85,6 +186,7 @@ export async function buildTripCollage(tripId, tripLabel="Trip"){
 
   // background
   ctx.clearRect(0,0,W,H);
+  ctx.fillStyle = "#0b1020";
   ctx.fillRect(0,0,W,H);
 
   // layout: 3x3
@@ -122,33 +224,41 @@ export async function buildTripCollage(tripId, tripLabel="Trip"){
       });
 
       drawCover(img, x, y, tileW, tileH);
-
       i++;
     }
   }
+
+  // Visible metadata footer on the collage image
+  drawMetaFooter(ctx, W, H, meta);
 
   // Export to PNG
   const pngUrl = canvas.toDataURL("image/png");
   if(collagePreview) collagePreview.src = pngUrl;
 
   if(collageMeta){
-    const label = String(tripLabel || "Trip").trim() || "Trip";
+    const label = String(meta.name || "Trip").trim() || "Trip";
     collageMeta.textContent = `${safeText(label)} • Top catches by length`;
   }
 
-  // Download button
+  // Download button: PNG + sidecar JSON
   if(collageDownload){
     collageDownload.onclick = ()=>{
+      // PNG
       const a = document.createElement("a");
       a.href = pngUrl;
       a.download = "riverlog_collage.png";
       document.body.appendChild(a);
       a.click();
       a.remove();
+
+      // JSON sidecar (for imports later)
+      try{
+        downloadText("riverlog_collage.meta.json", JSON.stringify(meta, null, 2));
+      }catch(_){}
     };
   }
 
-  // Share button (if supported)
+  // Share button (image only)
   if(collageShare){
     collageShare.onclick = async ()=>{
       try{
@@ -168,12 +278,13 @@ export async function buildTripCollage(tripId, tripLabel="Trip"){
 export function initCollage({ setStatus }){
   async function onBuild(){
     try{
-      const tripId = window.state?.tripId;
+      const tripId = getSelectedTripId();
       if(!tripId){
         setStatus?.("Pick a trip first.");
         return;
       }
-      const label = document.querySelector("#tripSelect option:checked")?.textContent?.trim() || "Trip";
+
+      const label = getSelectedTripLabel();
       setStatus?.("Building collage…");
       await buildTripCollage(tripId, label);
       setStatus?.("Collage ready.");
