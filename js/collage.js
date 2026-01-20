@@ -17,6 +17,23 @@ import {
    Collage helpers
 ========================= */
 
+let _logoImgPromise = null;
+
+function loadRiverLogLogo(){
+  if(_logoImgPromise) return _logoImgPromise;
+
+  _logoImgPromise = new Promise((resolve)=>{
+    const im = new Image();
+    im.onload = ()=> resolve(im);
+    im.onerror = ()=> resolve(null);
+
+    // ✅ correct for GitHub Pages + local (resolved from index.html)
+    im.src = "assets/icon-192.png";
+  });
+
+  return _logoImgPromise;
+}
+
 function parseLenNumber(val){
   const n = parseFloat(String(val || "").replace(/[^\d.]+/g, ""));
   return Number.isFinite(n) ? n : 0;
@@ -127,8 +144,8 @@ function drawTopLeftMeta(ctx, W, H, meta){
   ctx.restore();
 }
 
-// Classic pill badge (restores your “good” vibe)
-function drawBottomRightBadge(ctx, W, H){
+// Classic pill badge with real RiverLog logo
+function drawBottomRightBadge(ctx, W, H, logoImg){
   const pad = Math.round(W * 0.04);
 
   const pillW = Math.round(W * 0.22);
@@ -147,7 +164,6 @@ function drawBottomRightBadge(ctx, W, H){
   ctx.fillStyle = "#0b1020";
   roundRect(ctx, x, y, pillW, pillH, r);
   ctx.fill();
-
   ctx.restore();
 
   // subtle stroke
@@ -159,34 +175,36 @@ function drawBottomRightBadge(ctx, W, H){
   ctx.stroke();
   ctx.restore();
 
-  // icon disk
+  // logo area
   const cx = x + Math.round(pillH * 0.62);
   const cy = y + Math.round(pillH * 0.52);
-  const cr = Math.round(pillH * 0.28);
+  const cr = Math.round(pillH * 0.30);
 
-  ctx.save();
-  ctx.globalAlpha = 0.90;
-  ctx.fillStyle = "#fff";
-  ctx.beginPath();
-  ctx.arc(cx, cy, cr, 0, Math.PI * 2);
-  ctx.fill();
+  if(logoImg){
+    const s = cr * 2;
 
-  // simple fish glyph (dark)
-  ctx.globalAlpha = 0.92;
-  ctx.fillStyle = "#0b1020";
-  // body
-  ctx.beginPath();
-  ctx.ellipse(cx + cr*0.15, cy, cr*0.62, cr*0.42, 0, 0, Math.PI*2);
-  ctx.fill();
-  // tail
-  ctx.beginPath();
-  ctx.moveTo(cx - cr*0.55, cy);
-  ctx.lineTo(cx - cr*0.95, cy - cr*0.35);
-  ctx.lineTo(cx - cr*0.95, cy + cr*0.35);
-  ctx.closePath();
-  ctx.fill();
+    ctx.save();
+    // subtle backdrop disk
+    ctx.globalAlpha = 0.20;
+    ctx.fillStyle = "#fff";
+    ctx.beginPath();
+    ctx.arc(cx, cy, cr * 1.02, 0, Math.PI*2);
+    ctx.fill();
 
-  ctx.restore();
+    // logo
+    ctx.globalAlpha = 0.98;
+    ctx.drawImage(logoImg, cx - s/2, cy - s/2, s, s);
+    ctx.restore();
+  }else{
+    // fallback disk
+    ctx.save();
+    ctx.globalAlpha = 0.90;
+    ctx.fillStyle = "#fff";
+    ctx.beginPath();
+    ctx.arc(cx, cy, cr, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.restore();
+  }
 
   // text
   ctx.save();
@@ -287,7 +305,6 @@ function rectsOverlap(a, b, pad=0){
 }
 
 function drawPolaroid(ctx, img, x, y, w, h, angleRad, caption){
-  // Polaroid structure
   const border = Math.round(w * 0.045);
   const bottomStrip = Math.round(h * 0.17);
   const innerX = border;
@@ -329,6 +346,53 @@ function drawPolaroid(ctx, img, x, y, w, h, angleRad, caption){
   ctx.restore();
 }
 
+function drawSmallSetLayout(ctx, W, H, items){
+  const n = items.length;
+
+  const leftPad = Math.round(W * 0.06);
+  const topSafe = Math.round(H * 0.18);
+  const bottomSafe = Math.round(H * 0.15);
+
+  const areaW = W - leftPad*2;
+  const areaH = H - topSafe - bottomSafe;
+
+  const centerX = W / 2;
+  const centerY = topSafe + areaH / 2;
+
+  function place(i, x, y, w, h, ang){
+    drawPolaroid(ctx, items[i].img, x - w/2, y - h/2, w, h, ang, items[i].caption);
+  }
+
+  if(n === 1){
+    const w = Math.round(W * 0.46);
+    const h = Math.round(w * 1.08);
+    place(0, centerX, centerY, w, h, 0.04);
+    return true;
+  }
+
+  if(n === 2){
+    const w = Math.round(W * 0.42);
+    const h = Math.round(w * 1.08);
+    place(0, centerX - w*0.28, centerY, w, h, -0.08);
+    place(1, centerX + w*0.28, centerY + h*0.02, w, h, 0.08);
+    return true;
+  }
+
+  if(n === 3){
+    const w0 = Math.round(W * 0.36);
+    const h0 = Math.round(w0 * 1.08);
+    const w1 = Math.round(W * 0.40);
+    const h1 = Math.round(w1 * 1.08);
+
+    place(0, centerX, centerY - h1*0.32, w0, h0, 0.06);
+    place(1, centerX - w1*0.30, centerY + h1*0.18, w1, h1, -0.06);
+    place(2, centerX + w1*0.30, centerY + h1*0.16, w1, h1, 0.08);
+    return true;
+  }
+
+  return false;
+}
+
 /* =========================
    Public API
 ========================= */
@@ -346,10 +410,8 @@ export async function buildTripCollage(tripIdArg, tripLabel="Trip"){
   if(!tripId) throw new Error("No trip selected");
 
   const rows = await listCatches(tripId);
-
   const photoRows = rows.filter(r => r.photoBlob instanceof Blob);
 
-  // Keep top-by-length (like your intent), but allow up to 20 for the “scatter” vibe
   const maxPhotos = 20;
   const photos = photoRows
     .slice()
@@ -413,83 +475,104 @@ export async function buildTripCollage(tripIdArg, tripLabel="Trip"){
     }))
   );
 
-  // deterministic scatter layout per trip
-  const seedFn = xmur3(String(tripId || meta.name || "riverlog"));
-  const rand = mulberry32(seedFn());
+  const items = loaded.map(({img,row})=> ({
+    img,
+    row,
+    caption: captionForRow(row)
+  }));
 
-  // Polaroid sizing & safe area (don’t collide with meta/badge too much)
-  const baseW = Math.round(W * 0.34);
-  const baseH = Math.round(baseW * 1.08);
+  // Small counts (1–3): intentional composition
+  const didSmall = drawSmallSetLayout(ctx, W, H, items);
 
-  const safePad = Math.round(W * 0.06);
-  const topSafe = Math.round(H * 0.16);      // room for top-left meta
-  const bottomSafe = Math.round(H * 0.12);   // room for badge
+  // 4+ photos: deterministic scatter with a focal anchor (largest catch)
+  if(!didSmall){
+    const seedFn = xmur3(String(tripId || meta.name || "riverlog"));
+    const rand = mulberry32(seedFn());
 
-  const placed = [];
+    const baseW = Math.round(W * 0.34);
+    const baseH = Math.round(baseW * 1.08);
 
-  // Draw larger first (nice layering)
-  const count = loaded.length;
-  const order = Array.from({length: count}, (_,i)=>i);
+    const safePad = Math.round(W * 0.06);
+    const topSafe = Math.round(H * 0.18);
+    const bottomSafe = Math.round(H * 0.15);
 
-  // slight “size falloff” so top catches are bigger
-  function sizeForIndex(idx){
-    const t = idx / Math.max(1, count - 1); // 0..1
-    const scale = clamp(1.05 - t*0.35, 0.70, 1.05);
-    const w = Math.round(baseW * scale);
-    const h = Math.round(baseH * scale);
-    return { w, h };
-  }
+    const placed = [];
+    const count = items.length;
+    const order = Array.from({length: count}, (_,i)=>i);
 
-  // attempt non-overlap-ish placements
-  for(let k=0;k<order.length;k++){
-    const idx = order[k];
-    const { img, row } = loaded[idx];
-    const { w, h } = sizeForIndex(k);
-
-    // try up to N placements
-    let best = null;
-    for(let tries=0; tries<140; tries++){
-      const x = Math.round(safePad + rand() * (W - safePad*2 - w));
-      const y = Math.round(topSafe + rand() * (H - topSafe - bottomSafe - h));
-
-      const a = {
-        x, y, w, h,
-        // rotation: +- ~10deg, with slight variation
-        ang: (rand() * 0.36) - 0.18
-      };
-
-      // soft collision avoidance
-      let hits = 0;
-      for(const b of placed){
-        if(rectsOverlap(a, b, Math.round(w*0.06))) hits++;
-      }
-
-      // accept if low overlap, prefer fewer hits
-      if(best == null || hits < best.hits){
-        best = { ...a, hits };
-        if(hits === 0) break;
-      }
+    function sizeForIndex(idx){
+      const t = idx / Math.max(1, count - 1);
+      const scale = clamp(1.05 - t*0.35, 0.70, 1.05);
+      const w = Math.round(baseW * scale);
+      const h = Math.round(baseH * scale);
+      return { w, h };
     }
 
-    placed.push({
-      ...best,
-      img,
-      row,
-      caption: captionForRow(row)
-    });
+    // ✅ Anchor biggest near center-ish so layout has “rhyme/reason”
+    {
+      const first = items[0];
+      const s0 = sizeForIndex(0);
+      placed.push({
+        x: Math.round(W * 0.34),
+        y: Math.round(H * 0.32),
+        w: s0.w,
+        h: s0.h,
+        ang: -0.05,
+        img: first.img,
+        row: first.row,
+        caption: first.caption,
+        hits: 0
+      });
+    }
+
+    for(let k=1;k<order.length;k++){
+      const idx = order[k];
+      const it = items[idx];
+      const { w, h } = sizeForIndex(k);
+
+      let best = null;
+      for(let tries=0; tries<160; tries++){
+        const x = Math.round(safePad + rand() * (W - safePad*2 - w));
+        const y = Math.round(topSafe + rand() * (H - topSafe - bottomSafe - h));
+
+        const a = {
+          x, y, w, h,
+          // ✅ calmer rotation = more “designed” feel
+          ang: (rand() * 0.22) - 0.11
+        };
+
+        let hits = 0;
+        for(const b of placed){
+          if(rectsOverlap(a, b, Math.round(w*0.06))) hits++;
+        }
+
+        if(best == null || hits < best.hits){
+          best = { ...a, hits };
+          if(hits === 0) break;
+        }
+      }
+
+      placed.push({
+        ...best,
+        img: it.img,
+        row: it.row,
+        caption: it.caption
+      });
+    }
+
+    // natural layering
+    placed.sort((p,q)=> (p.y + rand()*30) - (q.y + rand()*30));
+
+    for(const p of placed){
+      drawPolaroid(ctx, p.img, p.x, p.y, p.w, p.h, p.ang, p.caption);
+    }
   }
 
-  // Layering: draw in placement order, but jitter z a bit
-  // (small random shuffle makes it look natural)
-  placed.sort((p,q)=> (p.y + rand()*30) - (q.y + rand()*30));
-
-  for(const p of placed){
-    drawPolaroid(ctx, p.img, p.x, p.y, p.w, p.h, p.ang, p.caption);
-  }
+  const logoImg = await loadRiverLogLogo();
 
   // overlays
   drawTopLeftMeta(ctx, W, H, meta);
-  drawBottomRightBadge(ctx, W, H);
+  drawBottomRightBadge(ctx, W, H, logoImg);
 
   // Export to PNG
   const pngUrl = canvas.toDataURL("image/png");
