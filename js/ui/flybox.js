@@ -22,7 +22,6 @@ import {
   newFlyBoxBtn,
   editFlyBoxBtn,
   deleteFlyBoxBtn,
-  clearFlyBoxesBtn,
 
   // modal trigger + modal shell
   openFlyModalBtn,
