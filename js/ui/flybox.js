@@ -408,28 +408,6 @@ async function handleDeleteBox(setStatus){
   setStatus?.("Fly box deleted.");
 }
 
-/* ===== Clear ALL boxes (strong confirm) ===== */
-async function handleClearAllBoxes(setStatus){
-  const typed = prompt(
-    `DANGER ZONE\n\nThis will delete ALL fly boxes and ALL flies inside them.\n\nType DELETE to confirm:`,
-    ""
-  );
-
-  if(String(typed || "").trim().toUpperCase() !== "DELETE"){
-    setStatus?.("Clear all canceled.");
-    return;
-  }
-
-  await clearAllFlyBoxes();
-
-  const ensured = await ensureDefaultFlyBox();
-  await refreshBoxSelect(ensured.id);
-  clearFlyForm();
-  await setActiveBox(ensured.id, setStatus);
-
-  setStatus?.("All fly boxes cleared.");
-}
-
 /* =========================
    iOS click reliability (no double-fire)
 ========================= */
@@ -518,16 +496,6 @@ export function initFlyBox({ setStatus }){
         await handleDeleteBox(setStatus);
       }catch(e){
         setStatus?.(`Delete box failed: ${e?.message || e}`);
-      }
-    });
-  });
-
-  bindTap(clearFlyBoxesBtn, async ()=> {
-    await withLock(async ()=>{
-      try{
-        await handleClearAllBoxes(setStatus);
-      }catch(e){
-        setStatus?.(`Clear all failed: ${e?.message || e}`);
       }
     });
   });

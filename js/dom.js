@@ -59,7 +59,6 @@ export const flyBoxMeta = $("flyBoxMeta");
 export const flyBoxSelect = $("flyBoxSelect");
 export const newFlyBoxBtn = $("newFlyBoxBtn");
 export const deleteFlyBoxBtn = $("deleteFlyBoxBtn");
-export const clearFlyBoxesBtn = $("clearFlyBoxesBtn");
 
 export const flyType = $("flyType");
 export const flyPattern = $("flyPattern");
