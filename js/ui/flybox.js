@@ -227,9 +227,11 @@ async function refreshBoxSelect(selectedId){
 
 async function refreshFlyMeta(boxId){
   const box = await getFlyBox(boxId);
+
   if(!box){
     if(flyBoxMeta) flyBoxMeta.textContent = "—";
     if(flyBoxSummaryMeta) flyBoxSummaryMeta.textContent = "";
+    if(flyCount) flyCount.textContent = "0";
     return;
   }
 
@@ -243,7 +245,9 @@ async function refreshFlyMeta(boxId){
       `${safeText(box.name)} • ${flies.length} pattern${flies.length === 1 ? "" : "s"} • ${totalQty} fly${totalQty === 1 ? "" : "ies"}`;
   }
 
+  // Summary meta should be ONLY the box name (CSS draws the separator)
   if(flyBoxSummaryMeta){
+    const label = String(box.name || "").trim();
     flyBoxSummaryMeta.textContent = label ? safeText(label) : "";
   }
 }

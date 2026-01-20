@@ -663,12 +663,19 @@ select.input option:checked{
   transform: rotate(180deg);
 }
 
-.collapseSummary .muted::before {
+/* Default: no dot */
+.collapseSummary .muted::before{
+  content: "";
+  margin: 0;
+}
+
+/* Only show dot when the meta span actually has text */
+.collapseSummary .muted:not(:empty)::before{
   content: "·";
   margin: 0 6px;
-  font-size: 1em;
+  font-size: 1.05em;
   line-height: 1;
-  opacity: 0.85;
+  opacity: .85;
 }
 
 /* add a little spacing only when open */
