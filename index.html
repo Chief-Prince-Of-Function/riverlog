@@ -19,7 +19,7 @@
   <link rel="apple-touch-icon" href="assets/icon-192.png" />
 
   <!-- Styles -->
-  <link rel="stylesheet" href="app.css?v=46" />
+  <link rel="stylesheet" href="app.css?v=47" />
 </head>
 
 <body>
@@ -168,7 +168,8 @@
     <section class="card">
       <details class="collapse" id="flyBoxCollapse">
         <summary class="collapseSummary">
-          Quiver <span class="muted" style="margin-left:8px;">(patterns + quantities)</span>
+          Quiver
+          <span class="muted" id="flyBoxSummaryMeta" style="margin-left:8px;"></span>
         </summary>
 
         <div class="divider"></div>
@@ -194,12 +195,7 @@
         <!-- ✅ No inline form anymore -->
         <div class="divider"></div>
 
-        <div class="row gap between center topGap">
-          <div class="subtitle2 grow" id="flyBoxMeta">—</div>
-          <button id="openFlyModalBtn" class="btn accent" type="button">Add Fly</button>
-        </div>
-
-        <div class="divider"></div>
+        <div class="subtitle2" id="flyBoxMeta">—</div>
 
         <div id="flyList" class="list"></div>
         <div id="flyEmpty" class="empty">No flies yet. Tap “Add Fly” to add your first pattern.</div>
@@ -432,6 +428,6 @@
 
   <!-- Scripts -->
   <script src="vendor/jszip.min.js"></script>
-  <script type="module" src="js/main.js?v=46"></script>
+  <script type="module" src="js/main.js?v=47"></script>
 </body>
 </html>

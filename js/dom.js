@@ -55,7 +55,7 @@ export const syncStatus = $("syncStatus");
 
 /* ===== Quiver (FlyBox) ===== */
 export const flyBoxMeta = $("flyBoxMeta");
-
+export const flyBoxSummaryMeta = $("flyBoxSummaryMeta");
 export const flyBoxSelect = $("flyBoxSelect");
 export const newFlyBoxBtn = $("newFlyBoxBtn");
 export const deleteFlyBoxBtn = $("deleteFlyBoxBtn");

@@ -18,6 +18,7 @@ import { state } from "../state.js";
 
 import {
   flyBoxMeta,
+  flyBoxSummaryMeta,
   flyBoxSelect,
   newFlyBoxBtn,
   editFlyBoxBtn,
@@ -225,20 +226,24 @@ async function refreshBoxSelect(selectedId){
 }
 
 async function refreshFlyMeta(boxId){
-  if(!flyBoxMeta) return;
-
   const box = await getFlyBox(boxId);
   if(!box){
-    flyBoxMeta.textContent = "—";
+    if(flyBoxMeta) flyBoxMeta.textContent = "—";
+    if(flyBoxSummaryMeta) flyBoxSummaryMeta.textContent = "";
     return;
   }
 
   const flies = await listFliesByBox(boxId);
   const totalQty = flies.reduce((sum, f)=> sum + (Number(f.qty)||0), 0);
 
-  flyBoxMeta.textContent = `${safeText(box.name)} • ${flies.length} patterns • ${totalQty} flies`;
+  if(flyBoxMeta){
+    flyBoxMeta.textContent =
+      `${safeText(box.name)} • ${flies.length} pattern${flies.length === 1 ? "" : "s"} • ${totalQty} fly${totalQty === 1 ? "" : "ies"}`;
+  }
 
-  if(flyCount) flyCount.textContent = String(totalQty);
+  if(flyBoxSummaryMeta){
+    flyBoxSummaryMeta.textContent = `• ${safeText(box.name)}`;
+  }
 }
 
 async function renderFlyList(boxId, setStatus){
