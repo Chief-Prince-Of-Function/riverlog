@@ -984,6 +984,5 @@ body.modalOpen{ overflow: hidden; }
 .grow{ flex: 1; min-width: 0; }
 
 .metapad {
-  margin-top: 6px;
-  margin-bottom: 10px;
+  padding: 10px 0 14px;
 }
