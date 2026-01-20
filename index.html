@@ -19,7 +19,7 @@
   <link rel="apple-touch-icon" href="assets/icon-192.png" />
 
   <!-- Styles -->
-  <link rel="stylesheet" href="app.css?v=47" />
+  <link rel="stylesheet" href="app.css?v=48" />
 </head>
 
 <body>
@@ -192,13 +192,15 @@
 
         <div class="divider"></div>
 
-        <!-- ✅ No inline form anymore -->
-        <div class="divider"></div>
-
-        <div class="subtitle2" id="flyBoxMeta">—</div>
+        <div class="row between center topGap">
+          <div class="subtitle2" id="flyBoxMeta">—</div>
+          <button id="openFlyModalBtn" class="btn accent" type="button">Add Fly</button>
+        </div>
 
         <div id="flyList" class="list"></div>
-        <div id="flyEmpty" class="empty">No flies yet. Tap “Add Fly” to add your first pattern.</div>
+        <div id="flyEmpty" class="empty">
+          No flies yet. Tap “Add Fly” to add your first pattern.
+        </div>
       </details>
     </section>
 
@@ -428,6 +430,6 @@
 
   <!-- Scripts -->
   <script src="vendor/jszip.min.js"></script>
-  <script type="module" src="js/main.js?v=47"></script>
+  <script type="module" src="js/main.js?v=48"></script>
 </body>
 </html>

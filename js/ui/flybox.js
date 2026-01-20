@@ -236,6 +236,8 @@ async function refreshFlyMeta(boxId){
   const flies = await listFliesByBox(boxId);
   const totalQty = flies.reduce((sum, f)=> sum + (Number(f.qty)||0), 0);
 
+  if(flyCount) flyCount.textContent = String(totalQty);
+
   if(flyBoxMeta){
     flyBoxMeta.textContent =
       `${safeText(box.name)} • ${flies.length} pattern${flies.length === 1 ? "" : "s"} • ${totalQty} fly${totalQty === 1 ? "" : "ies"}`;
