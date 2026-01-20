@@ -291,7 +291,8 @@ export function initCatches({ setStatus }){
 
   async function refreshCatches(){
     if(!state.tripId) return;
-      // === Catches header context (Trip date + name/location) ===
+
+    // === Catches header context (Trip name/location) ===
     try{
       const trip = await getTrip(state.tripId);
       const labelRaw = (trip?.location || trip?.name || "").trim();
@@ -302,12 +303,14 @@ export function initCatches({ setStatus }){
         .replace(/\s*[•·\-—]\s*\d{4}-\d{2}-\d{2}\s*$/g, "")           // "· 2026-01-17"
         .trim();
 
-      // Update the <summary> text inside the catches <details>
-      const summaryEl = catchesCollapse?.querySelector("summary");
-      if(summaryEl){
-        summaryEl.innerHTML = `Catches <span class="muted">${label ? `· ${safeText(label)}` : ""}</span>`;
+      // ✅ Match Quiver approach: update the meta span, not the whole summary
+      if(catchesSummaryMeta){
+        catchesSummaryMeta.textContent = label ? `· ${safeText(label)}` : "";
       }
-    }catch(_){}
+    }catch(_){
+      if(catchesSummaryMeta) catchesSummaryMeta.textContent = "";
+    }
+
     const rows = await listCatches(state.tripId);
 
     if(catchCount) catchCount.textContent = String(rows.length);

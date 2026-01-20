@@ -663,6 +663,10 @@ select.input option:checked{
   transform: rotate(180deg);
 }
 
+.collapseSummary .muted{
+  margin-left: 8px;
+}
+
 /* add a little spacing only when open */
 .collapse[open] #badgeGrid{
   margin-top: 10px;
