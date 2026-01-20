@@ -1,9 +1,9 @@
 # RiverLog 🎣
 
-**RiverLog** is a fast, offline-friendly fishing trip logger built for real-world use on the water.
-Log trips, track catches, attach photos, and recap each trip in a clean, mobile-first interface.
+**RiverLog** is a fast, offline-first fishing log built for real-world use on the water.
+Log trips, track catches, manage your fly boxes, and recap each outing in a clean, mobile-first interface.
 
-> **MVP Status:** ✅ Stable and in active use
+> **Status:** ✅ Stable MVP, actively used in the field
 
 ---
 
@@ -12,46 +12,60 @@ Log trips, track catches, attach photos, and recap each trip in a clean, mobile-
 ### Trips
 
 * Create and manage fishing trips
-* Track location, date, notes, and trip recap
-* Clean “Trip Drawer” view for quick edits
+* Track location, date, notes, and full trip recap
+* Clean, collapsible “Trip” section for quick edits
 
 ### Catches
 
 * Log catches to a specific trip
-* Store key details (species, length, weight, notes, etc.)
-* Attach photos for each catch *(if enabled in your build)*
+* Store key details (species, length, notes, etc.)
+* Attach photos per catch *(if enabled in your build)*
+
+### Quiver (Fly Boxes)
+
+* Organize flies by box
+* Track patterns, sizes, and quantities
+* Quick use (+ / −) while fishing
+* Modal add/edit flow optimized for speed on mobile
 
 ### Mobile-First
 
 * Designed to work great on a phone
-* Smooth, app-like layout and controls
-* No weird scrolling or layout shifts
+* App-like layout with stable forms
+* No accidental scrolling or layout shifts
 
-### Offline Friendly
+### Offline-First
 
-* Works without service (ideal for remote spots)
-* Your logs stay available even with no signal
+* Works without service (ideal for remote water)
+* All data stored locally on the device
+* No accounts, logins, or servers required
 
 ---
 
 ## 🧠 Why RiverLog Exists
 
-Most fishing apps are bloated, slow, or require accounts and internet.
-RiverLog is built to be **quick, simple, and reliable** — so you can log the moment and get back to fishing.
+Most fishing apps are bloated, slow, or require accounts and constant connectivity.
+RiverLog is built to be **quick, simple, and reliable**, so you can log the moment and get back to fishing.
+
+This is a tool for anglers who value:
+
+* Speed over social features
+* Ownership of their data
+* A calm interface that works in bad conditions
 
 ---
 
 ## 🚀 Getting Started
 
-### Run locally (simple)
+### Run locally
 
-1. Download/clone the repo
+1. Clone or download the repository
 2. Start a local server (choose one):
 
 **Option A: VS Code Live Server**
 
 * Open the folder in VS Code
-* Right click `index.html` → **Open with Live Server**
+* Right-click `index.html` → **Open with Live Server**
 
 **Option B: Python**
 
@@ -61,18 +75,20 @@ python -m http.server 5500
 
 Then open:
 
-* `http://127.0.0.1:5500`
+```
+http://127.0.0.1:5500
+```
 
 ---
 
-## 💾 Data + Backup
+## 💾 Data & Backups
 
-RiverLog is built to protect your logs.
+RiverLog stores data locally on your device (offline-first).
 
 ✅ Export your data regularly (recommended after trips)
-✅ Keep one copy on your laptop + one in cloud storage
+✅ Keep one copy on your computer and one in cloud storage
 
-> If your build includes Export/Import, this is your safety rope.
+> Export/Import is your safety rope—use it.
 
 ---
 
@@ -80,32 +96,30 @@ RiverLog is built to protect your logs.
 
 * Vanilla **HTML / CSS / JavaScript**
 * Mobile-first responsive layout
-* Offline-friendly storage approach (depending on version)
+* Device-local storage (IndexedDB)
 * Optional PWA support (installable app feel)
 
 ---
 
 ## 🛣️ Roadmap (Parking Lot)
 
-Planned upgrades (not required for MVP):
+Ideas for future versions (not required for MVP):
 
 * Trip photo collage recap
-* Search + filters (species, location, date)
-* “Top catches” per trip
+* Search and filters (species, location, date)
+* “Top flies” and usage stats
 * Shareable trip summary screen
-* Sync between devices (export/import workflow)
+* Multi-device sync via export/import workflow
 
 ---
 
 ## 📸 Screenshots
 
-*Add screenshots here once you grab a couple good ones.*
-
-Example:
+*Add screenshots once you capture a few good field examples.*
 
 ```md
 ![RiverLog Home](./assets/screenshots/home.png)
-![Trip Drawer](./assets/screenshots/trip-drawer.png)
+![Quiver](./assets/screenshots/quiver.png)
 ```
 
 ---
@@ -113,10 +127,10 @@ Example:
 ## 🙌 Credits
 
 Built by **Mike Fusco**
-with field-tested priorities: **speed, simplicity, and reliability.**
+Field-tested with priorities: **speed, simplicity, reliability.**
 
 ---
 
 ## 🧾 License
 
-* MIT
+MIT
