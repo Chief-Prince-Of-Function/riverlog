@@ -244,7 +244,7 @@ async function refreshFlyMeta(boxId){
   }
 
   if(flyBoxSummaryMeta){
-    flyBoxSummaryMeta.textContent = `• ${safeText(box.name)}`;
+    flyBoxSummaryMeta.textContent = label ? safeText(label) : "";
   }
 }
 

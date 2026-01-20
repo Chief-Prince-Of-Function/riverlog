@@ -305,7 +305,7 @@ export function initCatches({ setStatus }){
 
       // ✅ Match Quiver approach: update the meta span, not the whole summary
       if(catchesSummaryMeta){
-        catchesSummaryMeta.textContent = label ? `· ${safeText(label)}` : "";
+        catchesSummaryMeta.textContent = label ? safeText(label) : "";
       }
     }catch(_){
       if(catchesSummaryMeta) catchesSummaryMeta.textContent = "";

@@ -663,8 +663,12 @@ select.input option:checked{
   transform: rotate(180deg);
 }
 
-.collapseSummary .muted{
-  margin-left: 8px;
+.collapseSummary .muted::before {
+  content: "·";
+  margin: 0 6px;
+  font-size: 1em;
+  line-height: 1;
+  opacity: 0.85;
 }
 
 /* add a little spacing only when open */
@@ -937,13 +941,6 @@ section.card > details.collapse{
   line-height: 1.2;
 }
 
-.overlay{
-  position: fixed;
-  inset: 0;
-  background: rgba(0,0,0,.55);
-  z-index: 80;
-}
-
 .sheet{
   position: fixed;
   left: 50%;
@@ -985,7 +982,6 @@ body.modalOpen{ overflow: hidden; }
 
 .row.between{ justify-content: space-between; }
 .row.center{ align-items: center; }
-.grow{ flex: 1; min-width: 0; }
 
 .metapad {
   padding: 10px 0 14px;
