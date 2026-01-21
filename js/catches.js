@@ -8,6 +8,7 @@ import {
   gpsHint, photoHint,
   tripSelect,
   collageBtn,
+  collageBtnTop9,
   catchesCollapse, catchesSummaryMeta
 } from "./dom.js";
 
@@ -124,11 +125,18 @@ function loadImageFromFile(file){
 
 function setCollageButtonsEnabled(ok, count){
   const title = ok ? `Build collage (${count} photos)` : "Add a catch photo first";
+  const topTitle = ok ? `Build top 9 collage (${Math.min(count, 9)} of ${count})` : "Add a catch photo first";
 
   if(collageBtn){
     collageBtn.disabled = !ok;
     collageBtn.title = title;
     collageBtn.style.opacity = ok ? "1" : ".55";
+  }
+
+  if(collageBtnTop9){
+    collageBtnTop9.disabled = !ok;
+    collageBtnTop9.title = topTitle;
+    collageBtnTop9.style.opacity = ok ? "1" : ".55";
   }
 }
 
