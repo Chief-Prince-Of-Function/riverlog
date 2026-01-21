@@ -182,6 +182,8 @@ function drawBottomRightBadge(ctx, W, H, logoImg){
 
   if(logoImg){
     const s = cr * 2;
+    const scale = 1.22;
+    const drawSize = s * scale;
 
     ctx.save();
     // subtle backdrop disk
@@ -193,7 +195,10 @@ function drawBottomRightBadge(ctx, W, H, logoImg){
 
     // logo
     ctx.globalAlpha = 0.98;
-    ctx.drawImage(logoImg, cx - s/2, cy - s/2, s, s);
+    ctx.beginPath();
+    ctx.arc(cx, cy, cr, 0, Math.PI*2);
+    ctx.clip();
+    ctx.drawImage(logoImg, cx - drawSize/2, cy - drawSize/2, drawSize, drawSize);
     ctx.restore();
   }else{
     // fallback disk
