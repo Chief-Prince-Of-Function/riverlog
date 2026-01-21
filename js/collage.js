@@ -300,15 +300,6 @@ function mulberry32(a){
   };
 }
 
-function rectsOverlap(a, b, pad=0){
-  return !(
-    a.x + a.w + pad < b.x ||
-    a.x > b.x + b.w + pad ||
-    a.y + a.h + pad < b.y ||
-    a.y > b.y + b.h + pad
-  );
-}
-
 function drawPolaroid(ctx, img, x, y, w, h, angleRad, caption){
   const border = Math.round(w * 0.045);
   const bottomStrip = Math.round(h * 0.17);
@@ -353,6 +344,7 @@ function drawPolaroid(ctx, img, x, y, w, h, angleRad, caption){
 
 function drawSmallSetLayout(ctx, W, H, items){
   const n = items.length;
+  if(n < 1 || n > 9) return false;
 
   const leftPad = Math.round(W * 0.06);
   const topSafe = Math.round(H * 0.18);
@@ -361,41 +353,115 @@ function drawSmallSetLayout(ctx, W, H, items){
   const areaW = W - leftPad*2;
   const areaH = H - topSafe - bottomSafe;
 
-  const centerX = W / 2;
-  const centerY = topSafe + areaH / 2;
+  const rowPlan = (count)=>{
+    switch(count){
+      case 1: return [1];
+      case 2: return [2];
+      case 3: return [3];
+      case 4: return [1,3];
+      case 5: return [2,3];
+      case 6: return [3,3];
+      case 7: return [1,3,3];
+      case 8: return [2,3,3];
+      case 9: return [3,3,3];
+      default: return [];
+    }
+  };
 
-  function place(i, x, y, w, h, ang){
-    drawPolaroid(ctx, items[i].img, x - w/2, y - h/2, w, h, ang, items[i].caption);
+  const rows = rowPlan(n);
+  const rowsCount = rows.length;
+  const maxCols = Math.max(...rows);
+
+  const aspect = 1.08;
+  const gapRatio = 0.08;
+
+  const wByWidth = areaW / (maxCols + gapRatio * (maxCols - 1));
+  const wByHeight = areaH / (aspect * rowsCount + gapRatio * (rowsCount - 1));
+  const w = Math.round(Math.min(wByWidth, wByHeight));
+  const h = Math.round(w * aspect);
+  const gap = Math.round(w * gapRatio);
+
+  const layoutH = rowsCount * h + (rowsCount - 1) * gap;
+  let y = topSafe + Math.round((areaH - layoutH) / 2);
+
+  let idx = 0;
+  for(const cols of rows){
+    const rowW = cols * w + (cols - 1) * gap;
+    let x = Math.round((W - rowW) / 2);
+    for(let c=0; c<cols; c++){
+      if(idx >= n) break;
+      const angBase = cols === 1 ? 0.02 : (cols === 2 ? [-0.03, 0.03] : [-0.04, 0, 0.04]);
+      const ang = Array.isArray(angBase) ? angBase[c] : angBase;
+      drawPolaroid(ctx, items[idx].img, x, y, w, h, ang, items[idx].caption);
+      x += w + gap;
+      idx += 1;
+    }
+    y += h + gap;
   }
 
-  if(n === 1){
-    const w = Math.round(W * 0.46);
-    const h = Math.round(w * 1.08);
-    place(0, centerX, centerY, w, h, 0.04);
-    return true;
+  return true;
+}
+
+function drawScatterLayout(ctx, W, H, items, seedKey){
+  const count = items.length;
+  if(count < 10) return false;
+
+  const seedFn = xmur3(String(seedKey || "riverlog"));
+  const rand = mulberry32(seedFn());
+
+  const safePad = Math.round(W * 0.06);
+  const topSafe = Math.round(H * 0.18);
+  const bottomSafe = Math.round(H * 0.15);
+
+  const areaW = W - safePad*2;
+  const areaH = H - topSafe - bottomSafe;
+
+  const cols = count <= 12 ? 4 : 5;
+  const rows = Math.ceil(count / cols);
+  const aspect = 1.08;
+  const gapRatio = 0.06;
+
+  const wByWidth = areaW / (cols + gapRatio * (cols - 1));
+  const wByHeight = areaH / (aspect * rows + gapRatio * (rows - 1));
+  const baseW = Math.round(Math.min(wByWidth, wByHeight));
+  const baseH = Math.round(baseW * aspect);
+  const gap = Math.round(baseW * gapRatio);
+
+  const slots = [];
+  for(let r=0; r<rows; r++){
+    for(let c=0; c<cols; c++){
+      const x = safePad + c * (baseW + gap);
+      const y = topSafe + r * (baseH + gap);
+      slots.push({ x, y });
+    }
   }
 
-  if(n === 2){
-    const w = Math.round(W * 0.42);
-    const h = Math.round(w * 1.08);
-    place(0, centerX - w*0.28, centerY, w, h, -0.08);
-    place(1, centerX + w*0.28, centerY + h*0.02, w, h, 0.08);
-    return true;
+  slots.sort(()=> rand() - 0.5);
+
+  const placed = [];
+  for(let i=0; i<count; i++){
+    const slot = slots[i] || { x: safePad, y: topSafe };
+    const t = i / Math.max(1, count - 1);
+    const scale = clamp(1.05 - t * 0.25, 0.78, 1.05);
+    const w = Math.round(baseW * scale);
+    const h = Math.round(baseH * scale);
+    const jitter = Math.round(baseW * 0.10);
+    const x = Math.round(slot.x + (rand() - 0.5) * jitter);
+    const y = Math.round(slot.y + (rand() - 0.5) * jitter);
+    const ang = (rand() * 0.16) - 0.08;
+    placed.push({
+      x, y, w, h, ang,
+      img: items[i].img,
+      caption: items[i].caption
+    });
   }
 
-  if(n === 3){
-    const w0 = Math.round(W * 0.36);
-    const h0 = Math.round(w0 * 1.08);
-    const w1 = Math.round(W * 0.40);
-    const h1 = Math.round(w1 * 1.08);
-
-    place(0, centerX, centerY - h1*0.32, w0, h0, 0.06);
-    place(1, centerX - w1*0.30, centerY + h1*0.18, w1, h1, -0.06);
-    place(2, centerX + w1*0.30, centerY + h1*0.16, w1, h1, 0.08);
-    return true;
+  placed.sort((p,q)=> (p.y + rand()*20) - (q.y + rand()*20));
+  for(const p of placed){
+    drawPolaroid(ctx, p.img, p.x, p.y, p.w, p.h, p.ang, p.caption);
   }
 
-  return false;
+  return true;
 }
 
 /* =========================
@@ -486,91 +552,12 @@ export async function buildTripCollage(tripIdArg, tripLabel="Trip"){
     caption: captionForRow(row)
   }));
 
-  // Small counts (1–3): intentional composition
+  // Structured layouts for 1–9 photos
   const didSmall = drawSmallSetLayout(ctx, W, H, items);
 
-  // 4+ photos: deterministic scatter with a focal anchor (largest catch)
+  // 10+ photos: organized scatter
   if(!didSmall){
-    const seedFn = xmur3(String(tripId || meta.name || "riverlog"));
-    const rand = mulberry32(seedFn());
-
-    const baseW = Math.round(W * 0.34);
-    const baseH = Math.round(baseW * 1.08);
-
-    const safePad = Math.round(W * 0.06);
-    const topSafe = Math.round(H * 0.18);
-    const bottomSafe = Math.round(H * 0.15);
-
-    const placed = [];
-    const count = items.length;
-    const order = Array.from({length: count}, (_,i)=>i);
-
-    function sizeForIndex(idx){
-      const t = idx / Math.max(1, count - 1);
-      const scale = clamp(1.05 - t*0.35, 0.70, 1.05);
-      const w = Math.round(baseW * scale);
-      const h = Math.round(baseH * scale);
-      return { w, h };
-    }
-
-    // ✅ Anchor biggest near center-ish so layout has “rhyme/reason”
-    {
-      const first = items[0];
-      const s0 = sizeForIndex(0);
-      placed.push({
-        x: Math.round(W * 0.34),
-        y: Math.round(H * 0.32),
-        w: s0.w,
-        h: s0.h,
-        ang: -0.05,
-        img: first.img,
-        row: first.row,
-        caption: first.caption,
-        hits: 0
-      });
-    }
-
-    for(let k=1;k<order.length;k++){
-      const idx = order[k];
-      const it = items[idx];
-      const { w, h } = sizeForIndex(k);
-
-      let best = null;
-      for(let tries=0; tries<160; tries++){
-        const x = Math.round(safePad + rand() * (W - safePad*2 - w));
-        const y = Math.round(topSafe + rand() * (H - topSafe - bottomSafe - h));
-
-        const a = {
-          x, y, w, h,
-          // ✅ calmer rotation = more “designed” feel
-          ang: (rand() * 0.22) - 0.11
-        };
-
-        let hits = 0;
-        for(const b of placed){
-          if(rectsOverlap(a, b, Math.round(w*0.06))) hits++;
-        }
-
-        if(best == null || hits < best.hits){
-          best = { ...a, hits };
-          if(hits === 0) break;
-        }
-      }
-
-      placed.push({
-        ...best,
-        img: it.img,
-        row: it.row,
-        caption: it.caption
-      });
-    }
-
-    // natural layering
-    placed.sort((p,q)=> (p.y + rand()*30) - (q.y + rand()*30));
-
-    for(const p of placed){
-      drawPolaroid(ctx, p.img, p.x, p.y, p.w, p.h, p.ang, p.caption);
-    }
+    drawScatterLayout(ctx, W, H, items, tripId || meta.name || "riverlog");
   }
 
   const logoImg = await loadRiverLogLogo();
