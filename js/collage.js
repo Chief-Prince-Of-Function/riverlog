@@ -493,7 +493,7 @@ function drawSmallSetLayout(ctx, W, H, items){
   return true;
 }
 
-function drawScatterLayout(ctx, W, H, items, seedKey, options = {}){
+function drawScatterLayout(ctx, W, H, items, seedKey){
   const count = items.length;
   if(count < 10) return false;
 
@@ -540,32 +540,6 @@ function drawScatterLayout(ctx, W, H, items, seedKey, options = {}){
       img: items[i].img,
       caption: items[i].caption
     });
-  }
-
-  if(options.seasonal){
-    const seasonalW = Math.round(baseW * 0.85);
-    const seasonalH = Math.round(baseH * 0.7);
-    const grid = 5;
-    let best = null;
-
-    for(let gx=0; gx<grid; gx++){
-      for(let gy=0; gy<grid; gy++){
-        const x = Math.round(safePad + (areaW - seasonalW) * (gx / (grid - 1)));
-        const y = Math.round(topSafe + (areaH - seasonalH) * (gy / (grid - 1)));
-        const overlap = placed.reduce((sum, p)=> {
-          const ox = Math.max(0, Math.min(x + seasonalW, p.x + p.w) - Math.max(x, p.x));
-          const oy = Math.max(0, Math.min(y + seasonalH, p.y + p.h) - Math.max(y, p.y));
-          return sum + ox * oy;
-        }, 0);
-        if(!best || overlap < best.overlap){
-          best = { x, y, overlap };
-        }
-      }
-    }
-
-    if(best){
-      drawSeasonalContainer(ctx, best.x, best.y, seasonalW, seasonalH, -0.04, "#1f2a44");
-    }
   }
 
   placed.sort((a, b)=> b.radius - a.radius);
@@ -676,10 +650,7 @@ export async function buildTripCollage(tripIdArg, tripLabel="Trip", options = {}
 
   // 10+ photos: organized scatter
   if(!didSmall){
-    const seasonal = photoRows.length >= 20 && items.length >= 20;
-    drawScatterLayout(ctx, W, H, items, tripId || meta.name || "riverlog", {
-      seasonal
-    });
+    drawScatterLayout(ctx, W, H, items, tripId || meta.name || "riverlog");
   }
 
   const logoImg = await loadRiverLogLogo();
