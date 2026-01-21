@@ -406,7 +406,7 @@ function drawPolaroid(ctx, img, x, y, w, h, angleRad, caption){
   ctx.restore();
 }
 
-function drawSeasonalContainer(ctx, x, y, w, h, angleRad, emoji){
+function drawSeasonalContainer(ctx, x, y, w, h, angleRad, fillColor){
   const r = Math.round(Math.min(w, h) * 0.18);
   ctx.save();
   ctx.translate(x + w/2, y + h/2);
@@ -417,7 +417,7 @@ function drawSeasonalContainer(ctx, x, y, w, h, angleRad, emoji){
   ctx.shadowBlur = Math.round(h * 0.22);
   ctx.shadowOffsetY = Math.round(h * 0.08);
 
-  ctx.fillStyle = "rgba(255,255,255,.92)";
+  ctx.fillStyle = fillColor;
   roundRect(ctx, -w/2, -h/2, w, h, r);
   ctx.fill();
   ctx.restore();
@@ -429,13 +429,6 @@ function drawSeasonalContainer(ctx, x, y, w, h, angleRad, emoji){
   roundRect(ctx, -w/2, -h/2, w, h, r);
   ctx.stroke();
   ctx.restore();
-
-  ctx.fillStyle = "#0b1020";
-  ctx.textAlign = "center";
-  ctx.textBaseline = "middle";
-  const emojiSize = Math.round(Math.min(w, h) * 0.6);
-  ctx.font = `600 ${emojiSize}px "Apple Color Emoji","Segoe UI Emoji","Noto Color Emoji",system-ui`;
-  ctx.fillText(emoji, 0, 0);
 
   ctx.restore();
 }
@@ -528,15 +521,6 @@ function drawScatterLayout(ctx, W, H, items, seedKey, options = {}){
   const golden = 2.399963229728653;
 
   const placed = [];
-  if(options.seasonal){
-    const seasonalW = Math.round(baseW * 0.85);
-    const seasonalH = Math.round(baseH * 0.7);
-    let seasonalX = Math.round(centerX + baseW * 0.55 - seasonalW / 2);
-    let seasonalY = Math.round(centerY - baseH * 0.9 - seasonalH / 2);
-    seasonalX = clamp(seasonalX, safePad, W - safePad - seasonalW);
-    seasonalY = clamp(seasonalY, topSafe, H - bottomSafe - seasonalH);
-    drawSeasonalContainer(ctx, seasonalX, seasonalY, seasonalW, seasonalH, -0.06, "🎣");
-  }
 
   for(let i=0; i<count; i++){
     const t = count === 1 ? 0 : i / (count - 1);
@@ -556,6 +540,32 @@ function drawScatterLayout(ctx, W, H, items, seedKey, options = {}){
       img: items[i].img,
       caption: items[i].caption
     });
+  }
+
+  if(options.seasonal){
+    const seasonalW = Math.round(baseW * 0.85);
+    const seasonalH = Math.round(baseH * 0.7);
+    const grid = 5;
+    let best = null;
+
+    for(let gx=0; gx<grid; gx++){
+      for(let gy=0; gy<grid; gy++){
+        const x = Math.round(safePad + (areaW - seasonalW) * (gx / (grid - 1)));
+        const y = Math.round(topSafe + (areaH - seasonalH) * (gy / (grid - 1)));
+        const overlap = placed.reduce((sum, p)=> {
+          const ox = Math.max(0, Math.min(x + seasonalW, p.x + p.w) - Math.max(x, p.x));
+          const oy = Math.max(0, Math.min(y + seasonalH, p.y + p.h) - Math.max(y, p.y));
+          return sum + ox * oy;
+        }, 0);
+        if(!best || overlap < best.overlap){
+          best = { x, y, overlap };
+        }
+      }
+    }
+
+    if(best){
+      drawSeasonalContainer(ctx, best.x, best.y, seasonalW, seasonalH, -0.04, "#1f2a44");
+    }
   }
 
   placed.sort((a, b)=> b.radius - a.radius);
