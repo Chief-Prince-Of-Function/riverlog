@@ -494,6 +494,7 @@ function drawScatterLayout(ctx, W, H, items, seedKey){
   const golden = 2.399963229728653;
 
   const placed = [];
+
   for(let i=0; i<count; i++){
     const t = count === 1 ? 0 : i / (count - 1);
     const radius = minR + Math.sqrt(t) * maxR + (rand() - 0.5) * baseW * 0.08;
