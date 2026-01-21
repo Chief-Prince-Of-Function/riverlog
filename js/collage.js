@@ -406,6 +406,40 @@ function drawPolaroid(ctx, img, x, y, w, h, angleRad, caption){
   ctx.restore();
 }
 
+function drawSeasonalContainer(ctx, x, y, w, h, angleRad, emoji){
+  const r = Math.round(Math.min(w, h) * 0.18);
+  ctx.save();
+  ctx.translate(x + w/2, y + h/2);
+  ctx.rotate(angleRad);
+
+  ctx.save();
+  ctx.shadowColor = "rgba(0,0,0,.30)";
+  ctx.shadowBlur = Math.round(h * 0.22);
+  ctx.shadowOffsetY = Math.round(h * 0.08);
+
+  ctx.fillStyle = "rgba(255,255,255,.92)";
+  roundRect(ctx, -w/2, -h/2, w, h, r);
+  ctx.fill();
+  ctx.restore();
+
+  ctx.save();
+  ctx.globalAlpha = 0.22;
+  ctx.strokeStyle = "#0b1020";
+  ctx.lineWidth = 2;
+  roundRect(ctx, -w/2, -h/2, w, h, r);
+  ctx.stroke();
+  ctx.restore();
+
+  ctx.fillStyle = "#0b1020";
+  ctx.textAlign = "center";
+  ctx.textBaseline = "middle";
+  const emojiSize = Math.round(Math.min(w, h) * 0.6);
+  ctx.font = `600 ${emojiSize}px "Apple Color Emoji","Segoe UI Emoji","Noto Color Emoji",system-ui`;
+  ctx.fillText(emoji, 0, 0);
+
+  ctx.restore();
+}
+
 function drawSmallSetLayout(ctx, W, H, items){
   const n = items.length;
   if(n < 1 || n > 9) return false;
@@ -466,7 +500,7 @@ function drawSmallSetLayout(ctx, W, H, items){
   return true;
 }
 
-function drawScatterLayout(ctx, W, H, items, seedKey){
+function drawScatterLayout(ctx, W, H, items, seedKey, options = {}){
   const count = items.length;
   if(count < 10) return false;
 
@@ -494,6 +528,16 @@ function drawScatterLayout(ctx, W, H, items, seedKey){
   const golden = 2.399963229728653;
 
   const placed = [];
+  if(options.seasonal){
+    const seasonalW = Math.round(baseW * 0.85);
+    const seasonalH = Math.round(baseH * 0.7);
+    let seasonalX = Math.round(centerX + baseW * 0.55 - seasonalW / 2);
+    let seasonalY = Math.round(centerY - baseH * 0.9 - seasonalH / 2);
+    seasonalX = clamp(seasonalX, safePad, W - safePad - seasonalW);
+    seasonalY = clamp(seasonalY, topSafe, H - bottomSafe - seasonalH);
+    drawSeasonalContainer(ctx, seasonalX, seasonalY, seasonalW, seasonalH, -0.06, "🎣");
+  }
+
   for(let i=0; i<count; i++){
     const t = count === 1 ? 0 : i / (count - 1);
     const radius = minR + Math.sqrt(t) * maxR + (rand() - 0.5) * baseW * 0.08;
@@ -622,7 +666,10 @@ export async function buildTripCollage(tripIdArg, tripLabel="Trip", options = {}
 
   // 10+ photos: organized scatter
   if(!didSmall){
-    drawScatterLayout(ctx, W, H, items, tripId || meta.name || "riverlog");
+    const seasonal = photoRows.length >= 20 && items.length >= 20;
+    drawScatterLayout(ctx, W, H, items, tripId || meta.name || "riverlog", {
+      seasonal
+    });
   }
 
   const logoImg = await loadRiverLogLogo();
