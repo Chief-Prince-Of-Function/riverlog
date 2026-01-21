@@ -145,6 +145,69 @@ function drawTopLeftMeta(ctx, W, H, meta){
   ctx.restore();
 }
 
+function wrapTextLines(ctx, text, maxWidth){
+  const raw = String(text || "").trim();
+  if(!raw) return [];
+  const words = raw.split(/\s+/);
+  const lines = [];
+  let line = "";
+  for(const word of words){
+    const next = line ? `${line} ${word}` : word;
+    if(ctx.measureText(next).width <= maxWidth || !line){
+      line = next;
+    }else{
+      lines.push(line);
+      line = word;
+    }
+  }
+  if(line) lines.push(line);
+  return lines;
+}
+
+function drawTopRightRecap(ctx, W, H, meta){
+  const pad = Math.round(W * 0.05);
+  const titleSize = clamp(Math.round(H * 0.020), 16, 26);
+  const subSize = clamp(Math.round(H * 0.018), 12, 20);
+  const maxWidth = Math.round(W * 0.40);
+  const x = W - pad;
+  const sections = [
+    { label: "Trip note", value: meta.desc },
+    { label: "Fly that won the day", value: meta.flyWin },
+    { label: "Lessons learned", value: meta.lessons },
+    { label: "Recap", value: meta.recap }
+  ];
+
+  const hasContent = sections.some(section => String(section.value || "").trim());
+  if(!hasContent) return;
+
+  ctx.save();
+  ctx.fillStyle = "#fff";
+  ctx.textAlign = "right";
+  ctx.textBaseline = "top";
+
+  let y = pad;
+  for(const section of sections){
+    const value = String(section.value || "").trim();
+    if(!value) continue;
+
+    ctx.globalAlpha = 0.80;
+    ctx.font = `600 ${titleSize}px system-ui, -apple-system, Segoe UI, Roboto, Arial`;
+    ctx.fillText(section.label, x, y);
+    y += Math.round(titleSize * 1.15);
+
+    ctx.globalAlpha = 0.70;
+    ctx.font = `400 ${subSize}px system-ui, -apple-system, Segoe UI, Roboto, Arial`;
+    const lines = wrapTextLines(ctx, value, maxWidth);
+    for(const line of lines){
+      ctx.fillText(line, x, y);
+      y += Math.round(subSize * 1.35);
+    }
+    y += Math.round(subSize * 0.5);
+  }
+
+  ctx.restore();
+}
+
 // Classic pill badge with real RiverLog logo
 function drawBottomRightBadge(ctx, W, H, logoImg){
   const pad = Math.round(W * 0.04);
@@ -478,7 +541,8 @@ export async function buildTripCollage(tripIdArg, tripLabel="Trip", options = {}
   const {
     maxPhotos = 20,
     mode = "top_by_length",
-    labelSuffix = "Top catches by length"
+    labelSuffix = "Top catches by length",
+    includeRecapInfo = false
   } = options;
 
   const rows = await listCatches(tripId);
@@ -513,7 +577,8 @@ export async function buildTripCollage(tripIdArg, tripLabel="Trip", options = {}
       mode,
       maxPhotos,
       photoCountUsed: photos.length,
-      photoTotal: photoRows.length
+      photoTotal: photoRows.length,
+      includeRecapInfo
     }
   };
 
@@ -564,6 +629,9 @@ export async function buildTripCollage(tripIdArg, tripLabel="Trip", options = {}
 
   // overlays
   drawTopLeftMeta(ctx, W, H, meta);
+  if(includeRecapInfo){
+    drawTopRightRecap(ctx, W, H, meta);
+  }
   drawBottomRightBadge(ctx, W, H, logoImg);
 
   // Export to PNG
@@ -617,9 +685,21 @@ export function initCollage({ setStatus }){
         return;
       }
 
+      const choice = window.prompt(
+        "Collage options:\n1 = Standard collage\n2 = Include trip recap info\n\nEnter 1 or 2:"
+      );
+      if(choice === null) return;
+      const trimmed = String(choice || "").trim();
+      if(trimmed !== "1" && trimmed !== "2"){
+        setStatus?.("Please enter 1 or 2 to build a collage.");
+        return;
+      }
+
       const label = getSelectedTripLabel();
       setStatus?.("Building collage…");
-      await buildTripCollage(tripId, label);
+      await buildTripCollage(tripId, label, {
+        includeRecapInfo: trimmed === "2"
+      });
       setStatus?.("Collage ready.");
     }catch(e){
       setStatus?.(e?.message || String(e));
