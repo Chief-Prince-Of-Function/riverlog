@@ -3,6 +3,7 @@ import { safeText } from "./utils.js";
 import { state } from "./state.js";
 import {
   collageBtn,
+  collageBtnTop9,
   collageOverlay,
   collageModal,
   collageClose,
@@ -416,47 +417,41 @@ function drawScatterLayout(ctx, W, H, items, seedKey){
   const areaW = W - safePad*2;
   const areaH = H - topSafe - bottomSafe;
 
-  const cols = count <= 12 ? 4 : 5;
-  const rows = Math.ceil(count / cols);
+  const centerX = safePad + areaW / 2;
+  const centerY = topSafe + areaH / 2;
+
   const aspect = 1.08;
-  const gapRatio = 0.06;
-
-  const wByWidth = areaW / (cols + gapRatio * (cols - 1));
-  const wByHeight = areaH / (aspect * rows + gapRatio * (rows - 1));
-  const baseW = Math.round(Math.min(wByWidth, wByHeight));
+  const baseSize = Math.min(areaW, areaH);
+  const sizeScale = clamp(1.08 - (count - 10) * 0.035, 0.72, 1.02);
+  const baseW = Math.round(baseSize * 0.26 * sizeScale);
   const baseH = Math.round(baseW * aspect);
-  const gap = Math.round(baseW * gapRatio);
 
-  const slots = [];
-  for(let r=0; r<rows; r++){
-    for(let c=0; c<cols; c++){
-      const x = safePad + c * (baseW + gap);
-      const y = topSafe + r * (baseH + gap);
-      slots.push({ x, y });
-    }
-  }
-
-  slots.sort(()=> rand() - 0.5);
+  const maxR = Math.min(areaW - baseW, areaH - baseH) * 0.42;
+  const minR = Math.min(baseW, baseH) * 0.12;
+  const golden = 2.399963229728653;
 
   const placed = [];
   for(let i=0; i<count; i++){
-    const slot = slots[i] || { x: safePad, y: topSafe };
-    const t = i / Math.max(1, count - 1);
-    const scale = clamp(1.05 - t * 0.25, 0.78, 1.05);
+    const t = count === 1 ? 0 : i / (count - 1);
+    const radius = minR + Math.sqrt(t) * maxR + (rand() - 0.5) * baseW * 0.08;
+    const angle = i * golden + (rand() - 0.5) * 0.4;
+    const scale = clamp(1.05 - t * 0.22, 0.76, 1.06);
     const w = Math.round(baseW * scale);
     const h = Math.round(baseH * scale);
-    const jitter = Math.round(baseW * 0.10);
-    const x = Math.round(slot.x + (rand() - 0.5) * jitter);
-    const y = Math.round(slot.y + (rand() - 0.5) * jitter);
-    const ang = (rand() * 0.16) - 0.08;
+    let x = Math.round(centerX + Math.cos(angle) * radius - w/2);
+    let y = Math.round(centerY + Math.sin(angle) * radius - h/2);
+    x = clamp(x, safePad, W - safePad - w);
+    y = clamp(y, topSafe, H - bottomSafe - h);
+    const ang = (rand() * 0.24) - 0.12;
     placed.push({
       x, y, w, h, ang,
+      radius,
       img: items[i].img,
       caption: items[i].caption
     });
   }
 
-  placed.sort((p,q)=> (p.y + rand()*20) - (q.y + rand()*20));
+  placed.sort((a, b)=> b.radius - a.radius);
   for(const p of placed){
     drawPolaroid(ctx, p.img, p.x, p.y, p.w, p.h, p.ang, p.caption);
   }
@@ -476,14 +471,19 @@ export async function canBuildCollage(tripId){
   return { ok: photos.length >= 1, count: photos.length };
 }
 
-export async function buildTripCollage(tripIdArg, tripLabel="Trip"){
+export async function buildTripCollage(tripIdArg, tripLabel="Trip", options = {}){
   const tripId = tripIdArg || getSelectedTripId();
   if(!tripId) throw new Error("No trip selected");
+
+  const {
+    maxPhotos = 20,
+    mode = "top_by_length",
+    labelSuffix = "Top catches by length"
+  } = options;
 
   const rows = await listCatches(tripId);
   const photoRows = rows.filter(r => r.photoBlob instanceof Blob);
 
-  const maxPhotos = 20;
   const photos = photoRows
     .slice()
     .sort((a,b)=> parseLenNumber(b.length) - parseLenNumber(a.length))
@@ -510,7 +510,7 @@ export async function buildTripCollage(tripIdArg, tripLabel="Trip"){
     lessons: (trip?.lessons || "").trim(),
     recap: (trip?.recap || "").trim(),
     collage: {
-      mode: "top_by_length",
+      mode,
       maxPhotos,
       photoCountUsed: photos.length,
       photoTotal: photoRows.length
@@ -572,7 +572,7 @@ export async function buildTripCollage(tripIdArg, tripLabel="Trip"){
 
   if(collageMeta){
     const label = String(meta.name || "Trip").trim() || "Trip";
-    collageMeta.textContent = `${safeText(label)} • Top catches by length`;
+    collageMeta.textContent = `${safeText(label)} • ${labelSuffix}`;
   }
 
   // Download button: PNG + sidecar JSON
@@ -627,6 +627,26 @@ export function initCollage({ setStatus }){
   }
 
   collageBtn?.addEventListener("click", onBuild);
+  collageBtnTop9?.addEventListener("click", async ()=>{
+    try{
+      const tripId = getSelectedTripId();
+      if(!tripId){
+        setStatus?.("Pick a trip first.");
+        return;
+      }
+
+      const label = getSelectedTripLabel();
+      setStatus?.("Building top 9 collage…");
+      await buildTripCollage(tripId, label, {
+        maxPhotos: 9,
+        mode: "top9_by_length",
+        labelSuffix: "Top 9 catches by length"
+      });
+      setStatus?.("Top 9 collage ready.");
+    }catch(e){
+      setStatus?.(e?.message || String(e));
+    }
+  });
 
   collageClose?.addEventListener("click", closeCollageModal);
   collageOverlay?.addEventListener("click", closeCollageModal);

@@ -101,6 +101,7 @@ export const badgeToastClose = $("badgeToastClose");
 
 /* ===== Trip Recap section (collapsible) ===== */
 export const collageBtn = $("collageBtn");
+export const collageBtnTop9 = $("collageBtnTop9");
 
 export const saveTripBtn = $("saveTripBtn");
 export const tripName = $("tripName");
