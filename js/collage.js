@@ -29,7 +29,7 @@ function loadRiverLogLogo(){
     im.onerror = ()=> resolve(null);
 
     // ✅ correct for GitHub Pages + local (resolved from index.html)
-    im.src = "assets/icon-192.png";
+    im.src = "assets/icon-crest.svg";
   });
 
   return _logoImgPromise;
