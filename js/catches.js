@@ -14,6 +14,7 @@ import {
 } from "./dom.js";
 
 import { canBuildCollage, buildTripCollage } from "./collage.js";
+import { openPhotoViewer } from "./photo-viewer.js";
 
 /* =========================
    Badge engine (local, device-based)
@@ -464,6 +465,9 @@ export function initCatches({ setStatus }){
       const el = document.createElement("div");
       el.className = "item";
 
+      const speciesTxt = safeText(c.species);
+      const sp = speciesTxt === "-" ? "Catch" : speciesTxt;
+
       const thumb = document.createElement("div");
       thumb.className = "thumb";
 
@@ -473,6 +477,24 @@ export function initCatches({ setStatus }){
         img.src = url;
         img.onload = ()=> URL.revokeObjectURL(url);
         thumb.appendChild(img);
+        thumb.classList.add("isPhoto");
+        thumb.setAttribute("role", "button");
+        thumb.setAttribute("tabindex", "0");
+        const openFull = ()=>{
+          const fullUrl = URL.createObjectURL(c.photoBlob);
+          openPhotoViewer({
+            src: fullUrl,
+            alt: `${sp} catch photo`,
+            cleanup: ()=> URL.revokeObjectURL(fullUrl)
+          });
+        };
+        thumb.addEventListener("click", openFull);
+        thumb.addEventListener("keydown", (event)=>{
+          if(event.key === "Enter" || event.key === " "){
+            event.preventDefault();
+            openFull();
+          }
+        });
       }else{
         thumb.textContent = "No photo";
         thumb.style.color = "rgba(238,244,255,.55)";
@@ -484,7 +506,6 @@ export function initCatches({ setStatus }){
 
       const line1 = document.createElement("div");
       line1.className = "line1";
-      const sp = safeText(c.species) === "-" ? "Catch" : c.species;
       const len = safeText(c.length);
       line1.textContent = sp + (len !== "-" ? ` • ${len}\"` : "");
 

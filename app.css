@@ -596,6 +596,44 @@ select.input option:checked{
 .btnGhost:hover{ background: rgba(0,0,0,.22); }
 
 /* =========================
+   Photo viewer modal
+========================= */
+.photoModal{
+  inset: 0;
+  margin: auto;
+  width: min(96vw, 1100px);
+  height: min(96vh, 900px);
+  padding: 16px;
+  border-radius: 18px;
+  background: rgba(8,12,20,.92);
+  border: 1px solid rgba(255,255,255,.14);
+  box-shadow: 0 18px 45px rgba(0,0,0,.55);
+  z-index: 9999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: fixed;
+}
+
+.photoModal img{
+  max-width: 100%;
+  max-height: 100%;
+  object-fit: contain;
+  border-radius: 12px;
+}
+
+.photoModalClose{
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  z-index: 1;
+}
+
+.thumb.isPhoto{
+  cursor: pointer;
+}
+
+/* =========================
    Badges
 ========================= */
 .badgeGrid{

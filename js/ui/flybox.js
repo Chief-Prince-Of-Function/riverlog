@@ -14,6 +14,7 @@ import {
 
 import { safeText } from "../utils.js";
 import { state } from "../state.js";
+import { openPhotoViewer } from "../photo-viewer.js";
 
 import {
   flyBoxMeta,
@@ -274,6 +275,18 @@ async function renderFlyList(boxId, setStatus){
         <img class="flyThumb" src="${f.photo}" alt="Fly photo" />
         <div class="sizeBadge">#${safeText(f.size || "-")}</div>
       `;
+      thumb.classList.add("isPhoto");
+      thumb.setAttribute("role", "button");
+      thumb.setAttribute("tabindex", "0");
+      const altText = `${flyLabel(f)} photo`;
+      const openFull = ()=> openPhotoViewer({ src: f.photo, alt: altText });
+      thumb.addEventListener("click", openFull);
+      thumb.addEventListener("keydown", (event)=>{
+        if(event.key === "Enter" || event.key === " "){
+          event.preventDefault();
+          openFull();
+        }
+      });
     }else{
       thumb.innerHTML = `<div class="muted" style="font-size:12px; font-weight:800;">#${safeText(f.size || "-")}</div>`;
     }

@@ -367,6 +367,13 @@
 
   <canvas id="collageCanvas" width="1400" height="1400" style="display:none;"></canvas>
 
+  <!-- Photo Viewer Modal -->
+  <div id="photoOverlay" class="overlay hidden"></div>
+  <div id="photoModal" class="photoModal hidden" role="dialog" aria-modal="true">
+    <button id="photoModalClose" class="btnGhost photoModalClose" type="button" aria-label="Close photo">Close</button>
+    <img id="photoModalImg" alt="Photo preview" />
+  </div>
+
   <!-- =========================
       Fly Modal (Add/Edit)
       (Moved ABOVE scripts so DOM refs exist when modules load)

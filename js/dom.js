@@ -121,3 +121,9 @@ export const collagePreview = $("collagePreview");
 export const collageDownload = $("collageDownload");
 export const collageShare = $("collageShare");
 export const collageCanvas = $("collageCanvas");
+
+/* ===== Photo viewer modal ===== */
+export const photoOverlay = $("photoOverlay");
+export const photoModal = $("photoModal");
+export const photoModalImg = $("photoModalImg");
+export const photoModalClose = $("photoModalClose");
