@@ -151,7 +151,7 @@
       <details class="collapse" id="catchesCollapse">
         <summary class="collapseSummary">
           Catches
-          <span class="muted" id="catchesSummaryMeta"></span>
+          <span class="muted summaryMeta" id="catchesSummaryMeta"></span>
         </summary>
 
         <div class="divider"></div>
@@ -168,7 +168,7 @@
       <details class="collapse" id="flyBoxCollapse">
         <summary class="collapseSummary">
           Quiver
-          <span class="muted" id="flyBoxSummaryMeta" style="margin-left:8px;"></span>
+          <span class="muted summaryMeta" id="flyBoxSummaryMeta"></span>
         </summary>
 
         <div class="divider"></div>
@@ -207,7 +207,8 @@
     <section class="card">
       <details class="collapse" id="badgesCollapse">
         <summary class="collapseSummary">
-          Badges + Insights <span class="muted" style="margin-left:8px;">(milestones + quick stats)</span>
+          Badges + Insights
+          <span class="muted summaryMeta" id="badgesSummaryMeta"></span>
         </summary>
 
         <div class="divider"></div>
@@ -215,23 +216,22 @@
         <!-- 3-up tiles (placeholders for now) -->
         <div class="grid3" id="insightTiles">
           <div class="insightTile">
-            <div class="label">Personal Record</div>
+            <div class="label insightLabel">
+              Personal Record <span class="labelMeta" id="prMeta"></span>
+            </div>
             <div class="insightPhoto" id="prTile">
               <div class="insightPhotoPlaceholder">No record yet</div>
             </div>
-            <div class="muted" id="prSub">—</div>
           </div>
 
           <div class="insightTile">
             <div class="label">Best Used Fly</div>
             <div class="insightBig" id="topFlyTile">—</div>
-            <div class="muted" id="topFlySub">—</div>
           </div>
 
           <div class="insightTile">
             <div class="label">Top Species</div>
             <div class="insightBig" id="topSpeciesTile">—</div>
-            <div class="muted" id="topSpeciesSub">—</div>
           </div>
         </div>
 
@@ -245,7 +245,8 @@
     <section class="card">
       <details class="collapse" id="tripRecapCollapse">
         <summary class="collapseSummary">
-          Trip Recap <span class="muted" style="margin-left:8px;">(notes + winner fly)</span>
+          Trip Recap
+          <span class="muted summaryMeta" id="tripRecapSummaryMeta"></span>
         </summary>
 
         <div class="divider"></div>
@@ -254,7 +255,6 @@
           <button id="collageBtn" class="btn" type="button">Build Collage</button>
           <button id="collageBtnTop9" class="btn ghost" type="button">Build Top 9 Collage</button>
         </div>
-        <div class="hint">Build a post-trip collage from your catch photos (sorted by length), or preview the top 9.</div>
 
         <div class="divider"></div>
 
