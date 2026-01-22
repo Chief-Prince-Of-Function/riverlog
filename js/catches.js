@@ -1,4 +1,4 @@
-import { listCatches, saveCatch, deleteCatch, getCatchById, getTrip, uid } from "../storage.js";
+import { listCatches, listAllCatches, saveCatch, deleteCatch, getCatchById, getTrip, uid } from "../storage.js";
 import { fmtTime, safeText } from "./utils.js";
 import { state } from "./state.js";
 import {
@@ -9,7 +9,8 @@ import {
   tripSelect,
   collageBtn,
   collageBtnTop9,
-  catchesCollapse, catchesSummaryMeta
+  catchesCollapse, catchesSummaryMeta,
+  prTile, prSub, topFlyTile, topFlySub, topSpeciesTile, topSpeciesSub
 } from "./dom.js";
 
 import { canBuildCollage, buildTripCollage } from "./collage.js";
@@ -52,6 +53,123 @@ function unlockBadge(id, payload = {}){
 function parseLenNumber(val){
   const n = parseFloat(String(val || "").replace(/[^\d.]+/g, ""));
   return Number.isFinite(n) ? n : 0;
+}
+
+let prPhotoUrl = "";
+
+function clearPrPhotoUrl(){
+  try{
+    if(prPhotoUrl){
+      URL.revokeObjectURL(prPhotoUrl);
+      prPhotoUrl = "";
+    }
+  }catch(_){}
+}
+
+function pickPersonalRecord(rows){
+  let bestLen = 0;
+  let record = null;
+
+  for(const row of rows){
+    const len = parseLenNumber(row.length);
+    if(len <= 0) continue;
+
+    if(len > bestLen){
+      bestLen = len;
+      record = row;
+      continue;
+    }
+
+    if(len === bestLen && record && !(record.photoBlob instanceof Blob) && row.photoBlob instanceof Blob){
+      record = row;
+    }
+  }
+
+  return record;
+}
+
+function findTopCount(rows, key){
+  const counts = new Map();
+
+  for(const row of rows){
+    const raw = String(row?.[key] || "").trim();
+    if(!raw) continue;
+    counts.set(raw, (counts.get(raw) || 0) + 1);
+  }
+
+  let top = null;
+  for(const [name, count] of counts.entries()){
+    if(!top || count > top.count){
+      top = { name, count };
+    }
+  }
+
+  return top;
+}
+
+function renderInsights(rows){
+  if(!rows) rows = [];
+
+  const record = pickPersonalRecord(rows);
+
+  if(prTile){
+    clearPrPhotoUrl();
+    prTile.innerHTML = "";
+
+    if(!record){
+      prTile.innerHTML = `<div class="insightPhotoPlaceholder">No record yet</div>`;
+      if(prSub) prSub.textContent = "Log a length to set your record.";
+    }else{
+      const speciesTxt = safeText(record.species) === "-" ? "Catch" : record.species;
+      const lengthTxt = safeText(record.length);
+
+      if(record.photoBlob instanceof Blob){
+        prPhotoUrl = URL.createObjectURL(record.photoBlob);
+        const img = document.createElement("img");
+        img.src = prPhotoUrl;
+        img.alt = `${speciesTxt} personal record`;
+        prTile.appendChild(img);
+      }else{
+        const placeholder = document.createElement("div");
+        placeholder.className = "insightPhotoPlaceholder";
+        placeholder.textContent = "No record photo";
+        prTile.appendChild(placeholder);
+      }
+
+      const overlay = document.createElement("div");
+      overlay.className = "insightPhotoOverlay";
+
+      const sp = document.createElement("span");
+      sp.className = "recordSpecies";
+      sp.textContent = speciesTxt;
+
+      const len = document.createElement("span");
+      len.className = "recordLength";
+      len.textContent = lengthTxt !== "-" ? `${lengthTxt}"` : "—";
+
+      overlay.appendChild(sp);
+      overlay.appendChild(len);
+      prTile.appendChild(overlay);
+
+      if(prSub) prSub.textContent = "Longest catch across all trips";
+    }
+  }
+
+  const topFly = findTopCount(rows, "fly");
+  if(topFlyTile) topFlyTile.textContent = topFly ? topFly.name : "—";
+  if(topFlySub){
+    topFlySub.textContent = topFly
+      ? `${topFly.count} catch${topFly.count === 1 ? "" : "es"} total`
+      : "—";
+  }
+
+  const topSpecies = findTopCount(rows, "species");
+  if(topSpeciesTile) topSpeciesTile.textContent = topSpecies ? topSpecies.name : "—";
+  if(topSpeciesSub){
+    topSpeciesSub.textContent = topSpecies
+      ? `${topSpecies.count} caught total`
+      : "—";
+  }
 }
 
 function evalBadgesFromRows(rows){
@@ -297,6 +415,15 @@ export function initCatches({ setStatus }){
     setStatus(editingCatchId ? "Photo ready (will replace on update)." : "Photo ready for next catch.");
   });
 
+  async function refreshInsights(){
+    try{
+      const all = await listAllCatches();
+      renderInsights(all);
+    }catch(_){
+      renderInsights([]);
+    }
+  }
+
   async function refreshCatches(){
     if(!state.tripId) return;
 
@@ -409,6 +536,8 @@ export function initCatches({ setStatus }){
     }
 
     try{ evalBadgesFromRows(rows); }catch(_){}
+
+    await refreshInsights();
 
     try{
       const { ok, count } = await canBuildCollage(state.tripId);
