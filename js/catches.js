@@ -10,7 +10,8 @@ import {
   collageBtn,
   collageBtnTop9,
   catchesCollapse, catchesSummaryMeta,
-  prTile, prSub, topFlyTile, topFlySub, topSpeciesTile, topSpeciesSub
+  badgesSummaryMeta,
+  prTile, prMeta, topFlyTile, topSpeciesTile
 } from "./dom.js";
 
 import { canBuildCollage, buildTripCollage } from "./collage.js";
@@ -116,10 +117,16 @@ function renderInsights(rows){
   if(prTile){
     clearPrPhotoUrl();
     prTile.innerHTML = "";
+    prTile.classList.remove("isClickable");
+    prTile.removeAttribute("role");
+    prTile.removeAttribute("tabindex");
+    prTile.onclick = null;
+    prTile.onkeydown = null;
 
     if(!record){
       prTile.innerHTML = `<div class="insightPhotoPlaceholder">No record yet</div>`;
-      if(prSub) prSub.textContent = "Log a length to set your record.";
+      if(prMeta) prMeta.textContent = "";
+      if(badgesSummaryMeta) badgesSummaryMeta.textContent = "";
     }else{
       const speciesTxt = safeText(record.species) === "-" ? "Catch" : record.species;
       const lengthTxt = safeText(record.length);
@@ -130,6 +137,25 @@ function renderInsights(rows){
         img.src = prPhotoUrl;
         img.alt = `${speciesTxt} personal record`;
         prTile.appendChild(img);
+
+        prTile.classList.add("isClickable");
+        prTile.setAttribute("role", "button");
+        prTile.setAttribute("tabindex", "0");
+        const openViewer = ()=>{
+          const viewerUrl = URL.createObjectURL(record.photoBlob);
+          openPhotoViewer({
+            src: viewerUrl,
+            alt: `${speciesTxt} personal record`,
+            cleanup: ()=> URL.revokeObjectURL(viewerUrl)
+          });
+        };
+        prTile.onclick = openViewer;
+        prTile.onkeydown = (event)=>{
+          if(event.key === "Enter" || event.key === " "){
+            event.preventDefault();
+            openViewer();
+          }
+        };
       }else{
         const placeholder = document.createElement("div");
         placeholder.className = "insightPhotoPlaceholder";
@@ -152,25 +178,17 @@ function renderInsights(rows){
       overlay.appendChild(len);
       prTile.appendChild(overlay);
 
-      if(prSub) prSub.textContent = "Longest catch across all trips";
+      const lenLabel = lengthTxt !== "-" ? `${lengthTxt}"` : "—";
+      if(prMeta) prMeta.textContent = `${speciesTxt} ${lenLabel}`;
+      if(badgesSummaryMeta) badgesSummaryMeta.textContent = `${speciesTxt} ${lenLabel}`;
     }
   }
 
   const topFly = findTopCount(rows, "fly");
   if(topFlyTile) topFlyTile.textContent = topFly ? topFly.name : "—";
-  if(topFlySub){
-    topFlySub.textContent = topFly
-      ? `${topFly.count} catch${topFly.count === 1 ? "" : "es"} total`
-      : "—";
-  }
 
   const topSpecies = findTopCount(rows, "species");
   if(topSpeciesTile) topSpeciesTile.textContent = topSpecies ? topSpecies.name : "—";
-  if(topSpeciesSub){
-    topSpeciesSub.textContent = topSpecies
-      ? `${topSpecies.count} caught total`
-      : "—";
-  }
 }
 
 function evalBadgesFromRows(rows){

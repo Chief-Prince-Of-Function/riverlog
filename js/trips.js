@@ -17,6 +17,7 @@ import {
 
   // Trip Recap (collapsible <details>)
   tripRecapCollapse,
+  tripRecapSummaryMeta,
 
   // Trip Recap fields
   saveTripBtn,
@@ -79,6 +80,17 @@ function tripSelectLabel(t){
   if(where) meta.push(where);
 
   return meta.length ? `${name} — ${meta.join(" · ")}` : name;
+}
+
+async function updateTripRecapSummary(tripId){
+  if(!tripRecapSummaryMeta) return;
+  if(!tripId){
+    tripRecapSummaryMeta.textContent = "";
+    return;
+  }
+
+  const t = await getTrip(tripId);
+  tripRecapSummaryMeta.textContent = safeText(t?.name || "");
 }
 
 async function refreshTripSelect(selectedId){
@@ -335,9 +347,11 @@ export function initTrips({ refreshCatches, setStatus }){
     const active = tripSelect?.value || (trips[0] ? trips[0].id : "");
     if(active){
       await setActiveTrip(active, refreshCatches);
+      await updateTripRecapSummary(active);
     }else{
       state.tripId = null;
       await refreshCatches?.();
+      await updateTripRecapSummary(null);
     }
 
     await maybeDisableDeleteButton();

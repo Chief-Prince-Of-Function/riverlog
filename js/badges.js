@@ -87,12 +87,7 @@ function renderBadges(unlocked){
     title.className = "badgeTitle";
     title.textContent = b.title;
 
-    const desc = document.createElement("div");
-    desc.className = "badgeDesc";
-    desc.textContent = b.desc;
-
     text.appendChild(title);
-    text.appendChild(desc);
 
     el.appendChild(icon);
     el.appendChild(text);

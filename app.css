@@ -222,6 +222,18 @@ input[type="date"].input{
   border:1px solid rgba(255,255,255,.10);
 }
 
+.insightLabel{
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+}
+
+.labelMeta{
+  font-size: 12px;
+  font-weight: 600;
+  color: rgba(238,244,255,.68);
+}
+
 .insightBig{
   font-size: 20px;
   font-weight: 900;
@@ -246,6 +258,10 @@ input[type="date"].input{
   height: 100%;
   object-fit: cover;
   display:block;
+}
+
+.insightPhoto.isClickable{
+  cursor: pointer;
 }
 
 .insightPhotoPlaceholder{
@@ -743,7 +759,7 @@ select.input option:checked{
   color: rgba(238,244,255,.92);
   outline: none;
   display: flex;
-  align-items: center;
+  align-items: baseline;
   gap: 8px;
 
   user-select: none;
@@ -781,6 +797,12 @@ select.input option:checked{
   font-size: 1.05em;
   line-height: 1;
   opacity: .85;
+}
+
+.summaryMeta{
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: .01em;
 }
 
 /* add a little spacing only when open */

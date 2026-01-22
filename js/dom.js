@@ -11,6 +11,8 @@ export const badgesCollapse = $("badgesCollapse");
 export const tripRecapCollapse = $("tripRecapCollapse");
 
 export const catchesSummaryMeta = $("catchesSummaryMeta");
+export const badgesSummaryMeta = $("badgesSummaryMeta");
+export const tripRecapSummaryMeta = $("tripRecapSummaryMeta");
 
 /* ===== Trips (top section) ===== */
 export const tripSelect = $("tripSelect");
@@ -87,11 +89,9 @@ export const flyCount = $("flyCount");
 export const badgeGrid = $("badgeGrid");
 
 export const prTile = $("prTile");
-export const prSub = $("prSub");
+export const prMeta = $("prMeta");
 export const topFlyTile = $("topFlyTile");
-export const topFlySub = $("topFlySub");
 export const topSpeciesTile = $("topSpeciesTile");
-export const topSpeciesSub = $("topSpeciesSub");
 
 /* Toast (badge unlock) */
 export const badgeToast = $("badgeToast");
