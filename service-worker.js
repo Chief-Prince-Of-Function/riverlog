@@ -20,7 +20,7 @@ const ASSETS = [
   // Icons (add/remove to match your repo)
   `${BASE}/assets/favicon.ico`,
   `${BASE}/assets/favicon.png`,
-  `${BASE}/assets/icon-192.png`,
+  `${BASE}/assets/icon-crest.svg`,
   `${BASE}/assets/icon-512.png`,
 
   // Root storage module (your imports use ../storage.js from /js/*)
