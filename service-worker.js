@@ -1,7 +1,7 @@
 // service-worker.js — RiverLog
 // Offline-first app shell for GitHub Pages, with reliable iOS updates.
 
-const VERSION = "57";                 // bump on every deploy
+const VERSION = "58";                 // bump on every deploy
 const CACHE = `riverlog-v${VERSION}`;
 
 // IMPORTANT: GitHub Pages path prefix (repo name)
@@ -21,7 +21,9 @@ const ASSETS = [
   `${BASE}/assets/favicon.ico`,
   `${BASE}/assets/favicon.png`,
   `${BASE}/assets/icon-crest.svg`,
+  `${BASE}/assets/icon-192.png`,
   `${BASE}/assets/icon-512.png`,
+  `${BASE}/assets/new-logo.png`,
 
   // Root storage module (your imports use ../storage.js from /js/*)
   `${BASE}/storage.js`,
