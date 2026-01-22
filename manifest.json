@@ -8,7 +8,6 @@
   "theme_color": "#0b1020",
   "icons": [
     { "src": "/riverlog/assets/icon-crest.svg", "sizes": "any", "type": "image/svg+xml" },
-    { "src": "/riverlog/assets/icon-192.png", "sizes": "192x192", "type": "image/png" },
-    { "src": "/riverlog/assets/icon-512.png", "sizes": "512x512", "type": "image/png" }
+    { "src": "data:image/x-icon;base64,AAABAAEAEBAAAAAAIABhAgAAFgAAAIlQTkcNChoKAAAADUlIRFIAAAAQAAAAEAgGAAAAH/P/YQAAAihJREFUeJylkk1PE1EYhc+dmU6/aClp6wJCDAkatQVcCSv8DWLEhcH+BIIx/gcM1kriQldCQpqGpPIbNMGqG+lXjKmGxBhDP4QWmOnM3HtfFrVFIulCz+rkJud5897zAv8pdt5jZP3xTb/LfVdXtThAZEteNATP1O49fNMXEF5LjgTd2tag7r6SuDzluzoYURgDygd1+erLznHLtj63LH6rkXjw46+p4bXkyGg6VUsVco6QkoiILIfIsIi4IOJSUrLwzhlNp2qR9PJwN6d1TdCtbS3GboQW49OaaQPVJsAYoCqAxYGAh2EpPqNJotDz8sdsHZg5s/P11y9bXEpq20Tf9oiO29STkERNo+O5lDSVfXEY3ViZBQAFAPy6Pp+4NOlXGUPjCAgHAJ/7dD2FAUFvx6uM4f74hNenuOZ7AF1xTcRCUQUATBsY8PSvLjZ0QdVVdaIHAIgI1D/1h+h3pgewJS+WftUEAHh14KjdH1DerwqT83wPYAieWavkDUGE8ADQOAQM6zQgJdAyOl4QYb1SMC3hbJ6hjmVW3z8t5ByiTve7NaLdKtH3BtHXPaJqs9PCSn7bHsusbndzvTtotflcspj7JIlCi/Fp7WKEwead6boLIBCeFHLOs9KHA5PT7W7uzClH0svDAebJBnVPLDE+6b02FFUBoLRfFeuVgtlyrOKhLebqC0s/zwV0Fd1YmfUo2h2Pqk0CgMmdHUs4m7WFR2/7f+8/6ATFvCUbdTQ2swAAAABJRU5ErkJggg==", "sizes": "any", "type": "image/x-icon" }
   ]
 }
