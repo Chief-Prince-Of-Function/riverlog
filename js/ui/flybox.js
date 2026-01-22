@@ -1,6 +1,5 @@
 import {
   uid,
-  ensureDefaultFlyBox,
   listFlyBoxes,
   getFlyBox,
   saveFlyBox,
@@ -198,10 +197,19 @@ async function refreshBoxSelect(selectedId){
   if(!flyBoxSelect) return boxes;
 
   flyBoxSelect.innerHTML = "";
-  for(const b of boxes){
+  if(boxes.length){
+    for(const b of boxes){
+      const opt = document.createElement("option");
+      opt.value = b.id;
+      opt.textContent = b.name || "Fly Box";
+      flyBoxSelect.appendChild(opt);
+    }
+  }else{
     const opt = document.createElement("option");
-    opt.value = b.id;
-    opt.textContent = b.name || "Fly Box";
+    opt.value = "";
+    opt.textContent = "No fly boxes yet";
+    opt.disabled = true;
+    opt.selected = true;
     flyBoxSelect.appendChild(opt);
   }
 
@@ -238,6 +246,13 @@ async function refreshFlyMeta(boxId){
 
 async function renderFlyList(boxId, setStatus){
   if(!flyList) return;
+  if(!boxId){
+    flyList.innerHTML = "";
+    if(flyEmpty){
+      flyEmpty.style.display = "block";
+    }
+    return;
+  }
 
   const flies = await listFliesByBox(boxId);
   flyList.innerHTML = "";
@@ -368,7 +383,7 @@ async function renderFlyList(boxId, setStatus){
 }
 
 async function setActiveBox(boxId, setStatus){
-  state.flyBoxId = boxId;
+  state.flyBoxId = boxId || null;
   await refreshFlyMeta(boxId);
   await renderFlyList(boxId, setStatus);
 }
@@ -392,10 +407,9 @@ async function handleDeleteBox(setStatus){
 
   await deleteFlyBox(boxId);
 
-  const ensured = await ensureDefaultFlyBox();
-  await refreshBoxSelect(ensured.id);
+  const boxes = await refreshBoxSelect();
   clearFlyForm();
-  await setActiveBox(ensured.id, setStatus);
+  await setActiveBox(boxes[0]?.id || "", setStatus);
 
   setStatus?.("Fly box deleted.");
 }
@@ -427,9 +441,8 @@ async function withLock(fn){
 
 export function initFlyBox({ setStatus }){
   async function boot(){
-    const box = await ensureDefaultFlyBox();
-    await refreshBoxSelect(box.id);
-    await setActiveBox(box.id, setStatus);
+    const boxes = await refreshBoxSelect();
+    await setActiveBox(boxes[0]?.id || "", setStatus);
   }
 
   boot().catch((e)=> setStatus?.(`FlyBox init failed: ${e?.message || e}`));
