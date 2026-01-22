@@ -118,6 +118,18 @@ body{
 .gap{gap:10px;}
 .topGap{margin-top:12px;}
 
+.catchActions{
+  display:grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap:10px;
+}
+
+.catchActions .btn,
+.catchActions .fileBtn{
+  width: 100%;
+  justify-content: center;
+}
+
 .label{display:block; font-size:12px; color:var(--muted); margin: 0 0 6px 2px;}
 .hint{margin-top:10px; font-size:12px; color:var(--muted);}
 
