@@ -425,7 +425,15 @@ export function initCatches({ setStatus }){
   }
 
   async function refreshCatches(){
-    if(!state.tripId) return;
+    if(!state.tripId){
+      if(catchesSummaryMeta) catchesSummaryMeta.textContent = "";
+      if(catchCount) catchCount.textContent = "0";
+      if(catchList) catchList.innerHTML = "";
+      if(emptyState) emptyState.style.display = "block";
+      setCollageButtonsEnabled(false, 0);
+      await refreshInsights();
+      return;
+    }
 
     // === Catches header context (Trip name/location) ===
     try{
