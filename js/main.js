@@ -1,4 +1,3 @@
-import { ensureDefaultTrip } from "../storage.js";
 import { syncStatus } from "./dom.js";
 import { initPWA } from "./pwa.js";
 import { initTrips } from "./trips.js";
@@ -26,9 +25,7 @@ function setStatus(msg){
     const { refreshCatches } = initCatches({ setStatus });
     const { refreshTrips } = initTrips({ refreshCatches, setStatus });
 
-    // ensure there is a default trip BEFORE refreshing UI
-    const t = await ensureDefaultTrip();
-    await refreshTrips(t.id);
+    await refreshTrips();
 
     // collage buttons + modal wiring
     initCollage({ setStatus });

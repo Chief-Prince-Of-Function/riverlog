@@ -343,6 +343,9 @@ export function initTrips({ refreshCatches, setStatus }){
     const active = tripSelect?.value || (trips[0] ? trips[0].id : "");
     if(active){
       await setActiveTrip(active, refreshCatches);
+    }else{
+      state.tripId = null;
+      await refreshCatches?.();
     }
 
     await maybeDisableDeleteButton();
