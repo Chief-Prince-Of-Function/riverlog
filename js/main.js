@@ -6,6 +6,7 @@ import { initCollage } from "./collage.js";
 import { initIO } from "./io.js";
 import { initBadges } from "./badges.js";
 import { initFlyBox } from "./ui/flybox.js";
+import { initPhotoViewer } from "./photo-viewer.js";
 
 function setStatus(msg){
   if(syncStatus) syncStatus.textContent = msg;
@@ -17,6 +18,8 @@ function setStatus(msg){
     setStatus("Booting…");
 
     const { evaluateBadges } = initBadges();
+
+    initPhotoViewer();
 
     // FlyBox wiring (init ONCE)
     initFlyBox({ setStatus });
