@@ -207,14 +207,6 @@ export function initTrips({ refreshCatches, setStatus }){
     await openEditTripSheet(state.tripId);
   });
 
-  // Overlay click closes
-  tripSheetOverlay?.addEventListener("click", (e)=>{
-    if(e.target === tripSheetOverlay){
-      closeTripSheet();
-      resetTripSheetToCreateMode();
-    }
-  });
-
   cancelTripBtn?.addEventListener("click", ()=>{
     closeTripSheet();
     resetTripSheetToCreateMode();

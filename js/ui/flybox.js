@@ -463,7 +463,6 @@ export function initFlyBox({ setStatus }){
     openFlyModal("add");
   });
 
-  bindTap(flyModalOverlay, closeFlyModal);
   bindTap(flyModalClose, closeFlyModal);
   bindTap(flyModalCancel, closeFlyModal);
 
