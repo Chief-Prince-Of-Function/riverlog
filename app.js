@@ -1,6 +1,5 @@
 import {
   uid,
-  ensureDefaultTrip,
   listTrips,
   getTrip,
   saveTrip,
@@ -174,10 +173,19 @@ async function refreshTrips(selectedId=null){
   const trips = await listTrips();
   tripSelect.innerHTML = "";
 
-  for(const t of trips){
+  if(trips.length){
+    for(const t of trips){
+      const opt = document.createElement("option");
+      opt.value = t.id;
+      opt.textContent = tripSelectLabel(t); // ✅ name + date/where
+      tripSelect.appendChild(opt);
+    }
+  }else{
     const opt = document.createElement("option");
-    opt.value = t.id;
-    opt.textContent = tripSelectLabel(t); // ✅ name + date/where
+    opt.value = "";
+    opt.textContent = "No trips yet";
+    opt.disabled = true;
+    opt.selected = true;
     tripSelect.appendChild(opt);
   }
 
@@ -338,7 +346,12 @@ function exitCatchEditMode(){
 }
 
 async function refreshCatches(){
-  if(!state.tripId) return;
+  if(!state.tripId){
+    catchCount.textContent = "0";
+    catchList.innerHTML = "";
+    emptyState.style.display = "block";
+    return;
+  }
   const rows = await listCatches(state.tripId);
 
   catchCount.textContent = String(rows.length);
@@ -957,8 +970,7 @@ importInput.addEventListener("change", async (e)=>{
 ========================= */
 (async function boot(){
   try{
-    const t = await ensureDefaultTrip();
-    await refreshTrips(t.id);
+    await refreshTrips(null);
     tripDrawer.style.display = "none";
 
     // 5C: Remember badges collapse state

@@ -88,22 +88,7 @@ function clampQty(n){
 export async function ensureDefaultTrip(){
   const trips = await listTrips();
   if(trips.length) return trips[0];
-
-  const now = Date.now();
-  const trip = {
-    id: uid("trip"),
-    name: new Date(now).toLocaleDateString(),
-    date: "",
-    location: "",
-    desc: "",
-    createdAt: now,
-    updatedAt: now,
-    flyWin: "",
-    lessons: "",
-    recap: ""
-  };
-  await saveTrip(trip);
-  return trip;
+  return null;
 }
 
 export async function listTrips(){
@@ -188,17 +173,7 @@ export async function deleteCatch(catchId){
 export async function ensureDefaultFlyBox(){
   const boxes = await listFlyBoxes();
   if(boxes.length) return boxes[0];
-
-  const now = Date.now();
-  const box = {
-    id: uid("box"),
-    name: "My Fly Box",
-    notes: "",
-    createdAt: now,
-    updatedAt: now
-  };
-  await saveFlyBox(box);
-  return box;
+  return null;
 }
 
 export async function listFlyBoxes(){
@@ -623,7 +598,7 @@ export async function exportAllTripsZip(){
 /* ---------- Import helpers ---------- */
 
 async function afterImportEnsureFlyBox(){
-  // If import didn’t include flyboxes (older zips), make sure UI still has one
+  // If import didn’t include flyboxes (older zips), keep it empty.
   try{
     await ensureDefaultFlyBox();
   }catch(_){}
