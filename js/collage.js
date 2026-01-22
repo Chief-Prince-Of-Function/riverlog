@@ -758,5 +758,4 @@ export function initCollage({ setStatus }){
   });
 
   collageClose?.addEventListener("click", closeCollageModal);
-  collageOverlay?.addEventListener("click", closeCollageModal);
 }
