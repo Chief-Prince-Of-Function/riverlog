@@ -185,10 +185,23 @@ function renderInsights(rows){
   }
 
   const topFly = findTopCount(rows, "fly");
-  if(topFlyTile) topFlyTile.textContent = topFly ? topFly.name : "—";
+  if(topFlyTile){
+    if(topFly && safeText(topFly.name) !== "-"){
+      topFlyTile.textContent = `${safeText(topFly.name)} (${topFly.count})`;
+    }else{
+      topFlyTile.textContent = "—";
+    }
+  }
 
   const topSpecies = findTopCount(rows, "species");
-  if(topSpeciesTile) topSpeciesTile.textContent = topSpecies ? topSpecies.name : "—";
+  if(topSpeciesTile){
+    if(topSpecies){
+      const name = safeText(topSpecies.name) === "-" ? "Catch" : safeText(topSpecies.name);
+      topSpeciesTile.textContent = `${name} (${topSpecies.count})`;
+    }else{
+      topSpeciesTile.textContent = "—";
+    }
+  }
 }
 
 function evalBadgesFromRows(rows){
