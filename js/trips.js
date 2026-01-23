@@ -20,12 +20,6 @@ import {
   tripRecapSummaryMeta,
 
   // Trip Recap fields
-  saveTripBtn,
-  tripName,
-  tripDate,
-  tripLocation,
-  tripFlyWin,
-  tripLessons,
   tripRecap
 } from "./dom.js";
 
@@ -137,18 +131,13 @@ async function loadTripIntoRecap(tripId){
   const t = await getTrip(tripId);
   if(!t) return;
 
-  if(tripName) tripName.value = t.name || "";
-  if(tripDate) tripDate.value = t.date || "";
-  if(tripLocation) tripLocation.value = t.location || "";
-  if(tripFlyWin) tripFlyWin.value = t.flyWin || "";
-  if(tripLessons) tripLessons.value = t.lessons || "";
   if(tripRecap) tripRecap.value = t.recap || "";
 }
 
-async function saveRecap(tripId, setStatus){
+async function saveRecap(tripId, setStatus, { silent = false } = {}){
   const t = await getTrip(tripId);
   if(!t){
-    setStatus?.("Trip not found.");
+    if(!silent) setStatus?.("Trip not found.");
     return;
   }
 
@@ -156,16 +145,11 @@ async function saveRecap(tripId, setStatus){
   const next = {
     ...t,
     updatedAt: now,
-    name: (tripName?.value || "").trim(),
-    date: (tripDate?.value || "").trim(),
-    location: (tripLocation?.value || "").trim(),
-    flyWin: (tripFlyWin?.value || "").trim(),
-    lessons: (tripLessons?.value || "").trim(),
     recap: (tripRecap?.value || "").trim()
   };
 
   await saveTrip(next);
-  setStatus?.("Trip recap saved.");
+  if(!silent) setStatus?.("Trip recap saved.");
 }
 
 /* ===== Edit Trip (reuse New Trip modal) ===== */
@@ -266,8 +250,6 @@ export function initTrips({ refreshCatches, setStatus }){
       location: (newTripLocation?.value || "").trim(),
       desc: (newTripDesc?.value || "").trim(),
 
-      flyWin: "",
-      lessons: "",
       recap: ""
     };
 
@@ -297,9 +279,20 @@ export function initTrips({ refreshCatches, setStatus }){
     });
   }
 
-  // Save recap
-  saveTripBtn?.addEventListener("click", async ()=>{
+  // Save recap on change (no explicit button)
+  let recapSaveTimer = null;
+  tripRecap?.addEventListener("input", ()=>{
     if(!state.tripId) return;
+    if(recapSaveTimer) window.clearTimeout(recapSaveTimer);
+    recapSaveTimer = window.setTimeout(async ()=>{
+      await saveRecap(state.tripId, setStatus, { silent: true });
+      await refreshTrips(state.tripId);
+    }, 500);
+  });
+
+  tripRecap?.addEventListener("blur", async ()=>{
+    if(!state.tripId) return;
+    if(recapSaveTimer) window.clearTimeout(recapSaveTimer);
     await saveRecap(state.tripId, setStatus);
     await refreshTrips(state.tripId);
   });

@@ -101,14 +101,9 @@ export const badgeToastClose = $("badgeToastClose");
 
 /* ===== Trip Recap section (collapsible) ===== */
 export const collageBtn = $("collageBtn");
+export const collageBtnAllTopFish = $("collageBtnAllTopFish");
 export const collageBtnTop9 = $("collageBtnTop9");
 
-export const saveTripBtn = $("saveTripBtn");
-export const tripName = $("tripName");
-export const tripDate = $("tripDate");
-export const tripLocation = $("tripLocation");
-export const tripFlyWin = $("tripFlyWin");
-export const tripLessons = $("tripLessons");
 export const tripRecap = $("tripRecap");
 
 /* ===== Collage modal ===== */
