@@ -107,7 +107,6 @@ export const saveTripBtn = $("saveTripBtn");
 export const tripName = $("tripName");
 export const tripDate = $("tripDate");
 export const tripLocation = $("tripLocation");
-export const tripDesc = $("tripDesc");
 export const tripFlyWin = $("tripFlyWin");
 export const tripLessons = $("tripLessons");
 export const tripRecap = $("tripRecap");

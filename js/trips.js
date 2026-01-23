@@ -24,7 +24,6 @@ import {
   tripName,
   tripDate,
   tripLocation,
-  tripDesc,
   tripFlyWin,
   tripLessons,
   tripRecap
@@ -141,7 +140,6 @@ async function loadTripIntoRecap(tripId){
   if(tripName) tripName.value = t.name || "";
   if(tripDate) tripDate.value = t.date || "";
   if(tripLocation) tripLocation.value = t.location || "";
-  if(tripDesc) tripDesc.value = t.desc || "";
   if(tripFlyWin) tripFlyWin.value = t.flyWin || "";
   if(tripLessons) tripLessons.value = t.lessons || "";
   if(tripRecap) tripRecap.value = t.recap || "";
@@ -161,7 +159,6 @@ async function saveRecap(tripId, setStatus){
     name: (tripName?.value || "").trim(),
     date: (tripDate?.value || "").trim(),
     location: (tripLocation?.value || "").trim(),
-    desc: (tripDesc?.value || "").trim(),
     flyWin: (tripFlyWin?.value || "").trim(),
     lessons: (tripLessons?.value || "").trim(),
     recap: (tripRecap?.value || "").trim()
