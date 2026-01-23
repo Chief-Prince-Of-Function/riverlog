@@ -251,9 +251,9 @@
         <div class="divider"></div>
 
         <div class="row gap topGap">
-          <button id="collageBtn" class="btn" type="button">Build Collage</button>
-          <button id="collageBtnAllTopFish" class="btn ghost" type="button">Build All Trips Top Fish Collage</button>
-          <button id="collageBtnTop9" class="btn ghost" type="button">Build Top 9 Collage</button>
+          <button id="collageBtn" class="btn" type="button">Collage</button>
+          <button id="collageBtnAllTopFish" class="btn ghost" type="button">All Trips Collage</button>
+          <button id="collageBtnTop9" class="btn ghost" type="button">Top 9 Collage</button>
         </div>
 
         <div class="divider"></div>
@@ -394,7 +394,10 @@
 
         <div class="span2">
           <label class="label">Photo (one per pattern)</label>
-          <input id="flyPhoto" class="input" type="file" accept="image/*" />
+          <label class="btn fileBtn">
+            Photo
+            <input id="flyPhoto" type="file" accept="image/*" hidden />
+          </label>
           <div id="flyPhotoPreview" class="photoPreview hidden"></div>
         </div>
       </div>
