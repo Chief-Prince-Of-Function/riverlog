@@ -1,8 +1,9 @@
-import { listCatches, getTrip } from "../storage.js";
+import { listAllCatches, listCatches, getTrip } from "../storage.js";
 import { safeText } from "./utils.js";
 import { state } from "./state.js";
 import {
   collageBtn,
+  collageBtnAllTopFish,
   collageBtnTop9,
   collageOverlay,
   collageModal,
@@ -173,9 +174,7 @@ function drawTopRightRecap(ctx, W, H, meta){
   const x = W - pad;
   const sections = [
     { label: "Trip note", value: meta.desc },
-    { label: "Fly that won the day", value: meta.flyWin },
-    { label: "Lessons learned", value: meta.lessons },
-    { label: "Recap", value: meta.recap }
+    { label: "Recap + lessons learned", value: meta.recap }
   ];
 
   const hasContent = sections.some(section => String(section.value || "").trim());
@@ -599,8 +598,6 @@ export async function buildTripCollage(tripIdArg, tripLabel="Trip", options = {}
     date: fmtTripDate(trip?.date || ""),
     location: (trip?.location || "").trim(),
     desc: (trip?.desc || "").trim(),
-    flyWin: (trip?.flyWin || "").trim(),
-    lessons: (trip?.lessons || "").trim(),
     recap: (trip?.recap || "").trim(),
     collage: {
       mode,
@@ -705,6 +702,125 @@ export async function buildTripCollage(tripIdArg, tripLabel="Trip", options = {}
   return true;
 }
 
+export async function buildAllTripsTopFishCollage(options = {}){
+  const {
+    maxPhotos = 20,
+    mode = "all_top_by_length",
+    labelSuffix = "Top catches by length (all trips)"
+  } = options;
+
+  const rows = await listAllCatches();
+  const photoRows = rows.filter(r => r.photoBlob instanceof Blob);
+
+  const photos = photoRows
+    .slice()
+    .sort((a,b)=> parseLenNumber(b.length) - parseLenNumber(a.length))
+    .slice(0, maxPhotos);
+
+  if(!photos.length){
+    throw new Error("No catch photos across all trips");
+  }
+
+  const meta = {
+    _schema: "riverlog_collage_meta",
+    _version: 1,
+    app: "RiverLog",
+    version: "v32",
+    exportedAt: Date.now(),
+    tripId: "all-trips",
+    name: "All Trips",
+    date: "",
+    location: "",
+    desc: "",
+    recap: "",
+    collage: {
+      mode,
+      maxPhotos,
+      photoCountUsed: photos.length,
+      photoTotal: photoRows.length,
+      includeRecapInfo: false
+    }
+  };
+
+  const imgUrls = [];
+  for(const r of photos){
+    const dataUrl = await blobToDataURL(r.photoBlob);
+    imgUrls.push({ url: dataUrl, row: r });
+  }
+
+  const canvas = collageCanvas;
+  if(!canvas) throw new Error("Missing collageCanvas element");
+
+  const ctx = canvas.getContext("2d");
+  const W = canvas.width || 1400;
+  const H = canvas.height || 1400;
+
+  ctx.clearRect(0,0,W,H);
+  ctx.fillStyle = "#0b1020";
+  ctx.fillRect(0,0,W,H);
+
+  const loaded = await Promise.all(
+    imgUrls.map(({url,row})=> new Promise((resolve, reject)=>{
+      const im = new Image();
+      im.onload = ()=> resolve({ img: im, row });
+      im.onerror = reject;
+      im.src = url;
+    }))
+  );
+
+  const items = loaded.map(({img,row})=> ({
+    img,
+    row,
+    caption: captionForRow(row)
+  }));
+
+  const didSmall = drawSmallSetLayout(ctx, W, H, items);
+  if(!didSmall){
+    drawScatterLayout(ctx, W, H, items, "all-trips");
+  }
+
+  const logoImg = await loadRiverLogLogo();
+  drawTopLeftMeta(ctx, W, H, meta);
+  drawBottomRightBadge(ctx, W, H, logoImg);
+
+  const pngUrl = canvas.toDataURL("image/png");
+  if(collagePreview) collagePreview.src = pngUrl;
+
+  if(collageMeta){
+    collageMeta.textContent = `All Trips • ${labelSuffix}`;
+  }
+
+  if(collageDownload){
+    collageDownload.onclick = ()=>{
+      const a = document.createElement("a");
+      a.href = pngUrl;
+      a.download = "riverlog_collage.png";
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+
+      try{
+        downloadText("riverlog_collage.meta.json", JSON.stringify(meta, null, 2));
+      }catch(_){}
+    };
+  }
+
+  if(collageShare){
+    collageShare.onclick = async ()=>{
+      try{
+        if(!navigator.share) return;
+        const res = await fetch(pngUrl);
+        const blob = await res.blob();
+        const file = new File([blob], "riverlog_collage.png", { type: "image/png" });
+        await navigator.share({ files: [file], title: "RiverLog Collage" });
+      }catch(_){}
+    };
+  }
+
+  openCollageModal();
+  return true;
+}
+
 export function initCollage({ setStatus }){
   async function onBuild(){
     try{
@@ -736,6 +852,15 @@ export function initCollage({ setStatus }){
   }
 
   collageBtn?.addEventListener("click", onBuild);
+  collageBtnAllTopFish?.addEventListener("click", async ()=>{
+    try{
+      setStatus?.("Building all-trips top fish collage…");
+      await buildAllTripsTopFishCollage();
+      setStatus?.("All-trips top fish collage ready.");
+    }catch(e){
+      setStatus?.(e?.message || String(e));
+    }
+  });
   collageBtnTop9?.addEventListener("click", async ()=>{
     try{
       const tripId = getSelectedTripId();
