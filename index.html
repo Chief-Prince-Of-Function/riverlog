@@ -45,12 +45,12 @@
   </header>
 
   <main class="wrap">
-    <!-- TRIP (open) -->
-    <section class="card">
+    <!-- TRIP HEADER -->
+    <section class="card tripHeader">
       <div class="row">
         <div class="grow">
-          <label class="label">Trip</label>
-          <div class="row gap">
+          <div class="label">Trip</div>
+          <div class="row gap tripHeaderControls">
             <select id="tripSelect" class="input"></select>
             <button id="newTripBtn" class="btn ghost" type="button">New</button>
             <button id="editTripBtn" class="btn ghost" type="button">Edit</button>
@@ -63,86 +63,93 @@
           <div class="statLbl">Catches</div>
         </div>
       </div>
+    </section>
 
-      <div class="divider"></div>
+    <!-- LOG CATCH (open by default) -->
+    <section class="card">
+      <details class="collapse" id="logCatchCollapse" open>
+        <summary class="collapseSummary">Log Catch</summary>
 
-      <div class="grid2">
-        <div>
-          <label class="label">Species</label>
-          <select id="species" class="input">
-            <option value="">—</option>
+        <div class="divider"></div>
 
-            <!-- Core Trout -->
-            <option>Rainbow Trout</option>
-            <option>Brown Trout</option>
-            <option>Brook Trout</option>
-            <option>Lake Trout</option>
-            <option>Cutthroat Trout</option>
-            <option>Golden Trout</option>
+        <div class="grid2">
+          <div>
+            <label class="label">Species</label>
+            <select id="species" class="input">
+              <option value="">—</option>
 
-            <!-- Cutthroat Subspecies -->
-            <option>Coastal Cutthroat Trout</option>
-            <option>Westslope Cutthroat Trout</option>
-            <option>Yellowstone Cutthroat Trout</option>
-            <option>Lahontan Cutthroat Trout</option>
-            <option>Bonneville Cutthroat Trout</option>
-            <option>Greenback Cutthroat Trout</option>
-            <option>Rio Grande Cutthroat Trout</option>
-            <option>Bear River Cutthroat Trout</option>
-            <option>Colorado River Cutthroat Trout</option>
-            <option>Snake River Fine-spotted Cutthroat Trout</option>
+              <!-- Core Trout -->
+              <option>Rainbow Trout</option>
+              <option>Brown Trout</option>
+              <option>Brook Trout</option>
+              <option>Lake Trout</option>
+              <option>Cutthroat Trout</option>
+              <option>Golden Trout</option>
 
-            <!-- Char (often grouped as trout by anglers) -->
-            <option>Brook Trout (Char)</option>
-            <option>Bull Trout</option>
-            <option>Dolly Varden</option>
-            <option>Arctic Char</option>
+              <!-- Cutthroat Subspecies -->
+              <option>Coastal Cutthroat Trout</option>
+              <option>Westslope Cutthroat Trout</option>
+              <option>Yellowstone Cutthroat Trout</option>
+              <option>Lahontan Cutthroat Trout</option>
+              <option>Bonneville Cutthroat Trout</option>
+              <option>Greenback Cutthroat Trout</option>
+              <option>Rio Grande Cutthroat Trout</option>
+              <option>Bear River Cutthroat Trout</option>
+              <option>Colorado River Cutthroat Trout</option>
+              <option>Snake River Fine-spotted Cutthroat Trout</option>
 
-            <!-- Salmon / Sea-Run Trout -->
-            <option>Steelhead</option>
-            <option>Atlantic Salmon</option>
+              <!-- Char (often grouped as trout by anglers) -->
+              <option>Brook Trout (Char)</option>
+              <option>Bull Trout</option>
+              <option>Dolly Varden</option>
+              <option>Arctic Char</option>
 
-            <!-- Hybrids -->
-            <option>Tiger Trout</option>
-            <option>Splake</option>
-            <option>Cutbow Trout</option>
+              <!-- Salmon / Sea-Run Trout -->
+              <option>Steelhead</option>
+              <option>Atlantic Salmon</option>
 
-            <!-- Bass / Other (keep existing structure intact) -->
-            <option>Smallmouth Bass</option>
-            <option>Largemouth Bass</option>
-            <option>Salmon (Pacific)</option>
-            <option>Other</option>
-          </select>
+              <!-- Hybrids -->
+              <option>Tiger Trout</option>
+              <option>Splake</option>
+              <option>Cutbow Trout</option>
+
+              <!-- Bass / Other (keep existing structure intact) -->
+              <option>Smallmouth Bass</option>
+              <option>Largemouth Bass</option>
+              <option>Salmon (Pacific)</option>
+              <option>Other</option>
+            </select>
+          </div>
+
+          <div>
+            <label class="label">Fly</label>
+            <input id="fly" class="input" placeholder="e.g., Elk Hair Caddis" />
+          </div>
+
+          <div>
+            <label class="label">Length (optional)</label>
+            <input id="length" class="input" inputmode="decimal" placeholder="inches" />
+          </div>
+
+          <div>
+            <label class="label">Notes (optional)</label>
+            <input id="notes" class="input" placeholder="quick detail" />
+          </div>
         </div>
 
-        <div>
-          <label class="label">Fly</label>
-          <input id="fly" class="input" placeholder="e.g., Elk Hair Caddis" />
+        <div class="row gap topGap catchActions">
+          <label class="btn fileBtn">
+            Photo
+            <!-- ONE button: OS chooser includes Camera + Library -->
+            <input id="photoInput" type="file" accept="image/*" multiple hidden />
+          </label>
+          <button id="gpsBtn" class="btn ghost" type="button">Add GPS</button>
+          <button id="saveCatchBtn" class="btn accent" type="button">Save Catch</button>
         </div>
 
-        <div>
-          <label class="label">Length (optional)</label>
-          <input id="length" class="input" inputmode="decimal" placeholder="inches" />
-        </div>
-
-        <div>
-          <label class="label">Notes (optional)</label>
-          <input id="notes" class="input" placeholder="quick detail" />
-        </div>
-      </div>
-
-      <div class="row gap topGap catchActions">
-        <label class="btn fileBtn">
-          Photo
-          <!-- ONE button: OS chooser includes Camera + Library -->
-          <input id="photoInput" type="file" accept="image/*" multiple hidden />
-        </label>
-        <button id="gpsBtn" class="btn ghost" type="button">Add GPS</button>
-        <button id="saveCatchBtn" class="btn accent" type="button">Save Catch</button>
-      </div>
-
-      <div class="hint" id="gpsHint">GPS: not added</div>
-      <div class="hint" id="photoHint">Photo: none</div>
+        <div class="hint" id="gpsHint">GPS: not added</div>
+        <div class="hint" id="photoHint">Photo: none</div>
+      </details>
     </section>
 
     <!-- CATCHES (collapsed by default) -->
