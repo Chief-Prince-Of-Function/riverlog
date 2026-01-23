@@ -20,8 +20,6 @@ const BADGES = [
 
   { id:"big_fish", icon:"🐟", title:"Big Fish", desc:"Logged a fish 18\" or longer" },
   { id:"fly_box_builder", icon:"🧰", title:"Fly Box Builder", desc:"Built your first fly box" },
-  { id:"knot_maestro", icon:"🪢", title:"Knot Maestro", desc:"Tied a rock-solid knot" },
-  { id:"dawn_patrol", icon:"🌅", title:"Dawn Patrol", desc:"Hit the water at sunrise" },
 ];
 
 /* local state */
