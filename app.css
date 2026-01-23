@@ -113,6 +113,20 @@ body{
   isolation: isolate;
 }
 
+.card.tripHeader{
+  background: linear-gradient(135deg, rgba(19,163,139,.22), rgba(12,18,32,.85));
+  border-color: rgba(19,163,139,.38);
+}
+
+.tripHeaderControls{
+  flex-wrap: wrap;
+}
+
+.tripHeaderControls select.input{
+  flex: 1 1 240px;
+  min-width: 220px;
+}
+
 .row{display:flex; align-items:center; justify-content:space-between; gap:12px;}
 .grow{flex:1; min-width: 0;}
 .gap{gap:10px;}
@@ -891,6 +905,11 @@ section.card > details.collapse{
     backdrop-filter: none !important;
     -webkit-backdrop-filter: none !important;
     background: rgba(12,16,28,.92) !important;
+  }
+
+  .card.tripHeader{
+    background: rgba(19,163,139,.22) !important;
+    border-color: rgba(19,163,139,.45);
   }
 
   /* iOS: also avoid frosted overlay blur */
