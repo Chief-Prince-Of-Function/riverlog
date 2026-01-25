@@ -56,6 +56,31 @@ function closeCollageModal(){
 
 function clamp(n, a, b){ return Math.max(a, Math.min(b, n)); }
 
+function getCollageTheme(){
+  const root = document.documentElement;
+  const isDark = root?.dataset.theme === "dark";
+  const styles = root ? getComputedStyle(root) : null;
+  const pick = (name, fallback)=> styles?.getPropertyValue(name)?.trim() || fallback;
+  return {
+    isDark,
+    background: pick("--bg-solid", isDark ? "#0b1020" : "#ffffff"),
+    text: pick("--text", isDark ? "rgba(238,244,255,.92)" : "#0f172a"),
+    muted: pick("--muted", isDark ? "rgba(238,244,255,.70)" : "#475569"),
+    border: pick("--border", isDark ? "rgba(255,255,255,.14)" : "rgba(15,23,42,.12)"),
+    polaroidFill: isDark ? "rgba(12,18,32,.92)" : "rgba(255,255,255,.94)",
+    polaroidShadow: isDark ? "rgba(0,0,0,.45)" : "rgba(15,23,42,.20)",
+    captionBg: isDark ? "rgba(0,0,0,.72)" : "rgba(255,255,255,.80)",
+    captionText: isDark ? "rgba(255,255,255,.90)" : "rgba(15,23,42,.85)",
+    badgeFill: isDark ? "rgba(11,16,32,.85)" : "rgba(255,255,255,.92)",
+    badgeShadow: isDark ? "rgba(0,0,0,.40)" : "rgba(15,23,42,.18)",
+    badgeStroke: isDark ? "rgba(255,255,255,.35)" : "rgba(15,23,42,.18)",
+    badgeText: isDark ? "rgba(238,244,255,.95)" : "rgba(15,23,42,.90)",
+    badgeSubText: isDark ? "rgba(238,244,255,.70)" : "rgba(71,85,105,.90)",
+    logoDisk: isDark ? "rgba(255,255,255,.20)" : "rgba(15,23,42,.08)",
+    seasonalStroke: isDark ? "rgba(238,244,255,.12)" : "rgba(15,23,42,.12)"
+  };
+}
+
 async function blobToDataURL(blob){
   return new Promise((resolve, reject)=>{
     const r = new FileReader();
@@ -110,7 +135,7 @@ function roundRect(ctx, x, y, w, h, r){
   ctx.closePath();
 }
 
-function drawTopLeftMeta(ctx, W, H, meta){
+function drawTopLeftMeta(ctx, W, H, meta, theme = getCollageTheme()){
   const pad = Math.round(W * 0.05);
   const titleSize = clamp(Math.round(H * 0.045), 28, 54);
   const subSize   = clamp(Math.round(H * 0.020), 14, 24);
@@ -120,7 +145,7 @@ function drawTopLeftMeta(ctx, W, H, meta){
   const where = (meta.location || "").trim();
 
   ctx.save();
-  ctx.fillStyle = "#fff";
+  ctx.fillStyle = theme.text;
   ctx.textBaseline = "top";
 
   ctx.globalAlpha = 0.95;
@@ -166,7 +191,7 @@ function wrapTextLines(ctx, text, maxWidth){
   return lines;
 }
 
-function drawTopRightRecap(ctx, W, H, meta){
+function drawTopRightRecap(ctx, W, H, meta, theme = getCollageTheme()){
   const pad = Math.round(W * 0.05);
   const titleSize = clamp(Math.round(H * 0.020), 16, 26);
   const subSize = clamp(Math.round(H * 0.018), 12, 20);
@@ -181,7 +206,7 @@ function drawTopRightRecap(ctx, W, H, meta){
   if(!hasContent) return;
 
   ctx.save();
-  ctx.fillStyle = "#fff";
+  ctx.fillStyle = theme.text;
   ctx.textAlign = "right";
   ctx.textBaseline = "top";
 
@@ -209,7 +234,7 @@ function drawTopRightRecap(ctx, W, H, meta){
 }
 
 // Classic pill badge with real RiverLog logo
-function drawBottomRightBadge(ctx, W, H, logoImg){
+function drawBottomRightBadge(ctx, W, H, logoImg, theme = getCollageTheme()){
   const pad = Math.round(W * 0.04);
 
   const pillW = Math.round(W * 0.22);
@@ -220,12 +245,12 @@ function drawBottomRightBadge(ctx, W, H, logoImg){
 
   // shadow + frosted pill
   ctx.save();
-  ctx.shadowColor = "rgba(0,0,0,.40)";
+  ctx.shadowColor = theme.badgeShadow;
   ctx.shadowBlur = Math.round(pillH * 0.22);
   ctx.shadowOffsetY = Math.round(pillH * 0.10);
 
   ctx.globalAlpha = 0.34;
-  ctx.fillStyle = "#0b1020";
+  ctx.fillStyle = theme.badgeFill;
   roundRect(ctx, x, y, pillW, pillH, r);
   ctx.fill();
   ctx.restore();
@@ -233,7 +258,7 @@ function drawBottomRightBadge(ctx, W, H, logoImg){
   // subtle stroke
   ctx.save();
   ctx.globalAlpha = 0.18;
-  ctx.strokeStyle = "#fff";
+  ctx.strokeStyle = theme.badgeStroke;
   ctx.lineWidth = 2;
   roundRect(ctx, x, y, pillW, pillH, r);
   ctx.stroke();
@@ -252,7 +277,7 @@ function drawBottomRightBadge(ctx, W, H, logoImg){
     ctx.save();
     // subtle backdrop disk
     ctx.globalAlpha = 0.20;
-    ctx.fillStyle = "#fff";
+    ctx.fillStyle = theme.logoDisk;
     ctx.beginPath();
     ctx.arc(cx, cy, cr * 1.02, 0, Math.PI*2);
     ctx.fill();
@@ -268,7 +293,7 @@ function drawBottomRightBadge(ctx, W, H, logoImg){
     // fallback disk
     ctx.save();
     ctx.globalAlpha = 0.90;
-    ctx.fillStyle = "#fff";
+    ctx.fillStyle = theme.logoDisk;
     ctx.beginPath();
     ctx.arc(cx, cy, cr, 0, Math.PI * 2);
     ctx.fill();
@@ -277,7 +302,7 @@ function drawBottomRightBadge(ctx, W, H, logoImg){
 
   // text
   ctx.save();
-  ctx.fillStyle = "#fff";
+  ctx.fillStyle = theme.badgeText;
   ctx.textBaseline = "top";
 
   const titleSize = clamp(Math.round(H * 0.022), 14, 22);
@@ -291,6 +316,7 @@ function drawBottomRightBadge(ctx, W, H, logoImg){
   ctx.fillText("RiverLog", tx, ty);
 
   ctx.globalAlpha = 0.70;
+  ctx.fillStyle = theme.badgeSubText;
   ctx.font = `400 ${subSize}px system-ui, -apple-system, Segoe UI, Roboto, Arial`;
   ctx.fillText("Offline-first", tx, ty + Math.round(titleSize * 1.05));
 
@@ -321,13 +347,13 @@ function captionForRow(row){
   return `-- Catch --`;
 }
 
-function drawCaption(ctx, text, x, y, w, h){
+function drawCaption(ctx, text, x, y, w, h, theme = getCollageTheme()){
   const pad = Math.round(w * 0.06);
   const maxW = w - pad*2;
   const fontSize = clamp(Math.round(h * 0.42), 12, 22);
 
   ctx.save();
-  ctx.fillStyle = "rgba(0,0,0,.72)";
+  ctx.fillStyle = theme.captionBg;
   ctx.textAlign = "center";
   ctx.textBaseline = "middle";
   ctx.font = `500 ${fontSize}px ui-rounded, system-ui, -apple-system, Segoe UI, Roboto, Arial`;
@@ -337,6 +363,7 @@ function drawCaption(ctx, text, x, y, w, h){
     t = t.slice(0, -2).trim() + "…";
   }
 
+  ctx.fillStyle = theme.captionText;
   ctx.fillText(t, x + w/2, y + h/2);
   ctx.restore();
 }
@@ -364,7 +391,7 @@ function mulberry32(a){
   };
 }
 
-function drawPolaroid(ctx, img, x, y, w, h, angleRad, caption){
+function drawPolaroid(ctx, img, x, y, w, h, angleRad, caption, theme = getCollageTheme()){
   const border = Math.round(w * 0.045);
   const bottomStrip = Math.round(h * 0.17);
   const innerX = border;
@@ -378,11 +405,11 @@ function drawPolaroid(ctx, img, x, y, w, h, angleRad, caption){
 
   // shadow
   ctx.save();
-  ctx.shadowColor = "rgba(0,0,0,.35)";
+  ctx.shadowColor = theme.polaroidShadow;
   ctx.shadowBlur = Math.round(h * 0.12);
   ctx.shadowOffsetY = Math.round(h * 0.04);
 
-  ctx.fillStyle = "rgba(255,255,255,.94)";
+  ctx.fillStyle = theme.polaroidFill;
   roundRect(ctx, -w/2, -h/2, w, h, Math.round(h * 0.06));
   ctx.fill();
   ctx.restore();
@@ -401,12 +428,12 @@ function drawPolaroid(ctx, img, x, y, w, h, angleRad, caption){
   const capW = innerW;
   const capH = bottomStrip;
 
-  drawCaption(ctx, caption, capX, capY, capW, capH);
+  drawCaption(ctx, caption, capX, capY, capW, capH, theme);
 
   ctx.restore();
 }
 
-function drawSeasonalContainer(ctx, x, y, w, h, angleRad, fillColor){
+function drawSeasonalContainer(ctx, x, y, w, h, angleRad, fillColor, theme = getCollageTheme()){
   const r = Math.round(Math.min(w, h) * 0.18);
   ctx.save();
   ctx.translate(x + w/2, y + h/2);
@@ -424,7 +451,7 @@ function drawSeasonalContainer(ctx, x, y, w, h, angleRad, fillColor){
 
   ctx.save();
   ctx.globalAlpha = 0.22;
-  ctx.strokeStyle = "#0b1020";
+  ctx.strokeStyle = theme.seasonalStroke;
   ctx.lineWidth = 2;
   roundRect(ctx, -w/2, -h/2, w, h, r);
   ctx.stroke();
@@ -433,7 +460,7 @@ function drawSeasonalContainer(ctx, x, y, w, h, angleRad, fillColor){
   ctx.restore();
 }
 
-function drawSmallSetLayout(ctx, W, H, items){
+function drawSmallSetLayout(ctx, W, H, items, theme = getCollageTheme()){
   const n = items.length;
   if(n < 1 || n > 9) return false;
 
@@ -483,7 +510,7 @@ function drawSmallSetLayout(ctx, W, H, items){
       if(idx >= n) break;
       const angBase = cols === 1 ? 0.02 : (cols === 2 ? [-0.03, 0.03] : [-0.04, 0, 0.04]);
       const ang = Array.isArray(angBase) ? angBase[c] : angBase;
-      drawPolaroid(ctx, items[idx].img, x, y, w, h, ang, items[idx].caption);
+      drawPolaroid(ctx, items[idx].img, x, y, w, h, ang, items[idx].caption, theme);
       x += w + gap;
       idx += 1;
     }
@@ -493,7 +520,7 @@ function drawSmallSetLayout(ctx, W, H, items){
   return true;
 }
 
-function drawScatterLayout(ctx, W, H, items, seedKey){
+function drawScatterLayout(ctx, W, H, items, seedKey, theme = getCollageTheme()){
   const count = items.length;
   if(count < 10) return false;
 
@@ -544,7 +571,7 @@ function drawScatterLayout(ctx, W, H, items, seedKey){
 
   placed.sort((a, b)=> b.radius - a.radius);
   for(const p of placed){
-    drawPolaroid(ctx, p.img, p.x, p.y, p.w, p.h, p.ang, p.caption);
+    drawPolaroid(ctx, p.img, p.x, p.y, p.w, p.h, p.ang, p.caption, theme);
   }
 
   return true;
@@ -621,10 +648,11 @@ export async function buildTripCollage(tripIdArg, tripLabel="Trip", options = {}
   const ctx = canvas.getContext("2d");
   const W = canvas.width || 1400;
   const H = canvas.height || 1400;
+  const theme = getCollageTheme();
 
   // background
   ctx.clearRect(0,0,W,H);
-  ctx.fillStyle = "#0b1020";
+  ctx.fillStyle = theme.background;
   ctx.fillRect(0,0,W,H);
 
   // preload images
@@ -644,21 +672,21 @@ export async function buildTripCollage(tripIdArg, tripLabel="Trip", options = {}
   }));
 
   // Structured layouts for 1–9 photos
-  const didSmall = drawSmallSetLayout(ctx, W, H, items);
+  const didSmall = drawSmallSetLayout(ctx, W, H, items, theme);
 
   // 10+ photos: organized scatter
   if(!didSmall){
-    drawScatterLayout(ctx, W, H, items, tripId || meta.name || "riverlog");
+    drawScatterLayout(ctx, W, H, items, tripId || meta.name || "riverlog", theme);
   }
 
   const logoImg = await loadRiverLogLogo();
 
   // overlays
-  drawTopLeftMeta(ctx, W, H, meta);
+  drawTopLeftMeta(ctx, W, H, meta, theme);
   if(includeRecapInfo){
-    drawTopRightRecap(ctx, W, H, meta);
+    drawTopRightRecap(ctx, W, H, meta, theme);
   }
-  drawBottomRightBadge(ctx, W, H, logoImg);
+  drawBottomRightBadge(ctx, W, H, logoImg, theme);
 
   // Export to PNG
   const pngUrl = canvas.toDataURL("image/png");
@@ -754,9 +782,10 @@ export async function buildAllTripsTopFishCollage(options = {}){
   const ctx = canvas.getContext("2d");
   const W = canvas.width || 1400;
   const H = canvas.height || 1400;
+  const theme = getCollageTheme();
 
   ctx.clearRect(0,0,W,H);
-  ctx.fillStyle = "#0b1020";
+  ctx.fillStyle = theme.background;
   ctx.fillRect(0,0,W,H);
 
   const loaded = await Promise.all(
@@ -774,14 +803,14 @@ export async function buildAllTripsTopFishCollage(options = {}){
     caption: captionForRow(row)
   }));
 
-  const didSmall = drawSmallSetLayout(ctx, W, H, items);
+  const didSmall = drawSmallSetLayout(ctx, W, H, items, theme);
   if(!didSmall){
-    drawScatterLayout(ctx, W, H, items, "all-trips");
+    drawScatterLayout(ctx, W, H, items, "all-trips", theme);
   }
 
   const logoImg = await loadRiverLogLogo();
-  drawTopLeftMeta(ctx, W, H, meta);
-  drawBottomRightBadge(ctx, W, H, logoImg);
+  drawTopLeftMeta(ctx, W, H, meta, theme);
+  drawBottomRightBadge(ctx, W, H, logoImg, theme);
 
   const pngUrl = canvas.toDataURL("image/png");
   if(collagePreview) collagePreview.src = pngUrl;
