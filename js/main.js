@@ -7,6 +7,7 @@ import { initIO } from "./io.js";
 import { initBadges } from "./badges.js";
 import { initFlyBox } from "./ui/flybox.js";
 import { initPhotoViewer } from "./photo-viewer.js";
+import { initTheme } from "./theme.js";
 
 function setStatus(msg){
   if(syncStatus) syncStatus.textContent = msg;
@@ -15,6 +16,7 @@ function setStatus(msg){
 (async function boot(){
   try{
     initPWA();
+    initTheme();
     setStatus("Booting…");
 
     const { evaluateBadges } = initBadges();
