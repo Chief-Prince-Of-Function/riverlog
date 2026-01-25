@@ -1,23 +1,97 @@
 :root{
-  --bg1:#0b1020;
-  --bg2:#0f1b2d;
+  --bg1:#ffffff;
+  --bg2:#f4f6fb;
+  --bg-solid: #ffffff;
+  --bg-image: none;
 
   /* Surfaces */
-  --card: rgba(255,255,255,.07);
+  --card: #ffffff;
+  --border: rgba(15,23,42,.12);
+  --surface-muted: #f8fafc;
+  --surface-contrast: #eef2f7;
+  --surface-strong: rgba(15,23,42,.08);
+
+  --text: #0f172a;
+  --muted: #475569;
+  --accent:#13a38b;
+  --shadow: 0 18px 45px rgba(15,23,42,.10);
+  --radius: 18px;
+  --font: system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;
+  --color-scheme: light;
+
+  --input-bg: #ffffff;
+  --input-border: rgba(15,23,42,.18);
+  --btn-bg: #f1f5f9;
+  --btn-border: rgba(15,23,42,.2);
+  --btn-ghost-bg: #e2e8f0;
+  --btn-ghost-hover: #d7e2ee;
+  --divider: rgba(15,23,42,.12);
+
+  --topbar-bg: rgba(255,255,255,.9);
+  --topbar-border: rgba(15,23,42,.1);
+  --topbar-shadow: 0 10px 24px rgba(15,23,42,.08);
+
+  --trip-header-bg: linear-gradient(135deg, rgba(19,163,139,.18), rgba(240,248,247,.95));
+  --trip-header-border: rgba(19,163,139,.28);
+
+  --overlay-bg: rgba(15,23,42,.55);
+  --modal-bg: #ffffff;
+  --photo-modal-bg: rgba(15,23,42,.95);
+  --sheet-bg: rgba(255,255,255,.98);
+
+  /* dropdown tokens */
+  --dd-bg-solid: #ffffff;
+  --dd-border: rgba(15,23,42,.18);
+  --dd-text: #0f172a;
+  --dd-accent: rgba(19,163,139,.45);
+  --dd-chevron: rgba(15,23,42,.6);
+}
+
+html[data-theme="dark"]{
+  --bg1:#0b1020;
+  --bg2:#0f1b2d;
+  --bg-solid: #0b1020;
+  --bg-image:
+    radial-gradient(1200px 900px at 18% 5%, rgba(19,163,139,.22), transparent 60%),
+    radial-gradient(900px 700px at 110% 25%, rgba(120,90,255,.18), transparent 58%),
+    linear-gradient(180deg, var(--bg1), #07101e 100%);
+
+  --card: rgba(255,255,255,.08);
   --border: rgba(255,255,255,.14);
+  --surface-muted: rgba(8,12,20,.35);
+  --surface-contrast: rgba(6,10,18,.55);
+  --surface-strong: rgba(0,0,0,.18);
 
   --text: rgba(238,244,255,.92);
   --muted: rgba(238,244,255,.70);
-  --accent:#13a38b;
   --shadow: 0 18px 45px rgba(0,0,0,.45);
-  --radius: 18px;
-  --font: system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;
+  --color-scheme: dark;
 
-  /* dropdown tokens */
+  --input-bg: rgba(0,0,0,.20);
+  --input-border: rgba(255,255,255,.14);
+  --btn-bg: rgba(255,255,255,.09);
+  --btn-border: rgba(255,255,255,.14);
+  --btn-ghost-bg: rgba(0,0,0,.18);
+  --btn-ghost-hover: rgba(0,0,0,.22);
+  --divider: rgba(255,255,255,.10);
+
+  --topbar-bg: rgba(10,14,24,.65);
+  --topbar-border: rgba(255,255,255,.12);
+  --topbar-shadow: 0 10px 24px rgba(0,0,0,.25);
+
+  --trip-header-bg: linear-gradient(135deg, rgba(19,163,139,.22), rgba(12,18,32,.85));
+  --trip-header-border: rgba(19,163,139,.38);
+
+  --overlay-bg: rgba(0,0,0,.55);
+  --modal-bg: rgba(255,255,255,.08);
+  --photo-modal-bg: rgba(8,12,20,.92);
+  --sheet-bg: rgba(15,20,30,.98);
+
   --dd-bg-solid: #0f1826;
   --dd-border: rgba(255,255,255,.14);
   --dd-text: rgba(238,244,255,.92);
   --dd-accent: rgba(19,163,139,.55);
+  --dd-chevron: rgba(238,244,255,.65);
 }
 
 *{box-sizing:border-box;}
@@ -26,7 +100,10 @@ html, body{
   overflow-x: hidden;
   width: 100%;
 }
-html{ background:#0b1020; } /* solid fallback */
+html{
+  background:var(--bg-solid);
+  color-scheme: var(--color-scheme);
+} /* solid fallback */
 
 /* =========================
    Background (single source of truth)
@@ -37,11 +114,8 @@ body{
   color:var(--text);
 
   min-height: 100vh;
-  background-color: #0b1020;
-  background-image:
-    radial-gradient(1200px 900px at 18% 5%, rgba(19,163,139,.22), transparent 60%),
-    radial-gradient(900px 700px at 110% 25%, rgba(120,90,255,.18), transparent 58%),
-    linear-gradient(180deg, var(--bg1), #07101e 100%);
+  background-color: var(--bg-solid);
+  background-image: var(--bg-image);
   background-repeat: no-repeat;
   background-size: cover;
   background-attachment: scroll; /* do NOT use fixed on iOS */
@@ -54,9 +128,9 @@ body{
   position:sticky; top:0; z-index:10;
   backdrop-filter: blur(12px) saturate(135%);
   -webkit-backdrop-filter: blur(12px) saturate(135%);
-  background: rgba(10,14,24,.65);
-  border-bottom:1px solid rgba(255,255,255,.12);
-  box-shadow: 0 10px 24px rgba(0,0,0,.25);
+  background: var(--topbar-bg);
+  border-bottom:1px solid var(--topbar-border);
+  box-shadow: var(--topbar-shadow);
   padding: 10px 16px;
   display:flex; align-items:center; justify-content:space-between;
   gap:12px;
@@ -126,7 +200,7 @@ body{
    Surfaces
 ========================= */
 .card{
-  background: rgba(255,255,255,.08);
+  background: var(--card);
   border:1px solid var(--border);
   border-radius: var(--radius);
   box-shadow: var(--shadow);
@@ -138,8 +212,8 @@ body{
 }
 
 .card.tripHeader{
-  background: linear-gradient(135deg, rgba(19,163,139,.22), rgba(12,18,32,.85));
-  border-color: rgba(19,163,139,.38);
+  background: var(--trip-header-bg);
+  border-color: var(--trip-header-border);
 }
 
 .tripHeaderControls{
@@ -176,8 +250,8 @@ body{
 ========================= */
 .input{
   width:100%;
-  background: rgba(0,0,0,.20);
-  border:1px solid rgba(255,255,255,.14);
+  background: var(--input-bg);
+  border:1px solid var(--input-border);
   color: var(--text);
   border-radius: 14px;
   padding: 10px 12px;
@@ -208,8 +282,8 @@ input[type="date"].input{
 .area{min-height: 92px; resize: vertical;}
 
 .btn{
-  border:1px solid rgba(255,255,255,.14);
-  background: rgba(255,255,255,.09);
+  border:1px solid var(--btn-border);
+  background: var(--btn-bg);
   color: var(--text);
   padding: 10px 12px;
   border-radius: 14px;
@@ -223,7 +297,7 @@ input[type="date"].input{
 
 .btn:hover{filter: brightness(1.07);}
 .btn:active{transform: translateY(1px);}
-.btn.ghost{background: rgba(0,0,0,.18);}
+.btn.ghost{background: var(--btn-ghost-bg);}
 
 .btn.accent{
   border-color: rgba(19,163,139,.55);
@@ -234,7 +308,7 @@ input[type="date"].input{
 
 .divider{
   height:1px;
-  background: rgba(255,255,255,.10);
+  background: var(--divider);
   margin: 14px 0;
 }
 
@@ -256,8 +330,8 @@ input[type="date"].input{
 .insightTile{
   padding: 12px;
   border-radius: 16px;
-  background: rgba(8,12,20,.35);
-  border:1px solid rgba(255,255,255,.10);
+  background: var(--surface-muted);
+  border:1px solid var(--border);
 }
 
 .insightLabel{
@@ -269,7 +343,7 @@ input[type="date"].input{
 .labelMeta{
   font-size: 12px;
   font-weight: 600;
-  color: rgba(238,244,255,.68);
+  color: var(--muted);
 }
 
 .insightBig{
@@ -284,8 +358,8 @@ input[type="date"].input{
   margin-top: 6px;
   border-radius: 14px;
   overflow: hidden;
-  background: rgba(6,10,18,.55);
-  border: 1px solid rgba(255,255,255,.10);
+  background: var(--surface-contrast);
+  border: 1px solid var(--border);
   display:flex;
   align-items:center;
   justify-content:center;
@@ -304,7 +378,7 @@ input[type="date"].input{
 
 .insightPhotoPlaceholder{
   font-size: 12px;
-  color: rgba(238,244,255,.65);
+  color: var(--muted);
   text-align: center;
   padding: 0 10px;
 }
@@ -355,8 +429,8 @@ details.collapse > .divider:first-of-type{
   margin-top: 10px;
   padding: 12px;
   border-radius: 16px;
-  border:1px solid rgba(255,255,255,.12);
-  background: rgba(8,12,20,.35);
+  border:1px solid var(--border);
+  background: var(--surface-muted);
   backdrop-filter: blur(14px) saturate(140%);
   -webkit-backdrop-filter: blur(14px) saturate(140%);
 }
@@ -367,8 +441,8 @@ details.collapse > .divider:first-of-type{
 .stat{
   width:92px; min-width:92px;
   border-radius: 16px;
-  background: rgba(8,12,20,.35);
-  border:1px solid rgba(255,255,255,.12);
+  background: var(--surface-muted);
+  border:1px solid var(--border);
   padding: 10px;
   text-align:center;
 
@@ -391,8 +465,8 @@ details.collapse > .divider:first-of-type{
   align-items:center;
   padding: 10px;
   border-radius: 16px;
-  background: rgba(8,12,20,.35);
-  border:1px solid rgba(255,255,255,.10);
+  background: var(--surface-muted);
+  border:1px solid var(--border);
 
   backdrop-filter: blur(14px) saturate(140%);
   -webkit-backdrop-filter: blur(14px) saturate(140%);
@@ -401,8 +475,8 @@ details.collapse > .divider:first-of-type{
 .thumb{
   width:92px; height:68px;
   border-radius: 14px;
-  background: rgba(255,255,255,.06);
-  border:1px solid rgba(255,255,255,.10);
+  background: var(--surface-strong);
+  border:1px solid var(--border);
   overflow:hidden;
   display:grid; place-items:center;
   position: relative; /* required for badge positioning */
@@ -459,8 +533,8 @@ details.collapse > .divider:first-of-type{
   height: 96px;
   object-fit: cover;
   border-radius: 14px;
-  border: 1px solid rgba(255,255,255,.14);
-  background: rgba(0,0,0,.18);
+  border: 1px solid var(--border);
+  background: var(--surface-strong);
   display: block;
 }
 
@@ -494,16 +568,16 @@ details.collapse > .divider:first-of-type{
 select.input{
   appearance: none;
   -webkit-appearance: none;
-  color-scheme: dark;
-  background: rgba(0,0,0,.22);
+  color-scheme: var(--color-scheme);
+  background: var(--input-bg);
   border: 1px solid var(--dd-border);
   color: var(--dd-text);
   padding-right: 34px;
-  box-shadow: inset 0 0 0 1px rgba(255,255,255,.03);
+  box-shadow: inset 0 0 0 1px var(--surface-strong);
 
   background-image:
-    linear-gradient(45deg, transparent 50%, rgba(238,244,255,.65) 50%),
-    linear-gradient(135deg, rgba(238,244,255,.65) 50%, transparent 50%);
+    linear-gradient(45deg, transparent 50%, var(--dd-chevron) 50%),
+    linear-gradient(135deg, var(--dd-chevron) 50%, transparent 50%);
   background-position:
     calc(100% - 18px) 50%,
     calc(100% - 12px) 50%;
@@ -523,7 +597,7 @@ select.input option{
 
 select.input option:checked{
   background: rgba(19,163,139,.28);
-  color: #eef4ff;
+  color: var(--text);
 }
 
 /* =========================
@@ -534,7 +608,7 @@ select.input option:checked{
 .overlay{
   position: fixed;
   inset: 0;
-  background: rgba(0,0,0,.55);
+  background: var(--overlay-bg);
   z-index: 9998;
 
   /* IMPORTANT: make it tappable */
@@ -550,8 +624,8 @@ select.input option:checked{
   max-height: min(90vh, 900px);
   overflow: hidden;
   border-radius: 18px;
-  background: rgba(255,255,255,.08);
-  border: 1px solid rgba(255,255,255,.14);
+  background: var(--modal-bg);
+  border: 1px solid var(--border);
   box-shadow: 0 18px 45px rgba(0,0,0,.45);
   z-index: 9999;
   display: flex;
@@ -571,11 +645,11 @@ select.input option:checked{
   align-items:center;
   justify-content: space-between;
   gap: 12px;
-  border-bottom: 1px solid rgba(255,255,255,.10);
+  border-bottom: 1px solid var(--divider);
 }
 
 .modalFoot{
-  border-top: 1px solid rgba(255,255,255,.10);
+  border-top: 1px solid var(--divider);
   border-bottom: none;
   justify-content: flex-end;
 }
@@ -607,12 +681,12 @@ select.input option:checked{
   }
 }
 
-.modalTitle{ font-weight: 700; color: rgba(238,244,255,.92); }
+.modalTitle{ font-weight: 700; color: var(--text); }
 
 .modalSub{
   margin-top: 2px;
   font-size: 12px;
-  color: rgba(238,244,255,.70);
+  color: var(--muted);
 }
 
 .modalBody{
@@ -623,8 +697,8 @@ select.input option:checked{
 
 .collageWrap{
   border-radius: 16px;
-  border: 1px solid rgba(255,255,255,.12);
-  background: rgba(0,0,0,.18);
+  border: 1px solid var(--border);
+  background: var(--surface-strong);
   padding: 10px;
 }
 
@@ -638,16 +712,16 @@ select.input option:checked{
 .btnGhost{
   border-radius: 14px;
   padding: 10px 12px;
-  border: 1px solid rgba(255,255,255,.14);
-  background: rgba(0,0,0,.15);
-  color: rgba(238,244,255,.86);
+  border: 1px solid var(--btn-border);
+  background: var(--btn-ghost-bg);
+  color: var(--text);
   cursor: pointer;
 
   -webkit-tap-highlight-color: transparent;
   touch-action: manipulation;
 }
 
-.btnGhost:hover{ background: rgba(0,0,0,.22); }
+.btnGhost:hover{ background: var(--btn-ghost-hover); }
 
 /* =========================
    Photo viewer modal
@@ -659,8 +733,8 @@ select.input option:checked{
   height: min(96vh, 900px);
   padding: 16px;
   border-radius: 18px;
-  background: rgba(8,12,20,.92);
-  border: 1px solid rgba(255,255,255,.14);
+  background: var(--photo-modal-bg);
+  border: 1px solid var(--border);
   box-shadow: 0 18px 45px rgba(0,0,0,.55);
   z-index: 9999;
   display: flex;
@@ -703,8 +777,8 @@ select.input option:checked{
   gap:10px;
   padding:10px 12px;
   border-radius: 16px;
-  background: rgba(8,12,20,.35);
-  border:1px solid rgba(255,255,255,.10);
+  background: var(--surface-muted);
+  border:1px solid var(--border);
   backdrop-filter: blur(14px) saturate(140%);
   -webkit-backdrop-filter: blur(14px) saturate(140%);
 }
@@ -724,7 +798,7 @@ select.input option:checked{
 
 .badgeDesc{
   font-size: 11px;
-  color: rgba(238,244,255,.70);
+  color: var(--muted);
   margin-top:2px;
 }
 
@@ -746,8 +820,8 @@ select.input option:checked{
   padding: 12px 14px;
   border-radius: 18px;
 
-  background: rgba(10,14,24,.92);
-  border: 1px solid rgba(255,255,255,.16);
+  background: var(--modal-bg);
+  border: 1px solid var(--border);
   box-shadow: 0 18px 45px rgba(0,0,0,.60);
 }
 
@@ -761,12 +835,12 @@ select.input option:checked{
 .toastText{ min-width: 0; }
 
 .toastTitle{ font-weight: 900; margin-bottom: 2px; }
-.toastSub{ font-size: 12px; color: rgba(238,244,255,.70); }
+.toastSub{ font-size: 12px; color: var(--muted); }
 
 .toastClose{
-  border: 1px solid rgba(255,255,255,.14);
-  background: rgba(0,0,0,.18);
-  color: rgba(238,244,255,.86);
+  border: 1px solid var(--btn-border);
+  background: var(--btn-ghost-bg);
+  color: var(--text);
   border-radius: 12px;
   padding: 8px 10px;
   cursor: pointer;
@@ -783,8 +857,8 @@ select.input option:checked{
    Collapsible (details/summary)
 ========================= */
 .collapse{
-  border: 1px solid rgba(255,255,255,.12);
-  background: rgba(0,0,0,.18);
+  border: 1px solid var(--border);
+  background: var(--surface-strong);
   border-radius: 18px;
   padding: 10px 12px;
   margin-top: 10px;
@@ -794,7 +868,7 @@ select.input option:checked{
   list-style: none;
   cursor: pointer;
   font-weight: 700;
-  color: rgba(238,244,255,.92);
+  color: var(--text);
   outline: none;
   display: flex;
   align-items: baseline;
@@ -923,15 +997,29 @@ section.card > details.collapse{
   .badgeGrid{ grid-template-columns: repeat(2, 1fr); }
 
   /* iOS: reduce frosted artifacts */
-  .card, .newTrip, .stat, .item, .modal{
+  .card{
     backdrop-filter: none !important;
     -webkit-backdrop-filter: none !important;
-    background: rgba(12,16,28,.92) !important;
+    background: var(--card) !important;
+  }
+
+  .newTrip,
+  .stat,
+  .item{
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+    background: var(--surface-muted) !important;
+  }
+
+  .modal{
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+    background: var(--modal-bg) !important;
   }
 
   .card.tripHeader{
-    background: rgba(19,163,139,.22) !important;
-    border-color: rgba(19,163,139,.45);
+    background: var(--trip-header-bg) !important;
+    border-color: var(--trip-header-border);
   }
 
   /* iOS: also avoid frosted overlay blur */
@@ -959,7 +1047,7 @@ section.card > details.collapse{
   justify-content: center;
 
   padding: 16px;
-  background: rgba(0,0,0,.55);
+  background: var(--overlay-bg);
 
   /* iOS: blur on full-screen overlays can cause “haze stuck” artifacts */
   backdrop-filter: none;
@@ -983,7 +1071,7 @@ section.card > details.collapse{
   padding: 16px 16px 14px;
   border-radius: 18px;
 
-  background: rgba(14, 18, 28, 0.94);
+  background: var(--modal-bg);
   border: 2px solid rgba(19, 163, 139, 0.75);
   box-shadow: 0 18px 60px rgba(0,0,0,.60);
 
@@ -1046,14 +1134,14 @@ section.card > details.collapse{
 #newTripForm input,
 #newTripForm textarea,
 #newTripForm select{
-  background: rgba(255,255,255,.06);
-  border: 1px solid rgba(255,255,255,.14);
-  color: rgba(238,244,255,.92);
+  background: var(--input-bg);
+  border: 1px solid var(--input-border);
+  color: var(--text);
 }
 
 #newTripForm input::placeholder,
 #newTripForm textarea::placeholder{
-  color: rgba(238,244,255,.55);
+  color: var(--muted);
 }
 
 /* ===== Trip Recap: prevent date overflow on iOS ===== */
@@ -1130,8 +1218,8 @@ section.card > details.collapse{
   overflow: hidden;
   z-index: 90;
   border-radius: 18px 18px 0 0;
-  background: rgba(15,20,30,.98);
-  border: 1px solid rgba(255,255,255,.12);
+  background: var(--sheet-bg);
+  border: 1px solid var(--border);
 }
 
 .sheetHeader{
@@ -1139,7 +1227,7 @@ section.card > details.collapse{
   align-items: center;
   justify-content: space-between;
   padding: 12px 14px;
-  border-bottom: 1px solid rgba(255,255,255,.08);
+  border-bottom: 1px solid var(--divider);
 }
 
 .sheetBody{
@@ -1150,7 +1238,7 @@ section.card > details.collapse{
 
 .sheetFooter{
   padding: 12px 14px;
-  border-top: 1px solid rgba(255,255,255,.08);
+  border-top: 1px solid var(--divider);
   justify-content: flex-end;
 }
 

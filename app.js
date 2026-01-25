@@ -62,6 +62,8 @@ const catchList = $("catchList");
 const emptyState = $("emptyState");
 const catchCount = $("catchCount");
 const syncStatus = $("syncStatus");
+const themeToggle = $("themeToggle");
+const themeMeta = document.querySelector('meta[name="theme-color"]');
 
 // Trip recap drawer
 const tripDrawer = $("tripDrawer");
@@ -97,6 +99,34 @@ let state = {
   // Edit mode
   editingCatchId: null
 };
+
+const THEME_STORAGE_KEY = "riverlog-theme";
+
+function applyTheme(theme){
+  const nextTheme = theme === "dark" ? "dark" : "light";
+  document.documentElement.dataset.theme = nextTheme;
+  themeToggle?.setAttribute("aria-pressed", String(nextTheme === "dark"));
+  themeToggle?.setAttribute("title", nextTheme === "dark" ? "Switch to light mode" : "Switch to dark mode");
+  const icon = nextTheme === "dark" ? "☀️" : "🌙";
+  const iconSpan = themeToggle?.querySelector("span[aria-hidden]");
+  if(iconSpan) iconSpan.textContent = icon;
+  themeMeta?.setAttribute("content", nextTheme === "dark" ? "#0b1020" : "#ffffff");
+}
+
+function initTheme(){
+  const stored = localStorage.getItem(THEME_STORAGE_KEY);
+  const initial = stored === "dark" ? "dark" : "light";
+  applyTheme(initial);
+}
+
+themeToggle?.addEventListener("click", ()=>{
+  const current = document.documentElement.dataset.theme === "dark" ? "dark" : "light";
+  const next = current === "dark" ? "light" : "dark";
+  localStorage.setItem(THEME_STORAGE_KEY, next);
+  applyTheme(next);
+});
+
+initTheme();
 
 function setStatus(msg){
   syncStatus.textContent = msg;
