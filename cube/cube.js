@@ -217,6 +217,7 @@ requestRender();
 const modalConfigs = [
   { triggerId: "openTripModalBtn", modalId: "tripModal", overlayId: "tripModalOverlay" },
   { triggerId: "openLogCatchModalBtn", modalId: "logCatchModal", overlayId: "logCatchModalOverlay" },
+  { triggerId: "openLogCatchEmblemBtn", modalId: "logCatchModal", overlayId: "logCatchModalOverlay" },
   { triggerId: "openCatchesModalBtn", modalId: "catchesModal", overlayId: "catchesModalOverlay" },
   { triggerId: "openQuiverModalBtn", modalId: "quiverModal", overlayId: "quiverModalOverlay" },
   { triggerId: "openBadgesModalBtn", modalId: "badgesModal", overlayId: "badgesModalOverlay" },
