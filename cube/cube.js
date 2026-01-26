@@ -42,6 +42,12 @@ function setStatus(msg){
 
 function normalizeDeg(deg){
   let value = deg % 360;
+  if(value < 0) value += 360;
+  return value;
+}
+
+function normalizeSignedDeg(deg){
+  let value = deg % 360;
   if(value > 180) value -= 360;
   if(value < -180) value += 360;
   return value;
@@ -52,7 +58,7 @@ function getFrontFace(rotY){
   let best = faceRing[0];
   let bestDistance = Infinity;
   for(const face of faceRing){
-    const distance = Math.abs(normalizeDeg(normalized - face.angle));
+    const distance = Math.abs(normalizeSignedDeg(normalized - face.angle));
     if(distance < bestDistance){
       bestDistance = distance;
       best = face;
@@ -61,8 +67,8 @@ function getFrontFace(rotY){
   return best.label;
 }
 
-const baseRotX = -6;
-const baseRotY = 30;
+const baseRotX = 0;
+const baseRotY = 15;
 let spinY = 0;
 let renderFrame = null;
 let snapFrame = null;
@@ -87,7 +93,7 @@ function requestRender(){
 }
 
 function animateTo(targetSpinY){
-  const goalY = normalizeDeg(targetSpinY);
+  const goalY = targetSpinY;
 
   if(snapFrame) window.cancelAnimationFrame(snapFrame);
 
@@ -143,7 +149,7 @@ cubeScene?.addEventListener("pointerdown", (event) => {
 cubeScene?.addEventListener("pointermove", (event) => {
   if(!isDragging) return;
   const dx = event.clientX - startX;
-  spinY = normalizeDeg(startSpinY + dx * 0.3);
+  spinY = startSpinY + dx * 0.3;
   requestRender();
 });
 
