@@ -166,8 +166,20 @@ body {
   width: var(--emblem-size);
   height: var(--emblem-size);
   transform-style: preserve-3d;
-  pointer-events: none;
   filter: drop-shadow(0 14px 24px rgba(15, 23, 42, 0.2));
+}
+
+.cube-emblem-button {
+  border: none;
+  background: transparent;
+  padding: 0;
+  cursor: pointer;
+}
+
+.cube-emblem-button:focus-visible {
+  outline: 2px solid var(--accent, #13a38b);
+  outline-offset: 4px;
+  border-radius: 999px;
 }
 
 .cube-emblem img {
