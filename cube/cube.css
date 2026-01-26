@@ -1,9 +1,9 @@
 :root {
   --cube-size: min(70vmin, 520px);
-  --face-width: calc(var(--cube-size) * 0.84);
-  --face-height: calc(var(--cube-size) * 0.58);
+  --face-width: calc(var(--cube-size) * 0.78);
+  --face-height: calc(var(--cube-size) * 0.52);
   --prism-radius: calc(var(--face-width) * 0.87);
-  --emblem-size: clamp(192px, 27vmin, 288px);
+  --emblem-size: clamp(128px, 18vmin, 192px);
 }
 
 body {
@@ -131,7 +131,8 @@ body {
 }
 
 .cube-face-actions .btn {
-  min-width: 160px;
+  min-width: 140px;
+  padding: 6px 8px;
 }
 
 .cube-face--front {
@@ -176,8 +177,8 @@ body {
 }
 
 .cube-emblem--top {
-  top: calc(-1 * var(--emblem-size) - 12px);
-  transform: translateX(-50%) translateZ(130px);
+  top: calc(-0.65 * var(--emblem-size));
+  transform: translateX(-50%) translateZ(110px);
 }
 
 .cube-controls {
