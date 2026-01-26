@@ -82,8 +82,8 @@ function normalizeDeg(deg){
   return value;
 }
 
-let rotX = 0;
-let rotY = 0;
+let rotX = -7;
+let rotY = 30;
 let renderFrame = null;
 let snapFrame = null;
 
@@ -229,3 +229,47 @@ window.addEventListener("online", () => setStatus("Online."));
 window.addEventListener("offline", () => setStatus("Offline."));
 
 requestRender();
+
+const modalConfigs = [
+  { triggerId: "openTripModalBtn", modalId: "tripModal", overlayId: "tripModalOverlay" },
+  { triggerId: "openLogCatchModalBtn", modalId: "logCatchModal", overlayId: "logCatchModalOverlay" },
+  { triggerId: "openCatchesModalBtn", modalId: "catchesModal", overlayId: "catchesModalOverlay" },
+  { triggerId: "openQuiverModalBtn", modalId: "quiverModal", overlayId: "quiverModalOverlay" },
+  { triggerId: "openBadgesModalBtn", modalId: "badgesModal", overlayId: "badgesModalOverlay" },
+  { triggerId: "openTripRecapModalBtn", modalId: "tripRecapModal", overlayId: "tripRecapModalOverlay" }
+];
+
+function setupModal({ triggerId, modalId, overlayId }){
+  const trigger = document.getElementById(triggerId);
+  const modal = document.getElementById(modalId);
+  const overlay = document.getElementById(overlayId);
+  const closeBtn = modal?.querySelector("[data-modal-close]");
+  if(!trigger || !modal || !overlay) return;
+
+  const open = () => {
+    modal.classList.remove("hidden");
+    overlay.classList.remove("hidden");
+    modal.setAttribute("aria-hidden", "false");
+    overlay.setAttribute("aria-hidden", "false");
+  };
+
+  const close = () => {
+    modal.classList.add("hidden");
+    overlay.classList.add("hidden");
+    modal.setAttribute("aria-hidden", "true");
+    overlay.setAttribute("aria-hidden", "true");
+  };
+
+  trigger.addEventListener("click", open);
+  closeBtn?.addEventListener("click", close);
+  overlay.addEventListener("click", close);
+  document.addEventListener("keydown", (event) => {
+    if(event.key === "Escape" && !modal.classList.contains("hidden")){
+      close();
+    }
+  });
+}
+
+for(const config of modalConfigs){
+  setupModal(config);
+}

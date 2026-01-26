@@ -44,224 +44,44 @@
         -->
         <section class="cube-face cube-face--front" aria-label="Trip">
           <div class="cube-face-head">Trip</div>
-          <section class="card cube-card">
-            <div class="row">
-              <div class="grow">
-                <div class="label">Trip</div>
-                <div class="row gap tripHeaderControls">
-                  <select id="tripSelect" class="input"></select>
-                  <button id="newTripBtn" class="btn ghost" type="button">New</button>
-                  <button id="editTripBtn" class="btn ghost" type="button">Edit</button>
-                  <button id="deleteTripBtn" class="btn ghost danger" type="button">Delete</button>
-                </div>
-              </div>
-
-              <div class="stat">
-                <div class="statNum" id="catchCount">0</div>
-                <div class="statLbl">Catches</div>
-              </div>
-            </div>
-          </section>
+          <div class="cube-face-actions">
+            <button id="openTripModalBtn" class="btn accent" type="button">Open Trip</button>
+          </div>
         </section>
 
         <section class="cube-face cube-face--right" aria-label="Log Catch">
           <div class="cube-face-head">Log Catch</div>
-          <section class="card cube-card">
-            <details class="collapse" id="logCatchCollapse" open>
-              <summary class="collapseSummary">Log Catch</summary>
-              <div class="divider"></div>
-
-              <div class="grid2">
-                <div>
-                  <label class="label">Species</label>
-                  <select id="species" class="input">
-                    <option value="">—</option>
-                    <option>Rainbow Trout</option>
-                    <option>Brown Trout</option>
-                    <option>Brook Trout</option>
-                    <option>Lake Trout</option>
-                    <option>Cutthroat Trout</option>
-                    <option>Golden Trout</option>
-                    <option>Coastal Cutthroat Trout</option>
-                    <option>Westslope Cutthroat Trout</option>
-                    <option>Yellowstone Cutthroat Trout</option>
-                    <option>Lahontan Cutthroat Trout</option>
-                    <option>Bonneville Cutthroat Trout</option>
-                    <option>Greenback Cutthroat Trout</option>
-                    <option>Rio Grande Cutthroat Trout</option>
-                    <option>Bear River Cutthroat Trout</option>
-                    <option>Colorado River Cutthroat Trout</option>
-                    <option>Snake River Fine-spotted Cutthroat Trout</option>
-                    <option>Brook Trout (Char)</option>
-                    <option>Bull Trout</option>
-                    <option>Dolly Varden</option>
-                    <option>Arctic Char</option>
-                    <option>Steelhead</option>
-                    <option>Atlantic Salmon</option>
-                    <option>Tiger Trout</option>
-                    <option>Splake</option>
-                    <option>Cutbow Trout</option>
-                    <option>Smallmouth Bass</option>
-                    <option>Largemouth Bass</option>
-                    <option>Salmon (Pacific)</option>
-                    <option>Other</option>
-                  </select>
-                </div>
-
-                <div>
-                  <label class="label">Fly</label>
-                  <input id="fly" class="input" placeholder="e.g., Elk Hair Caddis" />
-                </div>
-
-                <div>
-                  <label class="label">Length (optional)</label>
-                  <input id="length" class="input" inputmode="decimal" placeholder="inches" />
-                </div>
-
-                <div>
-                  <label class="label">Notes (optional)</label>
-                  <input id="notes" class="input" placeholder="quick detail" />
-                </div>
-              </div>
-
-              <div class="row gap topGap catchActions">
-                <label class="btn fileBtn">
-                  Photo
-                  <input id="photoInput" type="file" accept="image/*" multiple hidden />
-                </label>
-                <button id="gpsBtn" class="btn ghost" type="button">Add GPS</button>
-                <button id="saveCatchBtn" class="btn accent" type="button">Save Catch</button>
-              </div>
-
-              <div class="hint" id="gpsHint">GPS: not added</div>
-              <div class="hint" id="photoHint">Photo: none</div>
-            </details>
-          </section>
+          <div class="cube-face-actions">
+            <button id="openLogCatchModalBtn" class="btn accent" type="button">Log Catch</button>
+          </div>
         </section>
 
         <section class="cube-face cube-face--left" aria-label="Catches">
           <div class="cube-face-head">Catches</div>
-          <section class="card cube-card">
-            <details class="collapse" id="catchesCollapse" open>
-              <summary class="collapseSummary">
-                Catches
-                <span class="muted summaryMeta" id="catchesSummaryMeta"></span>
-              </summary>
-
-              <div class="divider"></div>
-
-              <div id="catchList" class="list"></div>
-              <div id="emptyState" class="empty">
-                No catches yet. Log your first one above.
-              </div>
-            </details>
-          </section>
+          <div class="cube-face-actions">
+            <button id="openCatchesModalBtn" class="btn accent" type="button">View Catches</button>
+          </div>
         </section>
 
         <section class="cube-face cube-face--top" aria-label="Quiver">
           <div class="cube-face-head">Quiver</div>
-          <section class="card cube-card">
-            <details class="collapse" id="flyBoxCollapse" open>
-              <summary class="collapseSummary">
-                Quiver
-                <span class="muted summaryMeta" id="flyBoxSummaryMeta"></span>
-              </summary>
-
-              <div class="divider"></div>
-
-              <div class="row">
-                <div class="grow">
-                  <div class="row gap">
-                    <select id="flyBoxSelect" class="input"></select>
-                    <button id="newFlyBoxBtn" class="btn ghost" type="button">New</button>
-                    <button id="editFlyBoxBtn" class="btn ghost" type="button">Edit</button>
-                    <button id="deleteFlyBoxBtn" class="btn ghost danger" type="button">Delete</button>
-                  </div>
-                </div>
-
-                <div class="stat">
-                  <div class="statNum" id="flyCount">0</div>
-                  <div class="statLbl">Flies</div>
-                </div>
-              </div>
-
-              <div class="divider"></div>
-
-              <div class="row between center topGap metapad">
-                <div class="subtitle2" id="flyBoxMeta">—</div>
-                <button id="openFlyModalBtn" class="btn accent" type="button">Add Fly</button>
-              </div>
-
-              <div id="flyList" class="list"></div>
-              <div id="flyEmpty" class="empty">
-                No flies yet. Tap “Add Fly” to add your first pattern.
-              </div>
-            </details>
-          </section>
+          <div class="cube-face-actions">
+            <button id="openQuiverModalBtn" class="btn accent" type="button">Open Quiver</button>
+          </div>
         </section>
 
         <section class="cube-face cube-face--bottom" aria-label="Badges and Insights">
           <div class="cube-face-head">Badges + Insights</div>
-          <section class="card cube-card">
-            <details class="collapse" id="badgesCollapse" open>
-              <summary class="collapseSummary">
-                Badges + Insights
-                <span class="muted summaryMeta" id="badgesSummaryMeta"></span>
-              </summary>
-
-              <div class="divider"></div>
-
-              <div class="grid3" id="insightTiles">
-                <div class="insightTile">
-                  <div class="label insightLabel">
-                    Personal Record <span class="labelMeta" id="prMeta"></span>
-                  </div>
-                  <div class="insightPhoto" id="prTile">
-                    <div class="insightPhotoPlaceholder">No record yet</div>
-                  </div>
-                </div>
-
-                <div class="insightTile">
-                  <div class="label">Best Used Fly</div>
-                  <div class="insightBig" id="topFlyTile">—</div>
-                </div>
-
-                <div class="insightTile">
-                  <div class="label">Top Species</div>
-                  <div class="insightBig" id="topSpeciesTile">—</div>
-                </div>
-              </div>
-
-              <div class="divider"></div>
-
-              <div id="badgeGrid" class="badgeGrid"></div>
-            </details>
-          </section>
+          <div class="cube-face-actions">
+            <button id="openBadgesModalBtn" class="btn accent" type="button">View Insights</button>
+          </div>
         </section>
 
         <section class="cube-face cube-face--back" aria-label="Trip Recap">
           <div class="cube-face-head">Trip Recap</div>
-          <section class="card cube-card">
-            <details class="collapse" id="tripRecapCollapse" open>
-              <summary class="collapseSummary">
-                Trip Recap
-                <span class="muted summaryMeta" id="tripRecapSummaryMeta"></span>
-              </summary>
-
-              <div class="divider"></div>
-
-              <div class="row gap topGap">
-                <button id="collageBtn" class="btn" type="button">Collage</button>
-                <button id="collageBtnAllTopFish" class="btn ghost" type="button">All Trips Collage</button>
-                <button id="collageBtnTop9" class="btn ghost" type="button">Top 9 Collage</button>
-              </div>
-
-              <div class="divider"></div>
-
-              <label class="label topGap">Recap + lessons learned</label>
-              <textarea id="tripRecap" class="input area" placeholder="what happened, what you loved, what you’d do again"></textarea>
-            </details>
-          </section>
+          <div class="cube-face-actions">
+            <button id="openTripRecapModalBtn" class="btn accent" type="button">Open Recap</button>
+          </div>
         </section>
       </div>
     </div>
@@ -285,6 +105,282 @@
       <span class="cube-control-tip" data-tip="down">Next: Badges + Insights</span>
     </button>
   </nav>
+
+  <div id="tripModalOverlay" class="overlay hidden" aria-hidden="true"></div>
+  <section id="tripModal" class="modal hidden" role="dialog" aria-modal="true" aria-hidden="true">
+    <header class="modalHead">
+      <div>
+        <div class="modalTitle">Trip</div>
+        <div class="modalSub">Choose, create, or edit a trip.</div>
+      </div>
+      <button id="tripModalClose" class="btnGhost" type="button" data-modal-close>Close</button>
+    </header>
+    <div class="modalBody">
+      <section class="card cube-card">
+        <div class="row">
+          <div class="grow">
+            <div class="label">Trip</div>
+            <div class="row gap tripHeaderControls">
+              <select id="tripSelect" class="input"></select>
+              <button id="newTripBtn" class="btn ghost" type="button">New</button>
+              <button id="editTripBtn" class="btn ghost" type="button">Edit</button>
+              <button id="deleteTripBtn" class="btn ghost danger" type="button">Delete</button>
+            </div>
+          </div>
+
+          <div class="stat">
+            <div class="statNum" id="catchCount">0</div>
+            <div class="statLbl">Catches</div>
+          </div>
+        </div>
+      </section>
+    </div>
+  </section>
+
+  <div id="logCatchModalOverlay" class="overlay hidden" aria-hidden="true"></div>
+  <section id="logCatchModal" class="modal hidden" role="dialog" aria-modal="true" aria-hidden="true">
+    <header class="modalHead">
+      <div>
+        <div class="modalTitle">Log Catch</div>
+        <div class="modalSub">Quickly capture a catch.</div>
+      </div>
+      <button id="logCatchModalClose" class="btnGhost" type="button" data-modal-close>Close</button>
+    </header>
+    <div class="modalBody">
+      <section class="card cube-card">
+        <details class="collapse" id="logCatchCollapse" open>
+          <summary class="collapseSummary">Log Catch</summary>
+          <div class="divider"></div>
+
+          <div class="grid2">
+            <div>
+              <label class="label">Species</label>
+              <select id="species" class="input">
+                <option value="">—</option>
+                <option>Rainbow Trout</option>
+                <option>Brown Trout</option>
+                <option>Brook Trout</option>
+                <option>Lake Trout</option>
+                <option>Cutthroat Trout</option>
+                <option>Golden Trout</option>
+                <option>Coastal Cutthroat Trout</option>
+                <option>Westslope Cutthroat Trout</option>
+                <option>Yellowstone Cutthroat Trout</option>
+                <option>Lahontan Cutthroat Trout</option>
+                <option>Bonneville Cutthroat Trout</option>
+                <option>Greenback Cutthroat Trout</option>
+                <option>Rio Grande Cutthroat Trout</option>
+                <option>Bear River Cutthroat Trout</option>
+                <option>Colorado River Cutthroat Trout</option>
+                <option>Snake River Fine-spotted Cutthroat Trout</option>
+                <option>Brook Trout (Char)</option>
+                <option>Bull Trout</option>
+                <option>Dolly Varden</option>
+                <option>Arctic Char</option>
+                <option>Steelhead</option>
+                <option>Atlantic Salmon</option>
+                <option>Tiger Trout</option>
+                <option>Splake</option>
+                <option>Cutbow Trout</option>
+                <option>Smallmouth Bass</option>
+                <option>Largemouth Bass</option>
+                <option>Salmon (Pacific)</option>
+                <option>Other</option>
+              </select>
+            </div>
+
+            <div>
+              <label class="label">Fly</label>
+              <input id="fly" class="input" placeholder="e.g., Elk Hair Caddis" />
+            </div>
+
+            <div>
+              <label class="label">Length (optional)</label>
+              <input id="length" class="input" inputmode="decimal" placeholder="inches" />
+            </div>
+
+            <div>
+              <label class="label">Notes (optional)</label>
+              <input id="notes" class="input" placeholder="quick detail" />
+            </div>
+          </div>
+
+          <div class="row gap topGap catchActions">
+            <label class="btn fileBtn">
+              Photo
+              <input id="photoInput" type="file" accept="image/*" multiple hidden />
+            </label>
+            <button id="gpsBtn" class="btn ghost" type="button">Add GPS</button>
+            <button id="saveCatchBtn" class="btn accent" type="button">Save Catch</button>
+          </div>
+
+          <div class="hint" id="gpsHint">GPS: not added</div>
+          <div class="hint" id="photoHint">Photo: none</div>
+        </details>
+      </section>
+    </div>
+  </section>
+
+  <div id="catchesModalOverlay" class="overlay hidden" aria-hidden="true"></div>
+  <section id="catchesModal" class="modal hidden" role="dialog" aria-modal="true" aria-hidden="true">
+    <header class="modalHead">
+      <div>
+        <div class="modalTitle">Catches</div>
+        <div class="modalSub">Review the latest catches.</div>
+      </div>
+      <button id="catchesModalClose" class="btnGhost" type="button" data-modal-close>Close</button>
+    </header>
+    <div class="modalBody">
+      <section class="card cube-card">
+        <details class="collapse" id="catchesCollapse" open>
+          <summary class="collapseSummary">
+            Catches
+            <span class="muted summaryMeta" id="catchesSummaryMeta"></span>
+          </summary>
+
+          <div class="divider"></div>
+
+          <div id="catchList" class="list"></div>
+          <div id="emptyState" class="empty">
+            No catches yet. Log your first one above.
+          </div>
+        </details>
+      </section>
+    </div>
+  </section>
+
+  <div id="quiverModalOverlay" class="overlay hidden" aria-hidden="true"></div>
+  <section id="quiverModal" class="modal hidden" role="dialog" aria-modal="true" aria-hidden="true">
+    <header class="modalHead">
+      <div>
+        <div class="modalTitle">Quiver</div>
+        <div class="modalSub">Manage fly boxes and patterns.</div>
+      </div>
+      <button id="quiverModalClose" class="btnGhost" type="button" data-modal-close>Close</button>
+    </header>
+    <div class="modalBody">
+      <section class="card cube-card">
+        <details class="collapse" id="flyBoxCollapse" open>
+          <summary class="collapseSummary">
+            Quiver
+            <span class="muted summaryMeta" id="flyBoxSummaryMeta"></span>
+          </summary>
+
+          <div class="divider"></div>
+
+          <div class="row">
+            <div class="grow">
+              <div class="row gap">
+                <select id="flyBoxSelect" class="input"></select>
+                <button id="newFlyBoxBtn" class="btn ghost" type="button">New</button>
+                <button id="editFlyBoxBtn" class="btn ghost" type="button">Edit</button>
+                <button id="deleteFlyBoxBtn" class="btn ghost danger" type="button">Delete</button>
+              </div>
+            </div>
+
+            <div class="stat">
+              <div class="statNum" id="flyCount">0</div>
+              <div class="statLbl">Flies</div>
+            </div>
+          </div>
+
+          <div class="divider"></div>
+
+          <div class="row between center topGap metapad">
+            <div class="subtitle2" id="flyBoxMeta">—</div>
+            <button id="openFlyModalBtn" class="btn accent" type="button">Add Fly</button>
+          </div>
+
+          <div id="flyList" class="list"></div>
+          <div id="flyEmpty" class="empty">
+            No flies yet. Tap “Add Fly” to add your first pattern.
+          </div>
+        </details>
+      </section>
+    </div>
+  </section>
+
+  <div id="badgesModalOverlay" class="overlay hidden" aria-hidden="true"></div>
+  <section id="badgesModal" class="modal hidden" role="dialog" aria-modal="true" aria-hidden="true">
+    <header class="modalHead">
+      <div>
+        <div class="modalTitle">Badges + Insights</div>
+        <div class="modalSub">Highlights from your trips.</div>
+      </div>
+      <button id="badgesModalClose" class="btnGhost" type="button" data-modal-close>Close</button>
+    </header>
+    <div class="modalBody">
+      <section class="card cube-card">
+        <details class="collapse" id="badgesCollapse" open>
+          <summary class="collapseSummary">
+            Badges + Insights
+            <span class="muted summaryMeta" id="badgesSummaryMeta"></span>
+          </summary>
+
+          <div class="divider"></div>
+
+          <div class="grid3" id="insightTiles">
+            <div class="insightTile">
+              <div class="label insightLabel">
+                Personal Record <span class="labelMeta" id="prMeta"></span>
+              </div>
+              <div class="insightPhoto" id="prTile">
+                <div class="insightPhotoPlaceholder">No record yet</div>
+              </div>
+            </div>
+
+            <div class="insightTile">
+              <div class="label">Best Used Fly</div>
+              <div class="insightBig" id="topFlyTile">—</div>
+            </div>
+
+            <div class="insightTile">
+              <div class="label">Top Species</div>
+              <div class="insightBig" id="topSpeciesTile">—</div>
+            </div>
+          </div>
+
+          <div class="divider"></div>
+
+          <div id="badgeGrid" class="badgeGrid"></div>
+        </details>
+      </section>
+    </div>
+  </section>
+
+  <div id="tripRecapModalOverlay" class="overlay hidden" aria-hidden="true"></div>
+  <section id="tripRecapModal" class="modal hidden" role="dialog" aria-modal="true" aria-hidden="true">
+    <header class="modalHead">
+      <div>
+        <div class="modalTitle">Trip Recap</div>
+        <div class="modalSub">Summaries, collages, and lessons.</div>
+      </div>
+      <button id="tripRecapModalClose" class="btnGhost" type="button" data-modal-close>Close</button>
+    </header>
+    <div class="modalBody">
+      <section class="card cube-card">
+        <details class="collapse" id="tripRecapCollapse" open>
+          <summary class="collapseSummary">
+            Trip Recap
+            <span class="muted summaryMeta" id="tripRecapSummaryMeta"></span>
+          </summary>
+
+          <div class="divider"></div>
+
+          <div class="row gap topGap">
+            <button id="collageBtn" class="btn" type="button">Collage</button>
+            <button id="collageBtnAllTopFish" class="btn ghost" type="button">All Trips Collage</button>
+            <button id="collageBtnTop9" class="btn ghost" type="button">Top 9 Collage</button>
+          </div>
+
+          <div class="divider"></div>
+
+          <label class="label topGap">Recap + lessons learned</label>
+          <textarea id="tripRecap" class="input area" placeholder="what happened, what you loved, what you’d do again"></textarea>
+        </details>
+      </section>
+    </div>
+  </section>
 
   <div id="tripSheetOverlay" class="tripSheetOverlay" hidden aria-hidden="true">
     <div id="newTripForm" class="newTrip" hidden role="dialog" aria-modal="true" aria-label="Create new trip">

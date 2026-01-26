@@ -31,11 +31,13 @@ body {
 .cube-title {
   font-size: 1.15rem;
   font-weight: 700;
+  color: var(--text, #0f172a);
 }
 
 .cube-subtitle {
   font-size: 0.85rem;
-  color: var(--muted, #64748b);
+  color: var(--text, #0f172a);
+  opacity: 0.76;
 }
 
 .cube-actions {
@@ -46,7 +48,8 @@ body {
 
 .cube-status {
   font-size: 0.85rem;
-  color: var(--muted, #64748b);
+  color: var(--text, #0f172a);
+  opacity: 0.76;
 }
 
 .cube-stage {
@@ -103,12 +106,24 @@ body {
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.08em;
-  color: var(--muted, #64748b);
+  color: var(--text, #0f172a);
 }
 
 .cube-card {
   margin-top: 4px;
   flex: 1;
+}
+
+.cube-face-actions {
+  margin-top: 12px;
+  display: flex;
+  flex: 1;
+  align-items: center;
+  justify-content: center;
+}
+
+.cube-face-actions .btn {
+  min-width: 160px;
 }
 
 .cube-face--front {
@@ -163,7 +178,8 @@ body {
 
 .cube-control-tip {
   font-size: 0.72rem;
-  color: var(--muted, #64748b);
+  color: var(--text, #0f172a);
+  opacity: 0.78;
   white-space: nowrap;
 }
 
