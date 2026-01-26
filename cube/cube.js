@@ -82,42 +82,52 @@ function normalizeDeg(deg){
   return value;
 }
 
-let rotX = -7;
-let rotY = 30;
+const baseRotX = -7;
+const baseRotY = 30;
+let spinX = 0;
+let spinY = 0;
 let renderFrame = null;
 let snapFrame = null;
+
+function getRenderRotation(){
+  return {
+    rotX: normalizeDeg(baseRotX + spinX),
+    rotY: normalizeDeg(baseRotY + spinY)
+  };
+}
 
 function requestRender(){
   if(renderFrame) return;
   renderFrame = window.requestAnimationFrame(() => {
     renderFrame = null;
     if(!cube) return;
+    const { rotX, rotY } = getRenderRotation();
     // Rotation order: rotateX first, then rotateY (matches math above).
     cube.style.transform = `rotateY(${rotY}deg) rotateX(${rotX}deg)`;
-    updateTips();
+    updateTips(rotX, rotY);
   });
 }
 
-function animateTo(targetX, targetY){
-  const goalX = normalizeDeg(targetX);
-  const goalY = normalizeDeg(targetY);
+function animateTo(targetSpinX, targetSpinY){
+  const goalX = normalizeDeg(targetSpinX);
+  const goalY = normalizeDeg(targetSpinY);
 
   if(snapFrame) window.cancelAnimationFrame(snapFrame);
 
   const step = () => {
-    const dx = goalX - rotX;
-    const dy = goalY - rotY;
+    const dx = goalX - spinX;
+    const dy = goalY - spinY;
 
     if(Math.abs(dx) < 0.5 && Math.abs(dy) < 0.5){
-      rotX = goalX;
-      rotY = goalY;
+      spinX = goalX;
+      spinY = goalY;
       requestRender();
       snapFrame = null;
       return;
     }
 
-    rotX += dx * 0.15;
-    rotY += dy * 0.15;
+    spinX += dx * 0.15;
+    spinY += dy * 0.15;
     requestRender();
     snapFrame = window.requestAnimationFrame(step);
   };
@@ -126,12 +136,12 @@ function animateTo(targetX, targetY){
 }
 
 function snapToNearest(){
-  const snappedX = Math.round(rotX / 90) * 90;
-  const snappedY = Math.round(rotY / 90) * 90;
+  const snappedX = Math.round(spinX / 90) * 90;
+  const snappedY = Math.round(spinY / 90) * 90;
   animateTo(snappedX, snappedY);
 }
 
-function updateTips(){
+function updateTips(rotX, rotY){
   for(const [direction, delta] of Object.entries(directionSteps)){
     const tip = document.querySelector(`[data-tip="${direction}"]`);
     if(!tip) continue;
@@ -147,16 +157,16 @@ function canStartDrag(target){
 let isDragging = false;
 let startX = 0;
 let startY = 0;
-let startRotX = 0;
-let startRotY = 0;
+let startSpinX = 0;
+let startSpinY = 0;
 
 cubeScene?.addEventListener("pointerdown", (event) => {
   if(!canStartDrag(event.target)) return;
   isDragging = true;
   startX = event.clientX;
   startY = event.clientY;
-  startRotX = rotX;
-  startRotY = rotY;
+  startSpinX = spinX;
+  startSpinY = spinY;
   cubeScene.setPointerCapture(event.pointerId);
   if(snapFrame) window.cancelAnimationFrame(snapFrame);
 });
@@ -165,8 +175,8 @@ cubeScene?.addEventListener("pointermove", (event) => {
   if(!isDragging) return;
   const dx = event.clientX - startX;
   const dy = event.clientY - startY;
-  rotY = normalizeDeg(startRotY + dx * 0.3);
-  rotX = normalizeDeg(startRotX - dy * 0.3);
+  spinY = normalizeDeg(startSpinY + dx * 0.3);
+  spinX = normalizeDeg(startSpinX - dy * 0.3);
   requestRender();
 });
 
@@ -184,8 +194,8 @@ for(const button of document.querySelectorAll(".cube-control")){
     const direction = button.dataset.direction;
     const delta = directionSteps[direction];
     if(!delta) return;
-    const baseX = Math.round(rotX / 90) * 90;
-    const baseY = Math.round(rotY / 90) * 90;
+    const baseX = Math.round(spinX / 90) * 90;
+    const baseY = Math.round(spinY / 90) * 90;
     animateTo(baseX + delta.rotX, baseY + delta.rotY);
   });
 }
