@@ -1,8 +1,9 @@
 :root {
   --cube-size: min(70vmin, 520px);
-  --face-size: calc(var(--cube-size) * 0.84);
-  --prism-radius: calc(var(--face-size) * 0.87);
-  --emblem-size: clamp(64px, 9vmin, 96px);
+  --face-width: calc(var(--cube-size) * 0.84);
+  --face-height: calc(var(--cube-size) * 0.58);
+  --prism-radius: calc(var(--face-width) * 0.87);
+  --emblem-size: clamp(192px, 27vmin, 288px);
 }
 
 body {
@@ -85,16 +86,16 @@ body {
   position: absolute;
   top: 50%;
   left: 50%;
-  width: var(--face-size);
-  height: var(--face-size);
+  width: var(--face-width);
+  height: var(--face-height);
   background: var(--bg, rgba(255, 255, 255, 0.98));
   border: 1px solid var(--border, rgba(15, 23, 42, 0.12));
   border-radius: 24px;
-  padding: 20px;
+  padding: 12px 10px;
   overflow: auto;
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 8px;
   backface-visibility: hidden;
   transform: translate(-50%, -50%) rotateY(var(--face-rotate)) translateZ(var(--prism-radius));
 }
