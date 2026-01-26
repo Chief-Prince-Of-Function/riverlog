@@ -16,25 +16,14 @@
 </head>
 
 <body>
-  <header class="cube-header">
-    <div class="cube-brand">
-      <div class="cube-title">RiverLog Cube Prototype</div>
-      <div class="cube-subtitle">3D nav on top of RiverLog logic</div>
-    </div>
-
-    <div class="cube-actions">
-      <button id="themeToggle" class="btn ghost iconBtn" type="button" aria-label="Toggle theme" title="Switch to dark mode" aria-pressed="false">
-        <span aria-hidden="true">🌙</span>
-        <span class="sr-only">Toggle theme</span>
-      </button>
-      <div id="syncStatus" class="cube-status">—</div>
-    </div>
-  </header>
-
   <main class="cube-stage">
     <div class="cube-scene" id="cubeScene" aria-label="Rotating cube navigation">
       <button class="cube-emblem cube-emblem--top cube-emblem-button" id="openLogCatchEmblemBtn" type="button" aria-label="Open Log Catch">
         <img src="assets/new-logo.png" alt="" />
+      </button>
+      <button id="themeToggle" class="cube-theme-toggle btn ghost iconBtn" type="button" aria-label="Toggle theme" title="Switch to dark mode" aria-pressed="false">
+        <span aria-hidden="true">🌙</span>
+        <span class="sr-only">Toggle theme</span>
       </button>
       <div class="cube" id="cube" role="presentation">
         <!-- Face mapping:
