@@ -175,12 +175,7 @@ body {
 }
 
 .cube-emblem--top {
-  top: -28px;
-  transform: translateX(-50%) translateZ(130px);
-}
-
-.cube-emblem--bottom {
-  bottom: -28px;
+  top: calc(-1 * var(--emblem-size) - 12px);
   transform: translateX(-50%) translateZ(130px);
 }
 
