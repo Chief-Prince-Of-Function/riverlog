@@ -10,57 +10,12 @@ body {
   min-height: 100vh;
 }
 
-.cube-header {
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  z-index: 20;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 16px 20px;
-  background: var(--bg-solid, #ffffff);
-  border-bottom: 1px solid var(--border, rgba(15, 23, 42, 0.12));
-  gap: 16px;
-}
-
-.cube-brand {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-}
-
-.cube-title {
-  font-size: 1.15rem;
-  font-weight: 700;
-  color: var(--text, #0f172a);
-}
-
-.cube-subtitle {
-  font-size: 0.85rem;
-  color: var(--text, #0f172a);
-  opacity: 0.76;
-}
-
-.cube-actions {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-}
-
-.cube-status {
-  font-size: 0.85rem;
-  color: var(--text, #0f172a);
-  opacity: 0.76;
-}
-
 .cube-stage {
   min-height: 100vh;
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 110px 24px 140px;
+  padding: 64px 24px 140px;
 }
 
 .cube-scene {
@@ -194,6 +149,14 @@ body {
   transform: translateX(-50%) translateZ(110px);
 }
 
+.cube-theme-toggle {
+  position: absolute;
+  left: 50%;
+  bottom: calc(-0.65 * var(--emblem-size));
+  transform: translateX(-50%) translateZ(110px);
+  z-index: 2;
+}
+
 .cube-controls {
   position: fixed;
   inset: 0;
@@ -257,15 +220,20 @@ body {
 @media (max-width: 720px){
   :root {
     --cube-size: min(78vmin, 420px);
-    --emblem-size: clamp(52px, 12vmin, 72px);
-  }
-
-  .cube-header {
-    flex-direction: column;
-    align-items: flex-start;
+    --emblem-size: clamp(156px, 36vmin, 216px);
   }
 
   .cube-control-tip {
     display: none;
+  }
+
+  .cube-control {
+    min-width: 120px;
+    padding: 6px 8px;
+    border-radius: 999px;
+  }
+
+  .cube-control-arrow {
+    font-size: 1rem;
   }
 }
