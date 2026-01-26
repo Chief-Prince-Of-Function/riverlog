@@ -13,66 +13,31 @@ const statusEl = document.getElementById("syncStatus");
 /* =========================
    Face mapping
    Front: Trip
-   Back: Trip Recap
-   Right: Log Catch
-   Left: Catches
-   Top: Quiver
-   Bottom: Badges + Insights
+   Front-right: Log Catch
+   Back-right: Trip Recap
+   Back: Badges + Insights
+   Back-left: Quiver
+   Front-left: Catches
 ========================= */
 
-const faceNames = {
-  front: "Trip",
-  back: "Trip Recap",
-  right: "Log Catch",
-  left: "Catches",
-  top: "Quiver",
-  bottom: "Badges + Insights"
-};
-
-const faceNormals = {
-  front: [0, 0, 1],
-  back: [0, 0, -1],
-  right: [1, 0, 0],
-  left: [-1, 0, 0],
-  top: [0, -1, 0],
-  bottom: [0, 1, 0]
-};
+const faceRing = [
+  { label: "Trip", angle: 0 },
+  { label: "Log Catch", angle: 60 },
+  { label: "Trip Recap", angle: 120 },
+  { label: "Badges + Insights", angle: 180 },
+  { label: "Quiver", angle: 240 },
+  { label: "Catches", angle: 300 }
+];
 
 const directionSteps = {
-  left: { rotX: 0, rotY: 90 },
-  right: { rotX: 0, rotY: -90 },
-  up: { rotX: -90, rotY: 0 },
-  down: { rotX: 90, rotY: 0 }
+  left: { rotY: 60 },
+  right: { rotY: -60 },
+  up: { rotY: -60 },
+  down: { rotY: 60 }
 };
 
 function setStatus(msg){
   if(statusEl) statusEl.textContent = msg;
-}
-
-function rotateX([x, y, z], deg){
-  const rad = (deg * Math.PI) / 180;
-  const cos = Math.cos(rad);
-  const sin = Math.sin(rad);
-  return [x, y * cos - z * sin, y * sin + z * cos];
-}
-
-function rotateY([x, y, z], deg){
-  const rad = (deg * Math.PI) / 180;
-  const cos = Math.cos(rad);
-  const sin = Math.sin(rad);
-  return [x * cos + z * sin, y, -x * sin + z * cos];
-}
-
-function getFrontFace(rotX, rotY){
-  let best = null;
-  for(const [key, normal] of Object.entries(faceNormals)){
-    let next = rotateX(normal, rotX);
-    next = rotateY(next, rotY);
-    if(!best || next[2] > best.z){
-      best = { key, z: next[2] };
-    }
-  }
-  return faceNames[best?.key || "front"];
 }
 
 function normalizeDeg(deg){
@@ -82,16 +47,29 @@ function normalizeDeg(deg){
   return value;
 }
 
-const baseRotX = -7;
+function getFrontFace(rotY){
+  const normalized = normalizeDeg(rotY);
+  let best = faceRing[0];
+  let bestDistance = Infinity;
+  for(const face of faceRing){
+    const distance = Math.abs(normalizeDeg(normalized - face.angle));
+    if(distance < bestDistance){
+      bestDistance = distance;
+      best = face;
+    }
+  }
+  return best.label;
+}
+
+const baseRotX = -6;
 const baseRotY = 30;
-let spinX = 0;
 let spinY = 0;
 let renderFrame = null;
 let snapFrame = null;
 
 function getRenderRotation(){
   return {
-    rotX: normalizeDeg(baseRotX + spinX),
+    rotX: baseRotX,
     rotY: normalizeDeg(baseRotY + spinY)
   };
 }
@@ -104,29 +82,25 @@ function requestRender(){
     const { rotX, rotY } = getRenderRotation();
     // Rotation order: rotateX first, then rotateY (matches math above).
     cube.style.transform = `rotateY(${rotY}deg) rotateX(${rotX}deg)`;
-    updateTips(rotX, rotY);
+    updateTips(rotY);
   });
 }
 
-function animateTo(targetSpinX, targetSpinY){
-  const goalX = normalizeDeg(targetSpinX);
+function animateTo(targetSpinY){
   const goalY = normalizeDeg(targetSpinY);
 
   if(snapFrame) window.cancelAnimationFrame(snapFrame);
 
   const step = () => {
-    const dx = goalX - spinX;
     const dy = goalY - spinY;
 
-    if(Math.abs(dx) < 0.5 && Math.abs(dy) < 0.5){
-      spinX = goalX;
+    if(Math.abs(dy) < 0.5){
       spinY = goalY;
       requestRender();
       snapFrame = null;
       return;
     }
 
-    spinX += dx * 0.15;
     spinY += dy * 0.15;
     requestRender();
     snapFrame = window.requestAnimationFrame(step);
@@ -136,16 +110,15 @@ function animateTo(targetSpinX, targetSpinY){
 }
 
 function snapToNearest(){
-  const snappedX = Math.round(spinX / 90) * 90;
-  const snappedY = Math.round(spinY / 90) * 90;
-  animateTo(snappedX, snappedY);
+  const snappedY = Math.round(spinY / 60) * 60;
+  animateTo(snappedY);
 }
 
-function updateTips(rotX, rotY){
+function updateTips(rotY){
   for(const [direction, delta] of Object.entries(directionSteps)){
     const tip = document.querySelector(`[data-tip="${direction}"]`);
     if(!tip) continue;
-    const next = getFrontFace(rotX + delta.rotX, rotY + delta.rotY);
+    const next = getFrontFace(rotY + delta.rotY);
     tip.textContent = `Next: ${next}`;
   }
 }
@@ -156,16 +129,12 @@ function canStartDrag(target){
 
 let isDragging = false;
 let startX = 0;
-let startY = 0;
-let startSpinX = 0;
 let startSpinY = 0;
 
 cubeScene?.addEventListener("pointerdown", (event) => {
   if(!canStartDrag(event.target)) return;
   isDragging = true;
   startX = event.clientX;
-  startY = event.clientY;
-  startSpinX = spinX;
   startSpinY = spinY;
   cubeScene.setPointerCapture(event.pointerId);
   if(snapFrame) window.cancelAnimationFrame(snapFrame);
@@ -174,9 +143,7 @@ cubeScene?.addEventListener("pointerdown", (event) => {
 cubeScene?.addEventListener("pointermove", (event) => {
   if(!isDragging) return;
   const dx = event.clientX - startX;
-  const dy = event.clientY - startY;
   spinY = normalizeDeg(startSpinY + dx * 0.3);
-  spinX = normalizeDeg(startSpinX - dy * 0.3);
   requestRender();
 });
 
@@ -194,9 +161,8 @@ for(const button of document.querySelectorAll(".cube-control")){
     const direction = button.dataset.direction;
     const delta = directionSteps[direction];
     if(!delta) return;
-    const baseX = Math.round(spinX / 90) * 90;
-    const baseY = Math.round(spinY / 90) * 90;
-    animateTo(baseX + delta.rotX, baseY + delta.rotY);
+    const baseY = Math.round(spinY / 60) * 60;
+    animateTo(baseY + delta.rotY);
   });
 }
 

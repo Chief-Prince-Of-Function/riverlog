@@ -33,14 +33,17 @@
 
   <main class="cube-stage">
     <div class="cube-scene" id="cubeScene" aria-label="Rotating cube navigation">
+      <div class="cube-emblem cube-emblem--top" aria-hidden="true">
+        <img src="assets/new-logo.png" alt="" />
+      </div>
       <div class="cube" id="cube" role="presentation">
         <!-- Face mapping:
           Front: Trip
-          Back: Trip Recap
-          Right: Log Catch
-          Left: Catches
-          Top: Quiver
-          Bottom: Badges + Insights
+          Front-right: Log Catch
+          Back-right: Trip Recap
+          Back: Badges + Insights
+          Back-left: Quiver
+          Front-left: Catches
         -->
         <section class="cube-face cube-face--front" aria-label="Trip">
           <div class="cube-face-head">Trip</div>
@@ -49,40 +52,43 @@
           </div>
         </section>
 
-        <section class="cube-face cube-face--right" aria-label="Log Catch">
+        <section class="cube-face cube-face--front-right" aria-label="Log Catch">
           <div class="cube-face-head">Log Catch</div>
           <div class="cube-face-actions">
             <button id="openLogCatchModalBtn" class="btn accent" type="button">Log Catch</button>
           </div>
         </section>
 
-        <section class="cube-face cube-face--left" aria-label="Catches">
-          <div class="cube-face-head">Catches</div>
+        <section class="cube-face cube-face--back-right" aria-label="Trip Recap">
+          <div class="cube-face-head">Trip Recap</div>
           <div class="cube-face-actions">
-            <button id="openCatchesModalBtn" class="btn accent" type="button">View Catches</button>
+            <button id="openTripRecapModalBtn" class="btn accent" type="button">Open Recap</button>
           </div>
         </section>
 
-        <section class="cube-face cube-face--top" aria-label="Quiver">
-          <div class="cube-face-head">Quiver</div>
-          <div class="cube-face-actions">
-            <button id="openQuiverModalBtn" class="btn accent" type="button">Open Quiver</button>
-          </div>
-        </section>
-
-        <section class="cube-face cube-face--bottom" aria-label="Badges and Insights">
+        <section class="cube-face cube-face--back" aria-label="Badges and Insights">
           <div class="cube-face-head">Badges + Insights</div>
           <div class="cube-face-actions">
             <button id="openBadgesModalBtn" class="btn accent" type="button">View Insights</button>
           </div>
         </section>
 
-        <section class="cube-face cube-face--back" aria-label="Trip Recap">
-          <div class="cube-face-head">Trip Recap</div>
+        <section class="cube-face cube-face--back-left" aria-label="Quiver">
+          <div class="cube-face-head">Quiver</div>
           <div class="cube-face-actions">
-            <button id="openTripRecapModalBtn" class="btn accent" type="button">Open Recap</button>
+            <button id="openQuiverModalBtn" class="btn accent" type="button">Open Quiver</button>
           </div>
         </section>
+
+        <section class="cube-face cube-face--front-left" aria-label="Catches">
+          <div class="cube-face-head">Catches</div>
+          <div class="cube-face-actions">
+            <button id="openCatchesModalBtn" class="btn accent" type="button">View Catches</button>
+          </div>
+        </section>
+      </div>
+      <div class="cube-emblem cube-emblem--bottom" aria-hidden="true">
+        <img src="assets/new-logo.png" alt="" />
       </div>
     </div>
   </main>
