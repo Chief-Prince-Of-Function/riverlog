@@ -68,7 +68,7 @@ function getFrontFace(rotY){
 }
 
 const baseRotX = 0;
-const baseRotY = 15;
+const baseRotY = 0;
 let spinY = 0;
 let renderFrame = null;
 let snapFrame = null;
