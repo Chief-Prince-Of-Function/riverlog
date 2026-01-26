@@ -122,7 +122,7 @@ function updateTips(rotY){
   for(const [direction, delta] of Object.entries(directionSteps)){
     const tip = document.querySelector(`[data-tip="${direction}"]`);
     if(!tip) continue;
-    const next = getFrontFace(rotY - delta.rotY);
+    const next = getFrontFace(rotY + delta.rotY);
     tip.textContent = `Next: ${next}`;
   }
 }
