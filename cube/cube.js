@@ -65,6 +65,10 @@ function getFrontFace(rotY){
   return best.label;
 }
 
+function getVisibleFrontFace(rotY){
+  return getFrontFace(-rotY);
+}
+
 const baseRotX = 0;
 const baseRotY = 0;
 let spinY = 0;
@@ -122,7 +126,7 @@ function updateTips(rotY){
   for(const [direction, delta] of Object.entries(directionSteps)){
     const tip = document.querySelector(`[data-tip="${direction}"]`);
     if(!tip) continue;
-    const next = getFrontFace(rotY + delta.rotY);
+    const next = getVisibleFrontFace(rotY + delta.rotY);
     tip.textContent = `Next: ${next}`;
   }
 }
