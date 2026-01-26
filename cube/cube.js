@@ -30,10 +30,8 @@ const faceRing = [
 ];
 
 const directionSteps = {
-  left: { rotY: 60 },
-  right: { rotY: -60 },
-  up: { rotY: -60 },
-  down: { rotY: 60 }
+  left: { rotY: -60 },
+  right: { rotY: 60 }
 };
 
 function setStatus(msg){

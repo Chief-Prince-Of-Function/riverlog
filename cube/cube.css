@@ -175,13 +175,13 @@ body {
 }
 
 .cube-emblem--top {
-  top: -10px;
-  transform: translateX(-50%) rotateX(65deg) translateZ(80px);
+  top: -28px;
+  transform: translateX(-50%) translateZ(130px);
 }
 
 .cube-emblem--bottom {
-  bottom: -10px;
-  transform: translateX(-50%) rotateX(-65deg) translateZ(80px);
+  bottom: -28px;
+  transform: translateX(-50%) translateZ(130px);
 }
 
 .cube-controls {
