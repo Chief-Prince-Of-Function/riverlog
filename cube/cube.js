@@ -10,6 +10,12 @@ import { initIO } from "../js/io.js";
 const cube = document.getElementById("cube");
 const cubeScene = document.getElementById("cubeScene");
 const statusEl = document.getElementById("syncStatus");
+const offlineBadge = document.getElementById("offlineBadge");
+const lastSavedEl = document.getElementById("lastSaved");
+const toastStack = document.getElementById("toastStack");
+const cubeTripMeta = document.getElementById("cubeTripMeta");
+const cubeTripMetaHeader = document.getElementById("cubeTripMetaHeader");
+const prefersReducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
 /* =========================
    Face mapping
@@ -32,7 +38,9 @@ const faceRing = [
 
 const directionSteps = {
   left: { rotY: 60 },
-  right: { rotY: -60 }
+  right: { rotY: -60 },
+  up: { rotY: 120 },
+  down: { rotY: -120 }
 };
 
 function setStatus(msg){
@@ -92,27 +100,38 @@ function requestRender(){
     // Rotation order: rotateX first, then rotateY (matches math above).
     cube.style.transform = `rotateY(${rotY}deg) rotateX(${rotX}deg)`;
     updateTips(rotY);
+    updateActiveMode(rotY);
+    updateCompass(rotY);
   });
 }
 
 function animateTo(targetSpinY){
-  const goalY = targetSpinY;
-
   if(snapFrame) window.cancelAnimationFrame(snapFrame);
 
-  const step = () => {
-    const dy = goalY - spinY;
-
-    if(Math.abs(dy) < 0.5){
-      spinY = goalY;
-      requestRender();
-      snapFrame = null;
-      return;
-    }
-
-    spinY += dy * 0.15;
+  if(prefersReducedMotion){
+    spinY = targetSpinY;
     requestRender();
-    snapFrame = window.requestAnimationFrame(step);
+    snapFrame = null;
+    return;
+  }
+
+  const startY = spinY;
+  const delta = targetSpinY - startY;
+  const duration = 520;
+  const startTime = performance.now();
+
+  const easeOut = (t) => 1 - Math.pow(1 - t, 3);
+
+  const step = (now) => {
+    const elapsed = now - startTime;
+    const t = Math.min(elapsed / duration, 1);
+    spinY = startY + delta * easeOut(t);
+    requestRender();
+    if(t < 1){
+      snapFrame = window.requestAnimationFrame(step);
+    }else{
+      snapFrame = null;
+    }
   };
 
   snapFrame = window.requestAnimationFrame(step);
@@ -129,6 +148,21 @@ function updateTips(rotY){
     if(!tip) continue;
     const next = getVisibleFrontFace(rotY + delta.rotY);
     tip.textContent = `Next: ${next}`;
+  }
+}
+
+function updateActiveMode(rotY){
+  const active = getVisibleFrontFace(rotY);
+  for(const button of document.querySelectorAll(".mode-btn")){
+    const isActive = button.dataset.face === active;
+    button.setAttribute("aria-pressed", String(isActive));
+  }
+}
+
+function updateCompass(rotY){
+  const active = getVisibleFrontFace(rotY);
+  for(const dot of document.querySelectorAll(".cube-compass-dot")){
+    dot.classList.toggle("is-active", dot.dataset.face === active);
   }
 }
 
@@ -175,6 +209,92 @@ for(const button of document.querySelectorAll(".cube-control")){
   });
 }
 
+for(const button of document.querySelectorAll(".mode-btn")){
+  button.addEventListener("click", () => {
+    const target = faceRing.find((face) => face.label === button.dataset.face);
+    if(!target) return;
+    animateTo(-target.angle);
+  });
+}
+
+const quickActions = {
+  "new-trip": () => {
+    document.getElementById("openTripModalBtn")?.click();
+    window.setTimeout(() => document.getElementById("newTripBtn")?.click(), 0);
+  },
+  "log-catch": () => document.getElementById("openLogCatchModalBtn")?.click()
+};
+
+for(const button of document.querySelectorAll("[data-quick-action]")){
+  button.addEventListener("click", () => {
+    const action = quickActions[button.dataset.quickAction];
+    action?.();
+  });
+}
+
+function updateOnlineBadge(){
+  if(!offlineBadge) return;
+  const online = navigator.onLine;
+  offlineBadge.textContent = online ? "Online" : "Offline";
+  offlineBadge.dataset.state = online ? "online" : "offline";
+}
+
+function updateLastSaved(){
+  if(!lastSavedEl) return;
+  const now = new Date();
+  const time = now.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+  lastSavedEl.textContent = `Last saved: ${time}`;
+}
+
+function showToast({ title, message, tone = "default" }){
+  if(!toastStack) return;
+  const toast = document.createElement("div");
+  toast.className = "toast-item";
+  toast.dataset.tone = tone;
+  toast.innerHTML = `<strong>${title}</strong><span>${message}</span>`;
+  toastStack.appendChild(toast);
+  window.setTimeout(() => {
+    toast.style.opacity = "0";
+    toast.style.transform = "translateY(6px)";
+    window.setTimeout(() => toast.remove(), 200);
+  }, 3200);
+}
+
+const toastActions = [
+  { selector: "#saveCatchBtn", title: "Saved", message: "Catch logged." },
+  { selector: "#createTripBtn", title: "Saved", message: "Trip created." },
+  { selector: "#deleteTripBtn", title: "Deleted", message: "Trip removed.", tone: "danger" },
+  { selector: "#addFlyBtn", title: "Saved", message: "Fly added." },
+  { selector: "#exportBtn", title: "Exported", message: "Data export ready." },
+  { selector: "#collageDownload", title: "Exported", message: "Collage downloaded." }
+];
+
+for(const action of toastActions){
+  const el = document.querySelector(action.selector);
+  el?.addEventListener("click", () => {
+    showToast(action);
+    if(action.title === "Saved" || action.title === "Deleted"){
+      updateLastSaved();
+    }
+  });
+}
+
+document.getElementById("importInput")?.addEventListener("change", () => {
+  showToast({ title: "Imported", message: "Data import queued." });
+});
+
+document.getElementById("collageShare")?.addEventListener("click", () => {
+  showToast({ title: "Share", message: "Share sheet opened." });
+});
+
+if(cubeTripMeta && cubeTripMetaHeader){
+  cubeTripMetaHeader.textContent = cubeTripMeta.textContent;
+  const observer = new MutationObserver(() => {
+    cubeTripMetaHeader.textContent = cubeTripMeta.textContent;
+  });
+  observer.observe(cubeTripMeta, { childList: true, subtree: true });
+}
+
 /* =========================
    RiverLog logic wiring
    (imports from existing /js modules, DOM IDs mirror core app)
@@ -204,15 +324,25 @@ for(const button of document.querySelectorAll(".cube-control")){
       // ignore badge boot errors
     }
 
+    updateOnlineBadge();
     setStatus("Ready (offline-first)." + (navigator.onLine ? " Online." : " Offline."));
   }catch(e){
     setStatus(`Boot error: ${e?.message || e}`);
+    showToast({ title: "Error", message: "Boot failed. Check console.", tone: "danger" });
     console.error(e);
   }
 })();
 
-window.addEventListener("online", () => setStatus("Online."));
-window.addEventListener("offline", () => setStatus("Offline."));
+window.addEventListener("online", () => {
+  updateOnlineBadge();
+  setStatus("Online.");
+  showToast({ title: "Online", message: "Connection restored." });
+});
+window.addEventListener("offline", () => {
+  updateOnlineBadge();
+  setStatus("Offline.");
+  showToast({ title: "Offline", message: "Working locally." });
+});
 
 requestRender();
 
@@ -238,6 +368,7 @@ function setupModal({ triggerId, modalId, overlayId }){
     overlay.classList.remove("hidden");
     modal.setAttribute("aria-hidden", "false");
     overlay.setAttribute("aria-hidden", "false");
+    document.body.classList.add("modalOpen");
     for(const details of modal.querySelectorAll("details.collapse")){
       details.open = true;
     }
@@ -248,6 +379,7 @@ function setupModal({ triggerId, modalId, overlayId }){
     overlay.classList.add("hidden");
     modal.setAttribute("aria-hidden", "true");
     overlay.setAttribute("aria-hidden", "true");
+    document.body.classList.remove("modalOpen");
   };
 
   trigger.addEventListener("click", open);

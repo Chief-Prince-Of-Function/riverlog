@@ -16,6 +16,38 @@
 </head>
 
 <body>
+  <div class="cube-ambient" aria-hidden="true"></div>
+
+  <header class="cube-app-header">
+    <div class="cube-app-header-inner">
+      <div class="cube-brand">
+        <div class="cube-brand-mark" aria-hidden="true">
+          <img src="assets/new-logo.png" alt="" />
+        </div>
+        <div>
+          <div class="cube-title">RiverLog Cube</div>
+          <div class="cube-subtitle">High-end outdoor analytics for technical anglers</div>
+        </div>
+      </div>
+      <div class="cube-header-actions">
+        <button class="btn accent" type="button" data-quick-action="new-trip">New Trip</button>
+        <button class="btn ghost" type="button" data-quick-action="log-catch">Log Catch</button>
+      </div>
+    </div>
+    <div class="cube-header-meta">
+      <div class="cube-trip-context">
+        <span class="meta-label">Current Trip</span>
+        <span id="cubeTripMetaHeader" class="meta-value">No trip selected</span>
+      </div>
+      <div class="cube-hud" role="status" aria-live="polite">
+        <span class="hud-chip" id="storageStatus">Local storage</span>
+        <span class="hud-chip hud-status" id="syncStatus">Booting…</span>
+        <span class="hud-chip" id="lastSaved">Last saved: —</span>
+        <span class="hud-chip hud-online" id="offlineBadge">Offline</span>
+      </div>
+    </div>
+  </header>
+
   <main class="cube-stage">
     <div class="cube-scene" id="cubeScene" aria-label="Rotating cube navigation">
       <button class="cube-emblem cube-emblem--top cube-emblem-button" id="openLogCatchEmblemBtn" type="button" aria-label="Open Log Catch">
@@ -49,7 +81,14 @@
           Front-left: Catches
         -->
         <section class="cube-face cube-face--front" aria-label="Trip">
-          <div class="cube-face-head">Trip</div>
+          <div class="cube-face-head">
+            <span class="cube-face-icon" aria-hidden="true">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M4 7h16M4 12h16M4 17h10" />
+              </svg>
+            </span>
+            Trip
+          </div>
           <div class="cube-face-meta" id="cubeTripMeta">No trip selected</div>
           <div class="cube-face-actions">
             <button id="openTripModalBtn" class="btn accent" type="button">Open Trip</button>
@@ -57,21 +96,46 @@
         </section>
 
         <section class="cube-face cube-face--front-right" aria-label="Log Catch">
-          <div class="cube-face-head">Log Catch</div>
+          <div class="cube-face-head">
+            <span class="cube-face-icon" aria-hidden="true">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M5 12c3-5 11-5 14 0" />
+                <path d="M6 12l-2 2m16-2l2 2" />
+                <circle cx="12" cy="12" r="3" />
+              </svg>
+            </span>
+            Log Catch
+          </div>
           <div class="cube-face-actions">
             <button id="openLogCatchModalBtn" class="btn accent" type="button">Log Catch</button>
           </div>
         </section>
 
         <section class="cube-face cube-face--back-right" aria-label="Trip Recap">
-          <div class="cube-face-head">Trip Recap</div>
+          <div class="cube-face-head">
+            <span class="cube-face-icon" aria-hidden="true">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M5 4h10l4 4v12H5z" />
+                <path d="M9 12h6M9 16h6" />
+              </svg>
+            </span>
+            Trip Recap
+          </div>
           <div class="cube-face-actions">
             <button id="openTripRecapModalBtn" class="btn accent" type="button">Open Recap</button>
           </div>
         </section>
 
         <section class="cube-face cube-face--back" aria-label="Badges and Insights">
-          <div class="cube-face-head">Badges + Insights</div>
+          <div class="cube-face-head">
+            <span class="cube-face-icon" aria-hidden="true">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M7 4h10v7a5 5 0 0 1-10 0z" />
+                <path d="M12 16v4" />
+              </svg>
+            </span>
+            Badges + Insights
+          </div>
           <div class="cube-face-meta" id="cubeBadgesMeta">No record yet</div>
           <div class="cube-face-actions">
             <button id="openBadgesModalBtn" class="btn accent" type="button">View Insights</button>
@@ -79,7 +143,15 @@
         </section>
 
         <section class="cube-face cube-face--back-left" aria-label="Quiver">
-          <div class="cube-face-head">Quiver</div>
+          <div class="cube-face-head">
+            <span class="cube-face-icon" aria-hidden="true">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M7 6h10l-3 12H10z" />
+                <path d="M10 10h4" />
+              </svg>
+            </span>
+            Quiver
+          </div>
           <div class="cube-face-meta" id="cubeQuiverMeta">No quiver selected</div>
           <div class="cube-face-actions">
             <button id="openQuiverModalBtn" class="btn accent" type="button">Open Quiver</button>
@@ -87,24 +159,108 @@
         </section>
 
         <section class="cube-face cube-face--front-left" aria-label="Catches">
-          <div class="cube-face-head">Catches</div>
+          <div class="cube-face-head">
+            <span class="cube-face-icon" aria-hidden="true">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M4 12c2-4 8-6 12-3 2 2 3 5 4 6-1 1-3 3-6 3-4 0-7-2-10-6z" />
+                <circle cx="16" cy="10" r="1" />
+              </svg>
+            </span>
+            Catches
+          </div>
           <div class="cube-face-meta" id="cubeCatchesMeta">0 catches</div>
           <div class="cube-face-actions">
             <button id="openCatchesModalBtn" class="btn accent" type="button">View Catches</button>
           </div>
         </section>
       </div>
+
+      <div class="cube-compass" role="img" aria-label="Cube orientation indicator">
+        <div class="cube-compass-ring">
+          <span class="cube-compass-dot" data-face="Trip"></span>
+          <span class="cube-compass-dot" data-face="Log Catch"></span>
+          <span class="cube-compass-dot" data-face="Trip Recap"></span>
+          <span class="cube-compass-dot" data-face="Badges + Insights"></span>
+          <span class="cube-compass-dot" data-face="Quiver"></span>
+          <span class="cube-compass-dot" data-face="Catches"></span>
+        </div>
+      </div>
     </div>
   </main>
 
   <nav class="cube-controls" aria-label="Cube navigation controls">
-    <button class="cube-control cube-control--left" data-direction="left" type="button">
+    <button class="cube-control cube-control--left" data-direction="left" type="button" aria-label="Rotate left" title="Rotate left">
       <span class="cube-control-arrow">◀</span>
       <span class="cube-control-tip" data-tip="left">Next: Catches</span>
     </button>
-    <button class="cube-control cube-control--right" data-direction="right" type="button">
+    <button class="cube-control cube-control--right" data-direction="right" type="button" aria-label="Rotate right" title="Rotate right">
       <span class="cube-control-arrow">▶</span>
       <span class="cube-control-tip" data-tip="right">Next: Log Catch</span>
+    </button>
+    <button class="cube-control cube-control--up" data-direction="up" type="button" aria-label="Rotate up" title="Rotate up">
+      <span class="cube-control-arrow">▲</span>
+      <span class="cube-control-tip" data-tip="up">Next: Trip Recap</span>
+    </button>
+    <button class="cube-control cube-control--down" data-direction="down" type="button" aria-label="Rotate down" title="Rotate down">
+      <span class="cube-control-arrow">▼</span>
+      <span class="cube-control-tip" data-tip="down">Next: Trip</span>
+    </button>
+  </nav>
+
+  <nav class="cube-mode-dock" aria-label="Mode navigation">
+    <button class="mode-btn" type="button" data-face="Trip" aria-pressed="true">
+      <span class="mode-icon" aria-hidden="true">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M4 7h16M4 12h16M4 17h10" />
+        </svg>
+      </span>
+      <span class="mode-label">Trip</span>
+    </button>
+    <button class="mode-btn" type="button" data-face="Log Catch" aria-pressed="false">
+      <span class="mode-icon" aria-hidden="true">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M5 12c3-5 11-5 14 0" />
+          <path d="M6 12l-2 2m16-2l2 2" />
+          <circle cx="12" cy="12" r="3" />
+        </svg>
+      </span>
+      <span class="mode-label">Log Catch</span>
+    </button>
+    <button class="mode-btn" type="button" data-face="Catches" aria-pressed="false">
+      <span class="mode-icon" aria-hidden="true">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M4 12c2-4 8-6 12-3 2 2 3 5 4 6-1 1-3 3-6 3-4 0-7-2-10-6z" />
+          <circle cx="16" cy="10" r="1" />
+        </svg>
+      </span>
+      <span class="mode-label">Catches</span>
+    </button>
+    <button class="mode-btn" type="button" data-face="Quiver" aria-pressed="false">
+      <span class="mode-icon" aria-hidden="true">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M7 6h10l-3 12H10z" />
+          <path d="M10 10h4" />
+        </svg>
+      </span>
+      <span class="mode-label">Quiver</span>
+    </button>
+    <button class="mode-btn" type="button" data-face="Badges + Insights" aria-pressed="false">
+      <span class="mode-icon" aria-hidden="true">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M7 4h10v7a5 5 0 0 1-10 0z" />
+          <path d="M12 16v4" />
+        </svg>
+      </span>
+      <span class="mode-label">Badges</span>
+    </button>
+    <button class="mode-btn" type="button" data-face="Trip Recap" aria-pressed="false">
+      <span class="mode-icon" aria-hidden="true">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M5 4h10l4 4v12H5z" />
+          <path d="M9 12h6M9 16h6" />
+        </svg>
+      </span>
+      <span class="mode-label">Recap</span>
     </button>
   </nav>
 
@@ -244,7 +400,16 @@
 
           <div id="catchList" class="list"></div>
           <div id="emptyState" class="empty">
-            No catches yet. Log your first one above.
+            <div class="empty-illustration" aria-hidden="true">
+              <svg viewBox="0 0 140 100" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M10 70c18-28 52-44 82-28 14 7 24 18 38 30-12 12-30 24-52 24-30 0-52-14-68-26z" />
+                <circle cx="92" cy="56" r="4" />
+                <path d="M24 74l-10 8" />
+                <path d="M52 22c4 6 4 12 0 18" />
+              </svg>
+            </div>
+            <div class="empty-title">No catches yet</div>
+            <div class="empty-sub">Log your first one above.</div>
           </div>
         </details>
       </section>
@@ -295,7 +460,16 @@
 
           <div id="flyList" class="list"></div>
           <div id="flyEmpty" class="empty">
-            No flies yet. Tap “Add Fly” to add your first pattern.
+            <div class="empty-illustration" aria-hidden="true">
+              <svg viewBox="0 0 140 100" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M24 70h60l20-36H44z" />
+                <path d="M50 52h28" />
+                <path d="M90 70l18 18" />
+                <circle cx="50" cy="30" r="8" />
+              </svg>
+            </div>
+            <div class="empty-title">No flies yet</div>
+            <div class="empty-sub">Tap “Add Fly” to add your first pattern.</div>
           </div>
         </details>
       </section>
@@ -423,6 +597,8 @@
       <button id="badgeToastClose" class="toastClose" aria-label="Close badge notification" type="button">✕</button>
     </div>
   </div>
+
+  <div id="toastStack" class="toast-stack" aria-live="polite" aria-atomic="true"></div>
 
   <div id="collageOverlay" class="overlay hidden"></div>
   <div id="collageModal" class="modal hidden" role="dialog" aria-modal="true">
