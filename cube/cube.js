@@ -43,7 +43,8 @@ const directionSteps = {
 
 function getCubeIconUrl(title){
   if(!title) return "";
-  return `cube/assets/${encodeURIComponent(title.toLowerCase())}.png`;
+  const filename = `${title.toLowerCase()}.png`;
+  return new URL(`./assets/${encodeURIComponent(filename)}`, import.meta.url).toString();
 }
 
 function applyCubeFaceIcons(){
