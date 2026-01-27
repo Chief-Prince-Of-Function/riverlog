@@ -118,7 +118,7 @@ html[data-theme="dark"] body {
 .cube-compass-header {
   position: absolute;
   left: 50%;
-  bottom: calc(-1 * var(--space-6));
+  top: calc(0.35 * var(--emblem-size) + var(--space-2));
   transform: translateX(-50%) translateZ(110px);
   z-index: 3;
   display: flex;
@@ -601,7 +601,7 @@ textarea {
   }
 
   .cube-compass-header {
-    bottom: calc(-0.08 * var(--emblem-size));
+    top: calc(0.35 * var(--emblem-size) + var(--space-2));
   }
 
   .cube-stage {
