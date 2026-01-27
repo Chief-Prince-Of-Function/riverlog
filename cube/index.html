@@ -18,32 +18,17 @@
 <body>
   <div class="cube-ambient" aria-hidden="true"></div>
 
-  <header class="cube-app-header">
-    <div class="cube-app-header-inner">
-      <div class="cube-brand">
-        <div class="cube-brand-mark" aria-hidden="true">
-          <img src="assets/new-logo.png" alt="" />
-        </div>
-        <div>
-          <div class="cube-title">RiverLog Cube</div>
-          <div class="cube-subtitle">High-end outdoor analytics for technical anglers</div>
-        </div>
-      </div>
-      <div class="cube-header-actions">
-        <button class="btn accent" type="button" data-quick-action="new-trip">New Trip</button>
-        <button class="btn ghost" type="button" data-quick-action="log-catch">Log Catch</button>
-      </div>
-    </div>
-    <div class="cube-header-meta">
-      <div class="cube-trip-context">
-        <span class="meta-label">Current Trip</span>
-        <span id="cubeTripMetaHeader" class="meta-value">No trip selected</span>
-      </div>
-      <div class="cube-hud" role="status" aria-live="polite">
-        <span class="hud-chip" id="storageStatus">Local storage</span>
-        <span class="hud-chip hud-status" id="syncStatus">Booting…</span>
-        <span class="hud-chip" id="lastSaved">Last saved: —</span>
-        <span class="hud-chip hud-online" id="offlineBadge">Offline</span>
+  <header class="cube-mobile-header" aria-label="Cube orientation">
+    <div class="cube-mobile-header-inner">
+      <div class="cube-mobile-heading">Cube Compass</div>
+      <div class="cube-mobile-subhead">Front-facing card</div>
+      <div class="cube-mobile-faces" role="list">
+        <span class="cube-mobile-face" data-face="Trip">Trip</span>
+        <span class="cube-mobile-face" data-face="Log Catch">Log Catch</span>
+        <span class="cube-mobile-face" data-face="Trip Recap">Trip Recap</span>
+        <span class="cube-mobile-face" data-face="Badges + Insights">Badges + Insights</span>
+        <span class="cube-mobile-face" data-face="Quiver">Quiver</span>
+        <span class="cube-mobile-face" data-face="Catches">Catches</span>
       </div>
     </div>
   </header>
@@ -196,14 +181,6 @@
     <button class="cube-control cube-control--right" data-direction="right" type="button" aria-label="Rotate right" title="Rotate right">
       <span class="cube-control-arrow">▶</span>
       <span class="cube-control-tip" data-tip="right">Next: Log Catch</span>
-    </button>
-    <button class="cube-control cube-control--up" data-direction="up" type="button" aria-label="Rotate up" title="Rotate up">
-      <span class="cube-control-arrow">▲</span>
-      <span class="cube-control-tip" data-tip="up">Next: Trip Recap</span>
-    </button>
-    <button class="cube-control cube-control--down" data-direction="down" type="button" aria-label="Rotate down" title="Rotate down">
-      <span class="cube-control-arrow">▼</span>
-      <span class="cube-control-tip" data-tip="down">Next: Trip</span>
     </button>
   </nav>
 

@@ -38,9 +38,7 @@ const faceRing = [
 
 const directionSteps = {
   left: { rotY: 60 },
-  right: { rotY: -60 },
-  up: { rotY: 120 },
-  down: { rotY: -120 }
+  right: { rotY: -60 }
 };
 
 function setStatus(msg){
@@ -102,6 +100,7 @@ function requestRender(){
     updateTips(rotY);
     updateActiveMode(rotY);
     updateCompass(rotY);
+    updateMobileCompass(rotY);
   });
 }
 
@@ -163,6 +162,13 @@ function updateCompass(rotY){
   const active = getVisibleFrontFace(rotY);
   for(const dot of document.querySelectorAll(".cube-compass-dot")){
     dot.classList.toggle("is-active", dot.dataset.face === active);
+  }
+}
+
+function updateMobileCompass(rotY){
+  const active = getVisibleFrontFace(rotY);
+  for(const chip of document.querySelectorAll(".cube-mobile-face")){
+    chip.classList.toggle("is-active", chip.dataset.face === active);
   }
 }
 
