@@ -29,6 +29,7 @@
   --accent: #0f8f7b;
   --accent-2: #7c5cff;
   --accent-warm: #f4a44c;
+  --card-accent: rgba(112, 170, 220, 0.55);
 
   --surface-1: rgba(255, 255, 255, 0.9);
   --surface-2: rgba(248, 250, 252, 0.85);
@@ -52,6 +53,7 @@ html[data-theme="dark"] {
   --accent: #22c1a5;
   --accent-2: #9d8cff;
   --accent-warm: #ffb36b;
+  --card-accent: rgba(88, 138, 214, 0.6);
 
   --surface-1: rgba(10, 16, 28, 0.88);
   --surface-2: rgba(18, 26, 40, 0.85);
@@ -72,13 +74,13 @@ html[data-theme="dark"] {
 body {
   min-height: 100vh;
   color: var(--text-strong);
-  background: linear-gradient(180deg, rgba(248, 252, 255, 0.78), rgba(214, 226, 238, 0.82)),
+  background: linear-gradient(180deg, rgba(248, 252, 255, 0.62), rgba(214, 226, 238, 0.68)),
     url("assets/river-bg-light.png") center/cover no-repeat fixed;
   position: relative;
 }
 
 html[data-theme="dark"] body {
-  background: linear-gradient(180deg, rgba(7, 13, 24, 0.78), rgba(10, 20, 36, 0.88)),
+  background: linear-gradient(180deg, rgba(7, 13, 24, 0.6), rgba(10, 20, 36, 0.7)),
     url("assets/river-bg-dark.png") center/cover no-repeat fixed;
 }
 
@@ -114,6 +116,11 @@ html[data-theme="dark"] body {
 }
 
 .cube-compass-header {
+  position: absolute;
+  top: calc(-0.48 * var(--emblem-size));
+  left: 50%;
+  transform: translateX(-50%) translateZ(110px);
+  z-index: 3;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -167,7 +174,7 @@ html[data-theme="dark"] body {
   width: var(--face-width);
   height: var(--face-height);
   background: var(--surface-glass);
-  border: 1px solid var(--surface-border);
+  border: 1px solid var(--card-accent);
   border-radius: var(--radius-lg);
   padding: var(--space-4);
   overflow: hidden;
@@ -189,7 +196,7 @@ html[data-theme="dark"] body {
   position: absolute;
   inset: 12px;
   border-radius: 18px;
-  border: 1px solid rgba(255, 255, 255, 0.3);
+  border: 1px solid rgba(255, 255, 255, 0.22);
   opacity: 0.5;
   pointer-events: none;
 }
@@ -386,11 +393,11 @@ html[data-theme="dark"] .cube-face::before {
   align-items: center;
   gap: var(--space-2);
   padding: var(--space-2);
-  background: var(--surface-glass);
-  border: 1px solid var(--surface-border);
+  background: transparent;
+  border: none;
   border-radius: var(--radius-pill);
-  box-shadow: var(--shadow-strong);
-  backdrop-filter: var(--blur-soft) saturate(150%);
+  box-shadow: none;
+  backdrop-filter: none;
   z-index: 35;
   flex-wrap: wrap;
 }
@@ -531,7 +538,7 @@ textarea {
 
 .card {
   background: var(--surface-2);
-  border: 1px solid var(--surface-border);
+  border: 1px solid var(--card-accent);
   border-radius: var(--radius-lg);
   box-shadow: var(--shadow-soft);
 }
@@ -544,7 +551,7 @@ textarea {
 .photoModal {
   border-radius: var(--radius-lg);
   background: var(--surface-2);
-  border: 1px solid var(--surface-border);
+  border: 1px solid var(--card-accent);
   box-shadow: var(--shadow-strong);
   backdrop-filter: var(--blur-strong) saturate(140%);
 }
@@ -599,6 +606,10 @@ textarea {
   :root {
     --cube-size: min(82vmin, 420px);
     --emblem-size: clamp(140px, 34vmin, 208px);
+  }
+
+  .cube-compass-header {
+    top: calc(-0.3 * var(--emblem-size));
   }
 
   .cube-stage {
