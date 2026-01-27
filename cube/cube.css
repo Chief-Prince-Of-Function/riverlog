@@ -228,9 +228,13 @@ body {
   }
 
   .cube-control {
-    min-width: 120px;
-    padding: 6px 8px;
-    border-radius: 999px;
+    min-width: 0;
+    width: 52px;
+    height: 52px;
+    padding: 0;
+    gap: 0;
+    justify-content: center;
+    border-radius: 50%;
   }
 
   .cube-control-arrow {
