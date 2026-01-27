@@ -58,6 +58,10 @@ function normalizeSignedDeg(deg){
   return value;
 }
 
+function getWrappedTargetSpin(targetSpinY, currentSpinY = spinY){
+  return currentSpinY + normalizeSignedDeg(targetSpinY - currentSpinY);
+}
+
 function getFrontFace(rotY){
   const normalized = normalizeDeg(rotY);
   let best = faceRing[0];
@@ -219,7 +223,7 @@ for(const button of document.querySelectorAll(".mode-btn")){
   button.addEventListener("click", () => {
     const target = faceRing.find((face) => face.label === button.dataset.face);
     if(!target) return;
-    animateTo(-target.angle);
+    animateTo(getWrappedTargetSpin(-target.angle));
   });
 }
 
