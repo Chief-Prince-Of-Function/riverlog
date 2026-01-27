@@ -74,6 +74,10 @@ html[data-theme="dark"] body {
 
 html[data-theme="dark"] .cube-face {
   --bg: var(--bg-solid);
+  border-color: rgba(255, 152, 94, 0.45);
+  box-shadow:
+    0 0 0 1px rgba(255, 152, 94, 0.35),
+    0 18px 40px rgba(76, 39, 141, 0.45);
 }
 
 .cube-face::after {
@@ -83,6 +87,11 @@ html[data-theme="dark"] .cube-face {
   border-radius: 18px;
   border: 1px dashed rgba(148, 163, 184, 0.3);
   pointer-events: none;
+}
+
+html[data-theme="dark"] .cube-face::after {
+  border-color: rgba(255, 167, 99, 0.4);
+  box-shadow: 0 0 18px rgba(255, 149, 90, 0.35);
 }
 
 .cube-face-head {
