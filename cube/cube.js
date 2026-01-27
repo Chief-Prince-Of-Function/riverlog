@@ -5,6 +5,7 @@ import { initBadges } from "../js/badges.js";
 import { initFlyBox } from "../js/ui/flybox.js";
 import { initPhotoViewer } from "../js/photo-viewer.js";
 import { initTheme } from "../js/theme.js";
+import { initIO } from "../js/io.js";
 
 const cube = document.getElementById("cube");
 const cubeScene = document.getElementById("cubeScene");
@@ -191,6 +192,7 @@ for(const button of document.querySelectorAll(".cube-control")){
 
     const { refreshCatches } = initCatches({ setStatus });
     const { refreshTrips } = initTrips({ refreshCatches, setStatus });
+    initIO({ refreshTrips, setStatus });
 
     await refreshTrips();
 
