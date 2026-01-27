@@ -117,7 +117,7 @@ html[data-theme="dark"] body {
 
 .cube-compass-header {
   position: absolute;
-  top: calc(-0.2 * var(--emblem-size));
+  bottom: calc(-0.12 * var(--emblem-size));
   left: 50%;
   transform: translateX(-50%) translateZ(110px);
   z-index: 3;
@@ -361,11 +361,6 @@ html[data-theme="dark"] .cube-face::before {
   font-size: 1.1rem;
 }
 
-.cube-control-tip {
-  font-size: 0.72rem;
-  color: var(--text-muted);
-  white-space: nowrap;
-}
 
 .cube-control--left {
   top: 50%;
@@ -604,15 +599,11 @@ textarea {
   }
 
   .cube-compass-header {
-    top: calc(-0.12 * var(--emblem-size));
+    bottom: calc(-0.08 * var(--emblem-size));
   }
 
   .cube-stage {
     padding: 80px 16px 200px;
-  }
-
-  .cube-controls .cube-control-tip {
-    display: none;
   }
 
   .cube-control {
