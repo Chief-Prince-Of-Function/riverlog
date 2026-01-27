@@ -8,6 +8,22 @@
 
 body {
   min-height: 100vh;
+  /* Theme-controlled scenic background; image set per mode below. */
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+}
+
+html[data-theme="light"] body {
+  /* Light mode river background. */
+  background-image: url("./assets/river-bg-light.png");
+  background-color: #f8fafc;
+}
+
+html[data-theme="dark"] body {
+  /* Dark mode river background. */
+  background-image: url("./assets/river-bg-dark.png");
+  background-color: #0b1020;
 }
 
 .cube-stage {
