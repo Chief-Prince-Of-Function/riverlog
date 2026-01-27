@@ -3,6 +3,22 @@ const THEME_STORAGE_KEY = "riverlog-theme";
 const themeToggle = document.getElementById("themeToggle");
 const themeMeta = document.querySelector('meta[name="theme-color"]');
 
+function safeStorageGet(key){
+  try{
+    return localStorage.getItem(key);
+  }catch(_){
+    return null;
+  }
+}
+
+function safeStorageSet(key, value){
+  try{
+    localStorage.setItem(key, value);
+  }catch(_){
+    // ignore storage errors
+  }
+}
+
 function applyTheme(theme){
   const nextTheme = theme === "dark" ? "dark" : "light";
   document.documentElement.dataset.theme = nextTheme;
@@ -23,13 +39,13 @@ function applyTheme(theme){
 }
 
 function initTheme(){
-  const stored = localStorage.getItem(THEME_STORAGE_KEY);
+  const stored = safeStorageGet(THEME_STORAGE_KEY);
   applyTheme(stored === "dark" ? "dark" : "light");
 
   themeToggle?.addEventListener("click", ()=>{
     const current = document.documentElement.dataset.theme === "dark" ? "dark" : "light";
     const next = current === "dark" ? "light" : "dark";
-    localStorage.setItem(THEME_STORAGE_KEY, next);
+    safeStorageSet(THEME_STORAGE_KEY, next);
     applyTheme(next);
   });
 }
