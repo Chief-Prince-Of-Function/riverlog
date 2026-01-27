@@ -168,6 +168,12 @@ body {
   gap: 8px;
 }
 
+.cube-theme-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
 .cube-theme-toggle-button {
   touch-action: manipulation;
 }

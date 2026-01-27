@@ -22,10 +22,21 @@
         <img src="assets/new-logo.png" alt="" />
       </button>
       <div class="cube-theme-toggle">
-        <button id="themeToggle" class="cube-theme-toggle-button btn ghost iconBtn" type="button" aria-label="Toggle theme" title="Switch to dark mode" aria-pressed="false">
-          <span aria-hidden="true">🌙</span>
-          <span class="sr-only">Toggle theme</span>
-        </button>
+        <div class="cube-theme-actions">
+          <button id="exportBtn" class="btn ghost iconBtn" type="button" aria-label="Export" title="Export">
+            <span aria-hidden="true">⬆️</span>
+            <span class="sr-only">Export</span>
+          </button>
+          <button id="themeToggle" class="cube-theme-toggle-button btn ghost iconBtn" type="button" aria-label="Toggle theme" title="Switch to dark mode" aria-pressed="false">
+            <span aria-hidden="true">🌙</span>
+            <span class="sr-only">Toggle theme</span>
+          </button>
+          <label class="btn ghost fileBtn iconBtn" aria-label="Import" title="Import">
+            <span aria-hidden="true">📥</span>
+            <span class="sr-only">Import</span>
+            <input id="importInput" type="file" accept="application/zip,application/json,.zip,.json" hidden />
+          </label>
+        </div>
         <span class="cube-theme-label">RiverLog</span>
       </div>
       <div class="cube" id="cube" role="presentation">
