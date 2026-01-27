@@ -125,8 +125,8 @@ async function setActiveTrip(tripId, refreshCatches){
   state.tripId = tripId;
   await refreshCatches?.();
 
-  // close recap collapse when switching trips (optional UX)
-  if(tripRecapCollapse) tripRecapCollapse.open = false;
+  if(tripRecapCollapse) tripRecapCollapse.open = true;
+  if(tripId) await loadTripIntoRecap(tripId);
 }
 
 async function maybeDisableDeleteButton(){
