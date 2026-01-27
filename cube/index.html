@@ -21,10 +21,13 @@
       <button class="cube-emblem cube-emblem--top cube-emblem-button" id="openLogCatchEmblemBtn" type="button" aria-label="Open Log Catch">
         <img src="assets/new-logo.png" alt="" />
       </button>
-      <button id="themeToggle" class="cube-theme-toggle btn ghost iconBtn" type="button" aria-label="Toggle theme" title="Switch to dark mode" aria-pressed="false">
-        <span aria-hidden="true">🌙</span>
-        <span class="sr-only">Toggle theme</span>
-      </button>
+      <div class="cube-theme-toggle">
+        <button id="themeToggle" class="cube-theme-toggle-button btn ghost iconBtn" type="button" aria-label="Toggle theme" title="Switch to dark mode" aria-pressed="false">
+          <span aria-hidden="true">🌙</span>
+          <span class="sr-only">Toggle theme</span>
+        </button>
+        <span class="cube-theme-label">RiverLog</span>
+      </div>
       <div class="cube" id="cube" role="presentation">
         <!-- Face mapping:
           Front: Trip
