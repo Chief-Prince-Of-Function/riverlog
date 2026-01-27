@@ -12,7 +12,7 @@
   --space-5: 20px;
   --space-6: 24px;
   --space-7: 32px;
-  --compass-offset: calc(var(--space-6) + var(--space-2));
+  --compass-offset: calc(var(--space-7) + var(--space-4));
 
   --radius-xs: 10px;
   --radius-sm: 14px;
@@ -224,7 +224,11 @@ html[data-theme="dark"] .cube-face::before {
   display: block;
   width: clamp(48px, 12vw, 56px);
   height: clamp(48px, 12vw, 56px);
-  background-color: currentColor;
+  background-color: transparent;
+  background-image: var(--cube-icon);
+  background-repeat: no-repeat;
+  background-position: center;
+  background-size: contain;
   mask-image: var(--cube-icon);
   mask-repeat: no-repeat;
   mask-position: center;
@@ -603,7 +607,7 @@ textarea {
   :root {
     --cube-size: min(82vmin, 420px);
     --emblem-size: clamp(140px, 34vmin, 208px);
-    --compass-offset: calc(var(--space-5) + var(--space-2));
+    --compass-offset: calc(var(--space-6) + var(--space-4));
   }
 
   .cube-compass-header {
