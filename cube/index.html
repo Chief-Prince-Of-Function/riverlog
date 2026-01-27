@@ -18,27 +18,22 @@
 <body>
   <div class="cube-ambient" aria-hidden="true"></div>
 
-  <header class="cube-mobile-header" aria-label="Cube orientation">
-    <div class="cube-mobile-header-inner">
-      <div class="cube-mobile-heading">Cube Compass</div>
-      <div class="cube-mobile-subhead">Front-facing card</div>
-      <div class="cube-mobile-faces" role="list">
-        <span class="cube-mobile-face" data-face="Trip">Trip</span>
-        <span class="cube-mobile-face" data-face="Log Catch">Log Catch</span>
-        <span class="cube-mobile-face" data-face="Trip Recap">Trip Recap</span>
-        <span class="cube-mobile-face" data-face="Badges + Insights">Badges + Insights</span>
-        <span class="cube-mobile-face" data-face="Quiver">Quiver</span>
-        <span class="cube-mobile-face" data-face="Catches">Catches</span>
-      </div>
-    </div>
-  </header>
-
   <main class="cube-stage">
     <div class="cube-scene" id="cubeScene" aria-label="Rotating cube navigation">
       <button class="cube-emblem cube-emblem--top cube-emblem-button" id="openLogCatchEmblemBtn" type="button" aria-label="Open Log Catch">
         <img src="assets/new-logo.png" alt="" />
       </button>
       <div class="cube-theme-toggle">
+        <header class="cube-compass-header" aria-label="Cube orientation">
+          <div class="cube-compass-bar" role="list">
+            <span class="cube-compass-dot" data-face="Trip" aria-label="Trip"></span>
+            <span class="cube-compass-dot" data-face="Log Catch" aria-label="Log Catch"></span>
+            <span class="cube-compass-dot" data-face="Trip Recap" aria-label="Trip Recap"></span>
+            <span class="cube-compass-dot" data-face="Badges + Insights" aria-label="Badges + Insights"></span>
+            <span class="cube-compass-dot" data-face="Quiver" aria-label="Quiver"></span>
+            <span class="cube-compass-dot" data-face="Catches" aria-label="Catches"></span>
+          </div>
+        </header>
         <div class="cube-theme-actions">
           <button id="exportBtn" class="btn ghost iconBtn" type="button" aria-label="Export" title="Export">
             <span aria-hidden="true">⬆️</span>
@@ -158,17 +153,6 @@
             <button id="openCatchesModalBtn" class="btn accent" type="button">View Catches</button>
           </div>
         </section>
-      </div>
-
-      <div class="cube-compass" role="img" aria-label="Cube orientation indicator">
-        <div class="cube-compass-ring">
-          <span class="cube-compass-dot" data-face="Trip"></span>
-          <span class="cube-compass-dot" data-face="Log Catch"></span>
-          <span class="cube-compass-dot" data-face="Trip Recap"></span>
-          <span class="cube-compass-dot" data-face="Badges + Insights"></span>
-          <span class="cube-compass-dot" data-face="Quiver"></span>
-          <span class="cube-compass-dot" data-face="Catches"></span>
-        </div>
       </div>
     </div>
   </main>
