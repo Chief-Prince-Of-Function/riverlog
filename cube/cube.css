@@ -69,6 +69,11 @@ html[data-theme="dark"] body {
   gap: 8px;
   backface-visibility: hidden;
   transform: translate(-50%, -50%) rotateY(var(--face-rotate)) translateZ(var(--prism-radius));
+  opacity: 0.65;
+}
+
+html[data-theme="dark"] .cube-face {
+  --bg: var(--bg-solid);
 }
 
 .cube-face::after {
