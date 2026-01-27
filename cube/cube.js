@@ -89,7 +89,7 @@ let snapFrame = null;
 function getRenderRotation(){
   return {
     rotX: baseRotX,
-    rotY: normalizeDeg(baseRotY + spinY)
+    rotY: baseRotY + spinY
   };
 }
 
