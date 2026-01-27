@@ -23,16 +23,6 @@
       <button class="cube-emblem cube-emblem--top cube-emblem-button" id="openLogCatchEmblemBtn" type="button" aria-label="Open Log Catch">
         <img src="assets/new-logo.png" alt="" />
       </button>
-      <header class="cube-compass-header" aria-label="Cube orientation">
-        <div class="cube-compass-bar" role="list">
-          <span class="cube-compass-dot" data-face="Trip" aria-label="Trip"></span>
-          <span class="cube-compass-dot" data-face="Log Catch" aria-label="Log Catch"></span>
-          <span class="cube-compass-dot" data-face="Trip Recap" aria-label="Trip Recap"></span>
-          <span class="cube-compass-dot" data-face="Badges + Insights" aria-label="Badges + Insights"></span>
-          <span class="cube-compass-dot" data-face="Quiver" aria-label="Quiver"></span>
-          <span class="cube-compass-dot" data-face="Catches" aria-label="Catches"></span>
-        </div>
-      </header>
       <div class="cube-theme-toggle">
         <div class="cube-theme-actions">
           <button id="exportBtn" class="btn ghost iconBtn" type="button" aria-label="Export" title="Export">
@@ -51,6 +41,16 @@
         </div>
         <span class="cube-theme-label">RiverLog</span>
       </div>
+      <header class="cube-compass-header" aria-label="Cube orientation">
+        <div class="cube-compass-bar" role="list">
+          <span class="cube-compass-dot" data-face="Trip" aria-label="Trip"></span>
+          <span class="cube-compass-dot" data-face="Log Catch" aria-label="Log Catch"></span>
+          <span class="cube-compass-dot" data-face="Trip Recap" aria-label="Trip Recap"></span>
+          <span class="cube-compass-dot" data-face="Badges + Insights" aria-label="Badges + Insights"></span>
+          <span class="cube-compass-dot" data-face="Quiver" aria-label="Quiver"></span>
+          <span class="cube-compass-dot" data-face="Catches" aria-label="Catches"></span>
+        </div>
+      </header>
       <div class="cube" id="cube" role="presentation">
         <!-- Face mapping:
           Front: Trip
@@ -160,11 +160,9 @@
   <nav class="cube-controls" aria-label="Cube navigation controls">
     <button class="cube-control cube-control--left" data-direction="left" type="button" aria-label="Rotate left" title="Rotate left">
       <span class="cube-control-arrow">◀</span>
-      <span class="cube-control-tip" data-tip="left">Next: Catches</span>
     </button>
     <button class="cube-control cube-control--right" data-direction="right" type="button" aria-label="Rotate right" title="Rotate right">
       <span class="cube-control-arrow">▶</span>
-      <span class="cube-control-tip" data-tip="right">Next: Log Catch</span>
     </button>
   </nav>
 
