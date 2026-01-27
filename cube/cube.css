@@ -12,6 +12,7 @@
   --space-5: 20px;
   --space-6: 24px;
   --space-7: 32px;
+  --compass-offset: calc(var(--space-6) + var(--space-2));
 
   --radius-xs: 10px;
   --radius-sm: 14px;
@@ -118,7 +119,7 @@ html[data-theme="dark"] body {
 .cube-compass-header {
   position: absolute;
   left: 50%;
-  top: calc(50% + (var(--face-height) / 2) - 52px);
+  top: calc(50% + (var(--face-height) / 2) + var(--compass-offset));
   transform: translateX(-50%) translateZ(110px);
   z-index: 3;
   display: flex;
@@ -598,10 +599,11 @@ textarea {
   :root {
     --cube-size: min(82vmin, 420px);
     --emblem-size: clamp(140px, 34vmin, 208px);
+    --compass-offset: calc(var(--space-5) + var(--space-2));
   }
 
   .cube-compass-header {
-    top: calc(50% + (var(--face-height) / 2) - 56px);
+    top: calc(50% + (var(--face-height) / 2) + var(--compass-offset));
   }
 
   .cube-stage {
