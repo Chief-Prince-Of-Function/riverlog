@@ -80,6 +80,13 @@ html[data-theme="dark"] .cube-face {
     0 18px 40px rgba(76, 39, 141, 0.45);
 }
 
+html[data-theme="light"] .cube-face {
+  border-color: rgba(236, 210, 150, 0.7);
+  box-shadow:
+    0 0 0 1px rgba(238, 215, 164, 0.55),
+    0 18px 40px rgba(128, 176, 216, 0.35);
+}
+
 .cube-face::after {
   content: "";
   position: absolute;
@@ -94,8 +101,13 @@ html[data-theme="dark"] .cube-face::after {
   box-shadow: 0 0 18px rgba(255, 149, 90, 0.35);
 }
 
+html[data-theme="light"] .cube-face::after {
+  border-color: rgba(240, 220, 172, 0.5);
+  box-shadow: 0 0 18px rgba(166, 205, 236, 0.35);
+}
+
 .cube-face-head {
-  font-size: 1.1rem;
+  font-size: 1.25rem;
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.08em;
@@ -105,9 +117,9 @@ html[data-theme="dark"] .cube-face::after {
 
 .cube-face-meta {
   text-align: center;
-  font-size: 0.9rem;
+  font-size: 1.05rem;
   color: var(--muted, rgba(15, 23, 42, 0.6));
-  min-height: 1.1rem;
+  min-height: 1.3rem;
 }
 
 .cube-card {
@@ -125,7 +137,8 @@ html[data-theme="dark"] .cube-face::after {
 
 .cube-face-actions .btn {
   min-width: 140px;
-  padding: 6px 8px;
+  padding: 8px 12px;
+  font-size: 1rem;
 }
 
 .cube-face--front {
