@@ -41,6 +41,22 @@ const directionSteps = {
   right: { rotY: -60 }
 };
 
+function getCubeIconUrl(title){
+  if(!title) return "";
+  return `cube/assets/${title.toLowerCase()}.png`;
+}
+
+function applyCubeFaceIcons(){
+  for(const head of document.querySelectorAll(".cube-face-head")){
+    const icon = head.querySelector(".cube-face-icon");
+    if(!icon) continue;
+    const title = head.textContent.trim();
+    if(!title) continue;
+    const iconUrl = getCubeIconUrl(title);
+    icon.style.setProperty("--cube-icon", `url("${iconUrl}")`);
+  }
+}
+
 function setStatus(msg){
   if(statusEl) statusEl.textContent = msg;
 }
@@ -354,6 +370,7 @@ window.addEventListener("offline", () => {
   showToast({ title: "Offline", message: "Working locally." });
 });
 
+applyCubeFaceIcons();
 requestRender();
 
 const modalConfigs = [

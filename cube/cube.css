@@ -221,14 +221,18 @@ html[data-theme="dark"] .cube-face::before {
 }
 
 .cube-face-icon {
-  display: inline-flex;
-  width: 28px;
-  height: 28px;
-  border-radius: 12px;
-  align-items: center;
-  justify-content: center;
-  background: rgba(12, 148, 136, 0.12);
-  color: var(--accent);
+  display: block;
+  width: clamp(48px, 12vw, 56px);
+  height: clamp(48px, 12vw, 56px);
+  background-color: currentColor;
+  mask-image: var(--cube-icon);
+  mask-repeat: no-repeat;
+  mask-position: center;
+  mask-size: contain;
+  -webkit-mask-image: var(--cube-icon);
+  -webkit-mask-repeat: no-repeat;
+  -webkit-mask-position: center;
+  -webkit-mask-size: contain;
 }
 
 .cube-face-meta {
