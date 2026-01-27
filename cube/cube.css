@@ -70,6 +70,7 @@ html[data-theme="dark"] body {
   flex-direction: column;
   gap: 8px;
   backface-visibility: hidden;
+  transform-style: preserve-3d;
   transform: translate(-50%, -50%) rotateY(var(--face-rotate)) translateZ(var(--prism-radius));
   opacity: 0.65;
 }
@@ -94,18 +95,41 @@ html[data-theme="light"] .cube-face {
   position: absolute;
   inset: 12px;
   border-radius: 18px;
-  border: 1px dashed rgba(148, 163, 184, 0.3);
+  border: 2px solid transparent;
+  border-image: var(--pinecone-border) 12 round;
   pointer-events: none;
 }
 
 html[data-theme="dark"] .cube-face::after {
-  border-color: rgba(255, 167, 99, 0.4);
+  border-image-source: var(--pinecone-border);
   box-shadow: 0 0 18px rgba(255, 149, 90, 0.35);
 }
 
 html[data-theme="light"] .cube-face::after {
-  border-color: rgba(240, 220, 172, 0.5);
+  border-image-source: var(--pinecone-border);
   box-shadow: 0 0 18px rgba(166, 205, 236, 0.35);
+}
+
+.cube-face::before {
+  content: "";
+  position: absolute;
+  inset: 8px;
+  border-radius: 20px;
+  border: 1px solid var(--depth-border, rgba(148, 163, 184, 0.25));
+  transform: translateZ(-8px);
+  opacity: 0.5;
+  filter: blur(0.4px);
+  pointer-events: none;
+}
+
+html[data-theme="dark"] .cube-face {
+  --pinecone-border: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='18' height='18' viewBox='0 0 18 18' fill='none' stroke='%23ffa763' stroke-width='1.3' stroke-linecap='round' stroke-linejoin='round'><path d='M9 2.6c-2.4 0-4.2 1.8-4.2 4.2 0 3.6 4.2 9 4.2 9s4.2-5.4 4.2-9c0-2.4-1.8-4.2-4.2-4.2z'/><path d='M6.4 7.6c1 .7 2.2.7 3.3 0M6.8 10c1 .6 2.3.6 3.4 0'/></svg>");
+  --depth-border: rgba(255, 167, 99, 0.35);
+}
+
+html[data-theme="light"] .cube-face {
+  --pinecone-border: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='18' height='18' viewBox='0 0 18 18' fill='none' stroke='%23f0dcac' stroke-width='1.3' stroke-linecap='round' stroke-linejoin='round'><path d='M9 2.6c-2.4 0-4.2 1.8-4.2 4.2 0 3.6 4.2 9 4.2 9s4.2-5.4 4.2-9c0-2.4-1.8-4.2-4.2-4.2z'/><path d='M6.4 7.6c1 .7 2.2.7 3.3 0M6.8 10c1 .6 2.3.6 3.4 0'/></svg>");
+  --depth-border: rgba(240, 220, 172, 0.45);
 }
 
 .cube-face-head {
