@@ -73,6 +73,13 @@ body {
   text-align: center;
 }
 
+.cube-face-meta {
+  text-align: center;
+  font-size: 0.9rem;
+  color: var(--muted, rgba(15, 23, 42, 0.6));
+  min-height: 1.1rem;
+}
+
 .cube-card {
   margin-top: 4px;
   flex: 1;
