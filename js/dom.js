@@ -55,6 +55,12 @@ export const emptyState = $("emptyState");
 export const catchCount = $("catchCount");
 export const syncStatus = $("syncStatus");
 
+/* ===== Cube face meta ===== */
+export const cubeTripMeta = $("cubeTripMeta");
+export const cubeCatchesMeta = $("cubeCatchesMeta");
+export const cubeQuiverMeta = $("cubeQuiverMeta");
+export const cubeBadgesMeta = $("cubeBadgesMeta");
+
 /* ===== Quiver (FlyBox) ===== */
 export const flyBoxMeta = $("flyBoxMeta");
 export const flyBoxSummaryMeta = $("flyBoxSummaryMeta");

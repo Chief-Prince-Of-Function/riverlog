@@ -6,6 +6,7 @@ import {
   newTripBtn,
   editTripBtn,
   deleteTripBtn,
+  cubeTripMeta,
 
   newTripForm,
   tripSheetOverlay,
@@ -73,6 +74,19 @@ function tripSelectLabel(t){
   if(where) meta.push(where);
 
   return meta.length ? `${name} — ${meta.join(" · ")}` : name;
+}
+
+async function updateCubeTripMeta(tripId){
+  if(!cubeTripMeta) return;
+  if(!tripId){
+    cubeTripMeta.textContent = "No trip selected";
+    return;
+  }
+
+  const t = await getTrip(tripId);
+  const name = safeText(t?.name || "Trip");
+  const date = fmtTripDate(t?.date);
+  cubeTripMeta.textContent = date ? `${name} • ${date}` : name;
 }
 
 async function updateTripRecapSummary(tripId){
@@ -338,10 +352,12 @@ export function initTrips({ refreshCatches, setStatus }){
     if(active){
       await setActiveTrip(active, refreshCatches);
       await updateTripRecapSummary(active);
+      await updateCubeTripMeta(active);
     }else{
       state.tripId = null;
       await refreshCatches?.();
       await updateTripRecapSummary(null);
+      await updateCubeTripMeta(null);
     }
 
     await maybeDisableDeleteButton();

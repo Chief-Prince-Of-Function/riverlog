@@ -11,7 +11,9 @@ import {
   collageBtnTop9,
   catchesCollapse, catchesSummaryMeta,
   badgesSummaryMeta,
-  prTile, prMeta, topFlyTile, topSpeciesTile
+  prTile, prMeta, topFlyTile, topSpeciesTile,
+  cubeCatchesMeta,
+  cubeBadgesMeta
 } from "./dom.js";
 
 import { canBuildCollage, buildTripCollage } from "./collage.js";
@@ -127,6 +129,7 @@ function renderInsights(rows){
       prTile.innerHTML = `<div class="insightPhotoPlaceholder">No record yet</div>`;
       if(prMeta) prMeta.textContent = "";
       if(badgesSummaryMeta) badgesSummaryMeta.textContent = "";
+      if(cubeBadgesMeta) cubeBadgesMeta.textContent = "No record yet";
     }else{
       const speciesTxt = safeText(record.species) === "-" ? "Catch" : record.species;
       const lengthTxt = safeText(record.length);
@@ -181,6 +184,7 @@ function renderInsights(rows){
       const lenLabel = lengthTxt !== "-" ? `${lengthTxt}"` : "—";
       if(prMeta) prMeta.textContent = `${speciesTxt} ${lenLabel}`;
       if(badgesSummaryMeta) badgesSummaryMeta.textContent = `${speciesTxt} ${lenLabel}`;
+      if(cubeBadgesMeta) cubeBadgesMeta.textContent = `Personal best: ${speciesTxt} ${lenLabel}`;
     }
   }
 
@@ -460,6 +464,7 @@ export function initCatches({ setStatus }){
     if(!state.tripId){
       if(catchesSummaryMeta) catchesSummaryMeta.textContent = "";
       if(catchCount) catchCount.textContent = "0";
+      if(cubeCatchesMeta) cubeCatchesMeta.textContent = "0 catches";
       if(catchList) catchList.innerHTML = "";
       if(emptyState) emptyState.style.display = "block";
       setCollageButtonsEnabled(false, 0);
@@ -489,6 +494,7 @@ export function initCatches({ setStatus }){
     const rows = await listCatches(state.tripId);
 
     if(catchCount) catchCount.textContent = String(rows.length);
+    if(cubeCatchesMeta) cubeCatchesMeta.textContent = `${rows.length} catch${rows.length === 1 ? "" : "es"}`;
     if(catchList) catchList.innerHTML = "";
     if(emptyState) emptyState.style.display = rows.length ? "none" : "block";
 

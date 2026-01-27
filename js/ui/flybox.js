@@ -20,6 +20,7 @@ import {
   flyBoxMeta,
   flyBoxSummaryMeta,
   flyBoxSelect,
+  cubeQuiverMeta,
   newFlyBoxBtn,
   editFlyBoxBtn,
   deleteFlyBoxBtn,
@@ -226,6 +227,7 @@ async function refreshFlyMeta(boxId){
     if(flyBoxMeta) flyBoxMeta.textContent = "—";
     if(flyBoxSummaryMeta) flyBoxSummaryMeta.textContent = "";
     if(flyCount) flyCount.textContent = "0";
+    if(cubeQuiverMeta) cubeQuiverMeta.textContent = "No quiver selected";
     return;
   }
 
@@ -233,6 +235,10 @@ async function refreshFlyMeta(boxId){
   const totalQty = flies.reduce((sum, f)=> sum + (Number(f.qty)||0), 0);
 
   if(flyCount) flyCount.textContent = String(totalQty);
+  if(cubeQuiverMeta){
+    const name = safeText(box.name || "Quiver");
+    cubeQuiverMeta.textContent = `${name} • ${totalQty} fly${totalQty === 1 ? "" : "ies"}`;
+  }
 
   if(flyBoxMeta){
     flyBoxMeta.textContent =
