@@ -238,6 +238,9 @@ function setupModal({ triggerId, modalId, overlayId }){
     overlay.classList.remove("hidden");
     modal.setAttribute("aria-hidden", "false");
     overlay.setAttribute("aria-hidden", "false");
+    for(const details of modal.querySelectorAll("details.collapse")){
+      details.open = true;
+    }
   };
 
   const close = () => {
