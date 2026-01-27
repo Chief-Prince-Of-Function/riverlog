@@ -116,14 +116,15 @@ html[data-theme="dark"] body {
 }
 
 .cube-compass-header {
-  position: relative;
-  margin-top: var(--space-4);
-  transform: translateZ(110px);
+  position: absolute;
+  left: 50%;
+  bottom: calc(-1 * var(--space-6));
+  transform: translateX(-50%) translateZ(110px);
   z-index: 3;
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 100%;
+  width: auto;
 }
 
 .cube-compass-bar {
