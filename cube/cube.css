@@ -31,6 +31,7 @@
   --accent-2: #7c5cff;
   --accent-warm: #f4a44c;
   --card-accent: rgba(112, 170, 220, 0.55);
+  --card-accent-solid: rgb(112, 170, 220);
 
   --surface-1: rgba(255, 255, 255, 0.9);
   --surface-2: rgba(248, 250, 252, 0.85);
@@ -56,6 +57,7 @@ html[data-theme="dark"] {
   --accent-2: #9d8cff;
   --accent-warm: #ffb36b;
   --card-accent: rgba(88, 138, 214, 0.6);
+  --card-accent-solid: rgb(88, 138, 214);
 
   --surface-1: rgba(10, 16, 28, 0.88);
   --surface-2: rgba(18, 26, 40, 0.85);
@@ -211,7 +213,7 @@ html[data-theme="dark"] .cube-face::before {
 }
 
 html[data-theme="dark"] .cube-face-icon {
-  background-color: var(--card-accent);
+  background-color: var(--card-accent-solid);
 }
 
 .cube-face-head {
@@ -620,12 +622,13 @@ textarea {
   }
 
   html[data-theme="dark"] .modal,
+  html[data-theme="dark"] .modal .card,
   html[data-theme="dark"] .photoModal {
     --surface-1: rgb(10, 16, 28);
     --surface-2: rgb(12, 20, 32);
     --surface-3: rgb(12, 20, 32);
     --surface-glass: rgb(12, 20, 32);
-    background: var(--surface-2);
+    background: var(--modal-solid-bg);
     backdrop-filter: none;
   }
 
