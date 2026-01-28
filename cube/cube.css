@@ -618,11 +618,6 @@ textarea {
     backdrop-filter: none;
   }
 
-  html[data-theme="dark"] .overlay {
-    background: rgba(5, 8, 16, 0.55);
-    backdrop-filter: var(--blur-soft) saturate(140%);
-  }
-
   :root {
     --cube-size: min(82vmin, 420px);
     --emblem-size: clamp(140px, 34vmin, 208px);
@@ -676,6 +671,16 @@ textarea {
 
   .modal.hidden {
     transform: translate(-50%, 12px);
+  }
+}
+
+@supports (-webkit-touch-callout: none) {
+  @media (max-width: 720px) {
+    html[data-theme="dark"] .modal,
+    html[data-theme="dark"] .photoModal {
+      background: rgb(12, 20, 32);
+      backdrop-filter: none;
+    }
   }
 }
 
