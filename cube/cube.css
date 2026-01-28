@@ -608,6 +608,11 @@ textarea {
 }
 
 @media (max-width: 720px) {
+  html[data-theme="dark"] .modal,
+  html[data-theme="dark"] .photoModal {
+    background: rgba(12, 20, 32, 0.95);
+  }
+
   :root {
     --cube-size: min(82vmin, 420px);
     --emblem-size: clamp(140px, 34vmin, 208px);
