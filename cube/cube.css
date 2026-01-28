@@ -209,7 +209,7 @@ html[data-theme="dark"] .cube-face::before {
 }
 
 html[data-theme="dark"] .cube-face-icon {
-  background-color: rgba(148, 200, 255, 0.85);
+  background-color: var(--card-accent);
 }
 
 .cube-face-head {
@@ -610,7 +610,12 @@ textarea {
 @media (max-width: 720px) {
   html[data-theme="dark"] .modal,
   html[data-theme="dark"] .photoModal {
-    background: rgba(12, 20, 32, 0.95);
+    --surface-1: rgb(10, 16, 28);
+    --surface-2: rgb(12, 20, 32);
+    --surface-3: rgb(12, 20, 32);
+    --surface-glass: rgb(12, 20, 32);
+    background: var(--surface-2);
+    backdrop-filter: none;
   }
 
   :root {
