@@ -224,7 +224,7 @@ html[data-theme="dark"] .cube-face::before {
   display: block;
   width: clamp(48px, 12vw, 56px);
   height: clamp(48px, 12vw, 56px);
-  background-color: transparent;
+  background-color: var(--card-accent);
   background-image: var(--cube-icon);
   background-repeat: no-repeat;
   background-position: center;
