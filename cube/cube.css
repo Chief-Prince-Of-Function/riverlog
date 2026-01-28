@@ -669,6 +669,16 @@ textarea {
   }
 }
 
+@supports (-webkit-touch-callout: none) {
+  @media (max-width: 720px) {
+    html[data-theme="dark"] .modal,
+    html[data-theme="dark"] .photoModal {
+      background: rgb(12, 20, 32);
+      backdrop-filter: none;
+    }
+  }
+}
+
 .toast-stack {
   position: fixed;
   right: 24px;
