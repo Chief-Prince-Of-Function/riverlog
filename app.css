@@ -36,7 +36,7 @@
 
   --overlay-bg: rgba(15,23,42,.55);
   --modal-bg: #ffffff;
-  --photo-modal-bg: rgba(15,23,42,.95);
+  --photo-modal-bg: #0f172a;
   --sheet-bg: rgba(255,255,255,.98);
 
   /* dropdown tokens */
@@ -83,8 +83,8 @@ html[data-theme="dark"]{
   --trip-header-border: rgba(19,163,139,.38);
 
   --overlay-bg: rgba(0,0,0,.55);
-  --modal-bg: rgba(255,255,255,.08);
-  --photo-modal-bg: rgba(8,12,20,.92);
+  --modal-bg: #0f1826;
+  --photo-modal-bg: #0b1020;
   --sheet-bg: rgba(15,20,30,.98);
 
   --dd-bg-solid: #0f1826;
@@ -630,9 +630,6 @@ select.input option:checked{
   z-index: 9999;
   display: flex;
   flex-direction: column;
-
-  backdrop-filter: blur(16px) saturate(140%);
-  -webkit-backdrop-filter: blur(16px) saturate(140%);
 
   /* iOS tap + scroll sanity */
   pointer-events: auto;
