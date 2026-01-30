@@ -212,10 +212,6 @@ html[data-theme="dark"] .cube-face::before {
   border-color: rgba(255, 255, 255, 0.08);
 }
 
-html[data-theme="dark"] .cube-face-icon {
-  background-color: var(--card-accent-solid);
-}
-
 .cube-face-head {
   display: flex;
   flex-direction: column;
@@ -232,7 +228,7 @@ html[data-theme="dark"] .cube-face-icon {
   display: block;
   width: clamp(48px, 12vw, 56px);
   height: clamp(48px, 12vw, 56px);
-  background-color: var(--card-accent);
+  background-color: var(--card-accent-solid);
   background-image: var(--cube-icon);
   background-repeat: no-repeat;
   background-position: center;
@@ -755,11 +751,7 @@ textarea {
   width: 120px;
   height: 80px;
   margin: 0 auto var(--space-3);
-  color: rgba(15, 23, 42, 0.35);
-}
-
-html[data-theme="dark"] .empty-illustration {
-  color: rgba(238, 244, 255, 0.35);
+  color: var(--card-accent-solid);
 }
 
 .empty-title {
